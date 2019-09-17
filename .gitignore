@@ -30,3 +30,23 @@
 *.exe
 *.out
 *.app
+
+# Autotools
+*.in
+.deps
+stamp-h1
+Makefile
+/aclocal.m4
+/autom4te.cache/
+/configure
+/config.h
+/config.h.in
+/config.log
+/config.status
+/depcomp
+/install-sh
+/missing
+
+# Project binaries
+/src/omtt
+
