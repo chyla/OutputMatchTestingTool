@@ -32,7 +32,9 @@
 *.app
 
 # Autotools
+*.log
 *.in
+*.trs
 .deps
 stamp-h1
 Makefile
@@ -46,6 +48,7 @@ Makefile
 /depcomp
 /install-sh
 /missing
+/test-driver
 
 # Project binaries
 /src/omtt
