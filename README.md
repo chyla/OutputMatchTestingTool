@@ -15,13 +15,22 @@ To build the software you will need to have:
 
 ### Preparing the sources
 
+After cloning the repository, please init and fetch all data for the git submodules with the commands:
+
+```
+$ git submodule init
+$ git submodule update
+```
+
+Please also initialize the Autotools:
+
 ```
 $ autoreconf --install
 ```
 
 ### Building the project
 
-Use the standard commands for Autotools project - `./configure`, `make`, `make install`.
+When the sources are prepared use the standard commands for Autotools to build and install the project - `./configure`, `make`, `make install`.
 
 
 ## Authors
