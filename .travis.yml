@@ -1,0 +1,75 @@
+language: cpp
+sudo: required
+dist: bionic
+
+matrix:
+  include:
+    - name: unittests - GCC without optimisations
+      os: linux
+      compiler: gcc
+      env:
+        - CXXFLAGS="-Wall -pedantic -Werror -O0"
+      script:
+        - make
+        - make check
+    - name: unittests - GCC with optimisations on level 2 
+      os: linux
+      compiler: gcc
+      env:
+        - CXXFLAGS="-Wall -pedantic -Werror -O2"
+      script:
+        - make
+        - make check
+    - name: unittests - GCC with optimisations on level 3
+      os: linux
+      compiler: gcc
+      env:
+        - CXXFLAGS="-Wall -pedantic -Werror -O3"
+      script:
+        - make
+        - make check
+    - name: unittests - GCC without optimisations and AddressSanitizer
+      os: linux
+      compiler: gcc
+      env:
+        - CXXFLAGS="-Wall -pedantic -Werror -O0 -fsanitize=address"
+        - LDFLAGS="-fsanitize=address"
+      script:
+        - make
+        - make check
+    - name: unittests - GCC optimisations on level 2 and AddressSanitizer
+      os: linux
+      compiler: gcc
+      env:
+        - CXXFLAGS="-Wall -pedantic -Werror -O2 -fsanitize=address"
+        - LDFLAGS="-fsanitize=address"
+      script:
+        - make
+        - make check
+    - name: unittests - GCC optimisations on level 3 and AddressSanitizer
+      os: linux
+      compiler: gcc
+      env:
+        - CXXFLAGS="-Wall -pedantic -Werror -O3 -fsanitize=address"
+        - LDFLAGS="-fsanitize=address"
+      script:
+        - make
+        - make check
+
+
+before_install:
+- env
+- sudo apt-get -qq update
+- sudo apt-get install -y automake autoconf
+
+
+install: true
+
+
+before_script:
+- autoreconf --install
+- ./configure
+
+
+after_success: true
+
