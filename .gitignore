@@ -37,6 +37,7 @@
 *.trs
 .deps
 stamp-h1
+.dirstamp
 Makefile
 /aclocal.m4
 /autom4te.cache/
