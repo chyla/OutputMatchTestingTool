@@ -6,9 +6,9 @@
  */
 
 #include "headers/lexer/Lexer.hpp"
+#include "headers/lexer/exception/UnexpectedCharacterException.hpp"
 
 #include "doctest/doctest/doctest.h"
-#include "headers/lexer/exception/UnexpectedCharacterException.hpp"
 
 
 namespace omtt::lexer
