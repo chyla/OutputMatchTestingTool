@@ -7,17 +7,16 @@
 
 #pragma once
 
-#include "headers/lexer/TokenKind.hpp"
-
 #include <string_view>
 
 
-namespace omtt::lexer
+namespace omtt
 {
 
-struct Token {
-    const TokenKind kind;
-    const std::string_view value;
+struct TestData
+{
+    std::string_view input;
+    std::string_view expectedOutput;
 };
 
-}  // omtt::lexer
+}  // omtt

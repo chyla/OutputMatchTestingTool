@@ -84,10 +84,10 @@ Lexer::_HandleReadingKeywordsState()
         || word == "INPUT"
         || word == "EXPECT"
         || word == "OUTPUT") {
-        return Token{Token::Kind::KEYWORD, word};
+        return Token{TokenKind::KEYWORD, word};
     }
     else if (!word.empty()) {
-        return Token{Token::Kind::TEXT, word};
+        return Token{TokenKind::TEXT, word};
     }
     else {
         return std::nullopt;
@@ -192,7 +192,7 @@ Lexer::_ConsumeAndGetTokenWithText(const Lexer::PositionInBuffer begin, const Le
 {
     fCurrentPosition = end;
 
-    return Token{Token::Kind::TEXT,
+    return Token{TokenKind::TEXT,
                  std::string_view(fInputBuffer.data() + begin,
                                   end - begin)};
 }
