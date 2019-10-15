@@ -7,10 +7,10 @@
 
 #pragma once
 
+#include "headers/lexer/detail/to_hex_string.hpp"
 #include "headers/lexer/detail/State.hpp"
 
 #include <stdexcept>
-#include <sstream>
 
 
 namespace omtt::lexer::exception
@@ -21,18 +21,9 @@ public:
     explicit InvalidStateHandlingException(const detail::State state)
         :
         std::logic_error("Invalid handling of state "
-                         + to_hex_string(static_cast<unsigned>(state))
+                         + detail::to_hex_string(static_cast<unsigned>(state))
                          + ". Should never happend, please report.")
     {
-    }
-
-private:
-    static std::string
-    to_hex_string(unsigned x)
-    {
-        std::stringstream stream;
-        stream << "0x" << std::hex << x;
-        return stream.str();
     }
 };
 

@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "headers/lexer/exception/InvalidTokenKindToStringConversionException.hpp"
+
 #include <string>
 
 
@@ -19,13 +21,15 @@ enum class TokenKind {
 };
 
 inline std::string
-to_string(TokenKind kind) {
+to_string(const TokenKind kind) {
     switch (kind) {
         case TokenKind::KEYWORD:
             return "KEYWORD";
         case TokenKind::TEXT:
             return "TEXT";
     };
+
+    throw exception::InvalidTokenKindToStringConversionException(kind);
 }
 
 }

@@ -38,7 +38,7 @@ public:
     const TestData
     parse()
     {
-        while (fCurrentState != State::DONE) {
+        while (true) {
             switch (fCurrentState) {
                 case State::RUN:
                     _HandleRunState();
@@ -64,10 +64,10 @@ public:
                 case State::FINISHING:
                     _HandleFinishingState();
                     break;
+                case State::DONE:
+                  return fTestData;
             }
         }
-
-        return fTestData;
     }
 
 private:
