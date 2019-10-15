@@ -25,8 +25,7 @@ namespace omtt::parser
 {
 
 template<class Lexer>
-class Parser
-{
+class Parser {
 public:
     explicit Parser(Lexer &lexer)
         :
@@ -35,7 +34,7 @@ public:
     {
     }
 
-    const TestData
+    const TestData &
     parse()
     {
         while (true) {
