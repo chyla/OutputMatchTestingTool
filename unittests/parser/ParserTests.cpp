@@ -73,7 +73,7 @@ TEST_CASE("In 'RUN' state  - Should throw exception when lexer doesn't have more
     CHECK_THROWS_AS(sut.parse(), exception::MissingKeywordException);
 }
 
-TEST_CASE("In 'RUN' state  - Should throw exception when lexer returns token other then 'RUN' keyword")
+TEST_CASE("In 'RUN' state  - Should throw exception when lexer returns token other than 'RUN' keyword")
 {
     LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "WITH"}
     };
@@ -100,7 +100,7 @@ TEST_CASE("In 'WITH' state  - Should throw exception when lexer doesn't have mor
     CHECK_THROWS_AS(sut.parse(), exception::MissingKeywordException);
 }
 
-TEST_CASE("In 'WITH' state  - Should throw exception when lexer returns token other then 'WITH' keyword")
+TEST_CASE("In 'WITH' state  - Should throw exception when lexer returns token other than 'WITH' keyword")
 {
     LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
                   lexer::Token{lexer::TokenKind::KEYWORD, "RUN"}
@@ -130,7 +130,7 @@ TEST_CASE("In 'INPUT' state  - Should throw exception when lexer doesn't have mo
     CHECK_THROWS_AS(sut.parse(), exception::MissingKeywordException);
 }
 
-TEST_CASE("In 'INPUT' state  - Should throw exception when lexer returns token other then 'INPUT' keyword")
+TEST_CASE("In 'INPUT' state  - Should throw exception when lexer returns token other than 'INPUT' keyword")
 {
     LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
                     lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
@@ -163,7 +163,7 @@ TEST_CASE("In 'TEXT_INPUT' state  - Should throw exception when lexer doesn't ha
     CHECK_THROWS_AS(sut.parse(), exception::MissingTextException);
 }
 
-TEST_CASE("In 'TEXT_INPUT' state  - Should throw exception when lexer returns token other then text token")
+TEST_CASE("In 'TEXT_INPUT' state  - Should throw exception when lexer returns token other than text token")
 {
     LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
                     lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
@@ -187,7 +187,7 @@ TEST_CASE("In 'EXPECT' state  - Should throw exception when lexer doesn't have m
     CHECK_THROWS_AS(sut.parse(), exception::MissingKeywordException);
 }
 
-TEST_CASE("In 'EXPECT' state  - Should throw exception when lexer returns token other then 'EXPECT'")
+TEST_CASE("In 'EXPECT' state  - Should throw exception when lexer returns token other than 'EXPECT'")
 {
     LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
                     lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
@@ -224,7 +224,7 @@ TEST_CASE("In 'OUTPUT' state  - Should throw exception when lexer doesn't have m
     CHECK_THROWS_AS(sut.parse(), exception::MissingKeywordException);
 }
 
-TEST_CASE("In 'OUTPUT' state  - Should throw exception when lexer returns token other then 'OUTPUT'")
+TEST_CASE("In 'OUTPUT' state  - Should throw exception when lexer returns token other than 'OUTPUT'")
 {
     LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
                     lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
@@ -266,7 +266,7 @@ TEST_CASE("In 'TEXT_OUTPUT' state  - Should throw exception when lexer doesn't h
     CHECK_THROWS_AS(sut.parse(), exception::MissingTextException);
 }
 
-TEST_CASE("In 'TEXT_OUTPUT' state  - Should throw exception when lexer returns token other then text token")
+TEST_CASE("In 'TEXT_OUTPUT' state  - Should throw exception when lexer returns token other than text token")
 {
     LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
                     lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
