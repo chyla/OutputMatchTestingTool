@@ -17,6 +17,9 @@ AC_PROG_CXX
 AX_CXX_COMPILE_STDCXX_17([noext], [mandatory])
 
 # Checks for libraries.
+AX_BOOST_BASE([1.65], [], [AC_MSG_ERROR([cannot find Boost libraries])])
+
+AX_BOOST_PROGRAM_OPTIONS
 
 # Checks for header files.
 

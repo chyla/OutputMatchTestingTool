@@ -60,7 +60,7 @@ matrix:
 before_install:
 - env
 - sudo apt-get -qq update
-- sudo apt-get install -y automake autoconf
+- sudo apt-get install -y automake autoconf libboost1.65-all-dev
 
 
 install: true
