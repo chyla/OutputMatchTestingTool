@@ -66,7 +66,21 @@ main(int argc, char **argv)
         return 0;
     }
 
-    std::cout << "Hello\n";
+    if (vm.count("test-file") == 0) {
+        std::cerr << "fatal error: missing test file path.\n";
+        return 1;
+    }
+
+    if (vm.count("sut") == 0) {
+        std::cerr << "fatal error: missing sut.\n";
+        return 1;
+    }
+
+    const std::string testFile = vm["test-file"].as<std::string>();
+    const std::string sut = vm["sut"].as<std::string>();
+
+    std::cout << "Testing: " << sut << '\n';
+    std::cout << "Running test: " << testFile << '\n';
 
     return 0;
 }
