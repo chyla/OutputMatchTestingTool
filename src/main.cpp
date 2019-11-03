@@ -5,11 +5,15 @@
  * Distributed under the terms of the BSD 3-Clause License.
  */
 
+#include "config.h"
+#include "headers/ReadFile.hpp"
+#include "headers/TestData.hpp"
+#include "headers/lexer/Lexer.hpp"
+#include "headers/parser/Parser.hpp"
+
 #include <iostream>
 
 #include <boost/program_options.hpp>
-
-#include "config.h"
 
 namespace po = boost::program_options;
 
@@ -81,6 +85,20 @@ main(int argc, char **argv)
 
     std::cout << "Testing: " << sut << '\n';
     std::cout << "Running test: " << testFile << '\n';
+
+    try {
+        const std::string &testFileBuffer = omtt::readFile(testFile);
+        omtt::lexer::Lexer lexer(testFileBuffer);
+        omtt::parser::Parser parser(lexer);
+
+        const omtt::TestData &testData = parser.parse();
+        std::cout << "Test input: " << testData.input << '\n';
+        std::cout << "Expected output: " <<  testData.expectedOutput << '\n';
+    }
+    catch (std::exception &ex) {
+      std::cerr << "fatal error: " << ex.what() << "\n";
+      return 1;
+    }
 
     return 0;
 }
