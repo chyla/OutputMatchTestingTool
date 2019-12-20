@@ -1,5 +1,4 @@
-check_PROGRAMS = main lexer_tests parser_tests  run_process_tests
-main_SOURCES = main.cpp example.cpp
+check_PROGRAMS = lexer_tests parser_tests  run_process_tests
 
 lexer_tests_SOURCES = main.cpp lexer/LexerTests.cpp
 lexer_tests_LDADD = ../src/lexer/Lexer.o \
