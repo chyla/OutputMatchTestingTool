@@ -8,16 +8,10 @@
 #include "headers/RunProcess.hpp"
 #include "unittests/system/UnixFake.hpp"
 
-#include "doctest/doctest/doctest.h"
+#include "unittests/test_framework.hpp"
 
 #include <iterator>
 #include <string>
-
-#define TEST_GROUP TEST_CASE
-#define SUBGROUP SUBCASE
-#define UNIT_TEST SUBCASE
-
-#include <iostream>
 
 
 namespace omtt
@@ -43,7 +37,7 @@ TEST_GROUP("Child Process Exit Code")
     systemFake.ReadAction = [](int fd, void *buf, size_t count) -> ssize_t { return 0; };
 
 
-    UNIT_TEST("should return correct exit code")
+    UNIT_TEST("Should return correct exit code")
     {
         int expectedExitCode = 1423;
 
@@ -69,7 +63,7 @@ TEST_GROUP("Read Child Process Output")
     systemFake.ExitStatusAction = [](int) { return 0; };
 
 
-    UNIT_TEST("should return empty output when child output is empty")
+    UNIT_TEST("Should return empty output when child output is empty")
     {
         systemFake.ReadAction = [](int fd, void *buf, size_t count) -> ssize_t {
                                     return 0;
@@ -80,7 +74,7 @@ TEST_GROUP("Read Child Process Output")
         CHECK(results.output == "");
     }
 
-    UNIT_TEST("should return process output when output is short")
+    UNIT_TEST("Should return process output when output is short")
     {
         const std::string expectedProcessOutput = "ShortProcessOutput";
 
@@ -101,7 +95,7 @@ TEST_GROUP("Read Child Process Output")
         CHECK(results.output == expectedProcessOutput);
     }
 
-    UNIT_TEST("should return process output when output is long and requires multiple read calls")
+    UNIT_TEST("Should return process output when output is long and requires multiple read calls")
     {
         const std::string expedtedProcessOutputPart1 = "L";
         const std::string expedtedProcessOutputPart2 = "ongProcess";
@@ -148,7 +142,7 @@ TEST_GROUP("Write To Child Process")
     systemFake.ExitStatusAction = [](int) { return 0; };
 
 
-    UNIT_TEST("should not pass input when empty input string is given")
+    UNIT_TEST("Should not pass input when empty input string is given")
     {
         systemFake.WriteAction = [&](int fd, const void *buf, size_t count) -> ssize_t {
                                      throw std::logic_error("Write function shouldn't be called.");
@@ -157,7 +151,7 @@ TEST_GROUP("Write To Child Process")
         ProcessResults results = RunProcess(exampleBinaryPath, "");
     }
 
-    UNIT_TEST("should pass input when input string is short")
+    UNIT_TEST("Should pass input when input string is short")
     {
         const std::string input = "ShortProcessInput";
         std::string result;
@@ -178,7 +172,7 @@ TEST_GROUP("Write To Child Process")
         CHECK(counts.at(0) == input.length());
     }
 
-    UNIT_TEST("should pass input when input string is long and requires multiple write call")
+    UNIT_TEST("Should pass input when input string is long and requires multiple write call")
     {
         const std::string input = "ShortProcessInput";
         constexpr int sizeOfPart3 = 1;
@@ -256,7 +250,7 @@ TEST_GROUP("Pipes Management")
         systemFake.ReadAction = [](int, void *, size_t) -> ssize_t { return 0; };
 
 
-        UNIT_TEST("should close all pipes ends during function lifetime")
+        UNIT_TEST("Should close all pipes ends during function lifetime")
         {
             bool isClosedToParentReadEnd = false;
             bool isClosedToParentWriteEnd = false;
@@ -289,7 +283,7 @@ TEST_GROUP("Pipes Management")
             CHECK(isClosedToChildWriteEnd == true);
         }
 
-        UNIT_TEST("should close toChildWriteEnd after the data was written to the pipe")
+        UNIT_TEST("Should close toChildWriteEnd after the data was written to the pipe")
         {
             int isClosedToChildWriteEnd = false;
 
@@ -318,7 +312,7 @@ TEST_GROUP("Pipes Management")
             CHECK(isClosedToChildWriteEnd == true);
         }
 
-        UNIT_TEST("should close toParentReadEnd after all the data was read from the pipe")
+        UNIT_TEST("Should close toParentReadEnd after all the data was read from the pipe")
         {
             int isClosedToParentReadEnd = false;
 
@@ -360,7 +354,7 @@ TEST_GROUP("Pipes Management")
         systemFake.ExecAction = [](const std::string &) {};
 
 
-        UNIT_TEST("should close STDIN, STDOUT before duplicating fd")
+        UNIT_TEST("Should close STDIN, STDOUT before duplicating fd")
         {
             bool isDuplicateFdExecutedForStdIn = false;
             bool isDuplicateFdExecutedForStdOut = false;
@@ -398,7 +392,7 @@ TEST_GROUP("Pipes Management")
             CHECK(isClosedStdOut == true);
         }
 
-        UNIT_TEST("should close toParentReadEnd, toChildWriteEnd before Exec")
+        UNIT_TEST("Should close toParentReadEnd, toChildWriteEnd before Exec")
         {
             bool isExecExecuted = false;
             bool isClosedToParentReadEnd = false;
@@ -430,7 +424,7 @@ TEST_GROUP("Pipes Management")
             CHECK(isClosedToChildWriteEnd == true);
         }
 
-        UNIT_TEST("should duplicate toChildReadEnd to STDIN")
+        UNIT_TEST("Should duplicate toChildReadEnd to STDIN")
         {
             bool isDuplicatedToChildReadEnd = false;
 
@@ -446,7 +440,7 @@ TEST_GROUP("Pipes Management")
             CHECK(isDuplicatedToChildReadEnd == true);
         }
 
-        UNIT_TEST("should duplicate toParentWriteEnd to STDOUT")
+        UNIT_TEST("Should duplicate toParentWriteEnd to STDOUT")
         {
             bool isDuplicatedToParentWriteEnd = false;
 
@@ -478,7 +472,7 @@ TEST_GROUP("SUT Process Execution")
     systemFake.DuplicateFdAction = [](int oldFd, int newFd) {};
 
 
-    UNIT_TEST("should execute specified binary")
+    UNIT_TEST("Should execute specified binary")
     {
         std::string receivedPath;
 

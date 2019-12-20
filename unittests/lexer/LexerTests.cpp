@@ -8,7 +8,7 @@
 #include "headers/lexer/Lexer.hpp"
 #include "headers/lexer/exception/UnexpectedCharacterException.hpp"
 
-#include "doctest/doctest/doctest.h"
+#include "unittests/test_framework.hpp"
 
 
 namespace omtt::lexer
@@ -62,7 +62,7 @@ test_two_tokens_with_buffer(const std::string &buffer,
 } // helper
 
 
-TEST_CASE("return empty optional on empty input")
+TEST_CASE("Should return empty optional on empty input")
 {
     const std::string buffer = "";
     Lexer sut(buffer);
@@ -70,21 +70,21 @@ TEST_CASE("return empty optional on empty input")
     helper::check_sut_has_no_more_tokens(sut);
 }
 
-TEST_CASE("return keyword token with 'RUN' value")
+TEST_CASE("Should return keyword token with 'RUN' value")
 {
     const std::string buffer = "RUN";
     const Token expectedToken {TokenKind::KEYWORD, "RUN"};
     helper::test_one_token_with_buffer(buffer, expectedToken);
 }
 
-TEST_CASE("return keyword token with 'WITH' value")
+TEST_CASE("Should return keyword token with 'WITH' value")
 {
     const std::string buffer = "WITH";
     const Token expectedToken {TokenKind::KEYWORD, "WITH"};
     helper::test_one_token_with_buffer(buffer, expectedToken);
 }
 
-TEST_CASE("return keyword token with 'INPUT' value")
+TEST_CASE("Should return keyword token with 'INPUT' value")
 {
     const std::string buffer = "INPUT";
     Lexer sut(buffer);
@@ -94,14 +94,14 @@ TEST_CASE("return keyword token with 'INPUT' value")
     helper::check_token_equality(token, {TokenKind::KEYWORD, "INPUT"});
 }
 
-TEST_CASE("return keyword token with 'EXPECT' value")
+TEST_CASE("Should return keyword token with 'EXPECT' value")
 {
     const std::string buffer = "EXPECT";
     const Token expectedToken {TokenKind::KEYWORD, "EXPECT"};
     helper::test_one_token_with_buffer(buffer, expectedToken);
 }
 
-TEST_CASE("return keyword token with 'OUTPUT' value")
+TEST_CASE("Should return keyword token with 'OUTPUT' value")
 {
     const std::string buffer = "OUTPUT";
     Lexer sut(buffer);
@@ -111,14 +111,14 @@ TEST_CASE("return keyword token with 'OUTPUT' value")
     helper::check_token_equality(token, {TokenKind::KEYWORD, "OUTPUT"});
 }
 
-TEST_CASE("return keyword token with 'RUN' value even when there are spaces at the begining of the input")
+TEST_CASE("Should return keyword token with 'RUN' value even when there are spaces at the begining of the input")
 {
     const std::string buffer = "    RUN";
     const Token expectedToken {TokenKind::KEYWORD, "RUN"};
     helper::test_one_token_with_buffer(buffer, expectedToken);
 }
 
-TEST_CASE("return two keyword tokens for two keywords")
+TEST_CASE("Should return two keyword tokens for two keywords")
 {
     const std::string buffer = "RUN WITH";
     const Token expectedFirstToken {TokenKind::KEYWORD, "RUN"};
@@ -126,7 +126,7 @@ TEST_CASE("return two keyword tokens for two keywords")
     helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
 }
 
-TEST_CASE("return two keyword tokens for two keywords which are separated with multiple spaces")
+TEST_CASE("Should return two keyword tokens for two keywords which are separated with multiple spaces")
 {
     const std::string buffer = "RUN    WITH";
     const Token expectedFirstToken {TokenKind::KEYWORD, "RUN"};
@@ -134,7 +134,7 @@ TEST_CASE("return two keyword tokens for two keywords which are separated with m
     helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
 }
 
-TEST_CASE("return two keyword tokens for two keywords which are separated with multiple newline characters")
+TEST_CASE("Should return two keyword tokens for two keywords which are separated with multiple newline characters")
 {
     const std::string buffer = "RUN\n\n\nWITH";
     const Token expectedFirstToken {TokenKind::KEYWORD, "RUN"};
@@ -142,7 +142,7 @@ TEST_CASE("return two keyword tokens for two keywords which are separated with m
     helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
 }
 
-TEST_CASE("return text token for any text in buffer")
+TEST_CASE("Should return text token for any text in buffer")
 {
     const std::string buffer = "some text";
     const Token expectedFirstToken {TokenKind::TEXT, "some"};
@@ -150,7 +150,7 @@ TEST_CASE("return text token for any text in buffer")
     helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
 }
 
-TEST_CASE("after the 'INPUT' keyword should return next line as text token when there is no 'EXPECT' keyword in next line")
+TEST_CASE("After the 'INPUT' keyword should return next line as text token when there is no 'EXPECT' keyword in next line")
 {
     const std::string buffer = "INPUT\nsome input";
     const Token expectedFirstToken {TokenKind::KEYWORD, "INPUT"};
@@ -158,7 +158,7 @@ TEST_CASE("after the 'INPUT' keyword should return next line as text token when 
     helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
 }
 
-TEST_CASE("after the 'INPUT' keyword should ignore spaces and tabs up to the newline character")
+TEST_CASE("After the 'INPUT' keyword should ignore spaces and tabs up to the newline character")
 {
     const std::string buffer = "INPUT \t  \t \n  some input";
     const Token expectedFirstToken {TokenKind::KEYWORD, "INPUT"};
@@ -166,7 +166,7 @@ TEST_CASE("after the 'INPUT' keyword should ignore spaces and tabs up to the new
     helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
 }
 
-TEST_CASE("throw exception when characters other than spaces and tabs are found after the 'INPUT' keyword ")
+TEST_CASE("Should throw exception when characters other than spaces and tabs are found after the 'INPUT' keyword ")
 {
     const std::string buffer = "INPUT other text\n  some input";
     Lexer sut(buffer);
@@ -174,7 +174,7 @@ TEST_CASE("throw exception when characters other than spaces and tabs are found 
     CHECK_THROWS_AS(sut.FindNextToken(), exception::UnexpectedCharacterException);
 }
 
-TEST_CASE("after the 'INPUT' keyword should return empty text token when there is no more text in buffer")
+TEST_CASE("After the 'INPUT' keyword should return empty text token when there is no more text in buffer")
 {
     const std::string buffer = "INPUT";
     const Token expectedFirstToken {TokenKind::KEYWORD, "INPUT"};
@@ -182,7 +182,7 @@ TEST_CASE("after the 'INPUT' keyword should return empty text token when there i
     helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
 }
 
-TEST_CASE("after the 'INPUT' keyword should return all next lines as text token up to end of buffer when there is no line begining with 'EXPECT' keyword")
+TEST_CASE("After the 'INPUT' keyword should return all next lines as text token up to end of buffer when there is no line begining with 'EXPECT' keyword")
 {
     const std::string buffer = "INPUT\nsome input\nother line\none more line";
     const Token expectedFirstToken {TokenKind::KEYWORD, "INPUT"};
@@ -190,7 +190,7 @@ TEST_CASE("after the 'INPUT' keyword should return all next lines as text token 
     helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
 }
 
-TEST_CASE("after the 'INPUT' keyword should return all next lines as text token and ignore other keywords in this text")
+TEST_CASE("After the 'INPUT' keyword should return all next lines as text token and ignore other keywords in this text")
 {
     const std::string buffer = "INPUT\nsome EXPECT\n RUN \none more line";
     const Token expectedFirstToken {TokenKind::KEYWORD, "INPUT"};
@@ -198,7 +198,7 @@ TEST_CASE("after the 'INPUT' keyword should return all next lines as text token 
     helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
 }
 
-TEST_CASE("after the 'INPUT' keyword should ignore 'EXPECT' keyword when line starts with space")
+TEST_CASE("After the 'INPUT' keyword should ignore 'EXPECT' keyword when line starts with space")
 {
     const std::string buffer = "INPUT\n EXPECT";
     const Token expectedFirstToken {TokenKind::KEYWORD, "INPUT"};
@@ -206,7 +206,7 @@ TEST_CASE("after the 'INPUT' keyword should ignore 'EXPECT' keyword when line st
     helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
 }
 
-TEST_CASE("after the 'INPUT' keyword should ignore 'EXPECT' keyword when line starts with tab")
+TEST_CASE("After the 'INPUT' keyword should ignore 'EXPECT' keyword when line starts with tab")
 {
     const std::string buffer = "INPUT\n\tEXPECT";
     const Token expectedFirstToken {TokenKind::KEYWORD, "INPUT"};
@@ -214,7 +214,7 @@ TEST_CASE("after the 'INPUT' keyword should ignore 'EXPECT' keyword when line st
     helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
 }
 
-TEST_CASE("after the 'INPUT' keyword should return empty text token when the next line is begining with 'EXPECT' keyword")
+TEST_CASE("After the 'INPUT' keyword should return empty text token when the next line is begining with 'EXPECT' keyword")
 {
     const std::string buffer = "INPUT\nEXPECT";
     Lexer sut(buffer);
@@ -229,7 +229,7 @@ TEST_CASE("after the 'INPUT' keyword should return empty text token when the nex
     helper::check_sut_has_no_more_tokens(sut);
 }
 
-TEST_CASE("after the 'INPUT' keyword should return all next lines as text token up to line begining with 'EXPECT' keyword")
+TEST_CASE("After the 'INPUT' keyword should return all next lines as text token up to line begining with 'EXPECT' keyword")
 {
     const std::string buffer = "INPUT\nsome input\nother line\none more line\nEXPECT";
     Lexer sut(buffer);
@@ -247,7 +247,7 @@ TEST_CASE("after the 'INPUT' keyword should return all next lines as text token 
     helper::check_sut_has_no_more_tokens(sut);
 }
 
-TEST_CASE("return proper text token when multiple 'INPUT' keywords are present")
+TEST_CASE("Should return proper text token when multiple 'INPUT' keywords are present")
 {
     const std::string buffer = "INPUT\nsome text\nEXPECT INPUT\nother line\nEXPECT";
     Lexer sut(buffer);
@@ -268,7 +268,7 @@ TEST_CASE("return proper text token when multiple 'INPUT' keywords are present")
     helper::check_sut_has_no_more_tokens(sut);
 }
 
-TEST_CASE("after the 'OUTPUT' keyword should return empty text token when there is no more text in buffer")
+TEST_CASE("After the 'OUTPUT' keyword should return empty text token when there is no more text in buffer")
 {
     const std::string buffer = "OUTPUT";
     const Token expectedFirstToken {TokenKind::KEYWORD, "OUTPUT"};
@@ -276,7 +276,7 @@ TEST_CASE("after the 'OUTPUT' keyword should return empty text token when there 
     helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
 }
 
-TEST_CASE("after the 'OUTPUT' keyword should return next line as text token")
+TEST_CASE("After the 'OUTPUT' keyword should return next line as text token")
 {
     const std::string buffer = "OUTPUT\nsome output";
     const Token expectedFirstToken {TokenKind::KEYWORD, "OUTPUT"};
@@ -284,7 +284,7 @@ TEST_CASE("after the 'OUTPUT' keyword should return next line as text token")
     helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
 }
 
-TEST_CASE("after the 'OUTPUT' keyword should ignore spaces and tabs up to the newline character")
+TEST_CASE("After the 'OUTPUT' keyword should ignore spaces and tabs up to the newline character")
 {
     const std::string buffer = "OUTPUT \t  \t \n  some output";
     const Token expectedFirstToken {TokenKind::KEYWORD, "OUTPUT"};
@@ -292,7 +292,7 @@ TEST_CASE("after the 'OUTPUT' keyword should ignore spaces and tabs up to the ne
     helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
 }
 
-TEST_CASE("after the 'OUTPUT' keyword should return all next lines as text token up to the end of file even when there are other keywords in these lines")
+TEST_CASE("After the 'OUTPUT' keyword should return all next lines as text token up to the end of file even when there are other keywords in these lines")
 {
     const std::string buffer = "OUTPUT\nsome input\nother line\noline with keyword RUN\nWITH";
     Lexer sut(buffer);
@@ -307,7 +307,7 @@ TEST_CASE("after the 'OUTPUT' keyword should return all next lines as text token
     helper::check_sut_has_no_more_tokens(sut);
 }
 
-TEST_CASE("after handling the whole input should return empty optional when there are multiple check for next token")
+TEST_CASE("After handling the whole input should return empty optional when there are multiple check for next token")
 {
     const std::string buffer = "RUN WITH";
     Lexer sut(buffer);
