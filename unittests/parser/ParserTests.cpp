@@ -16,6 +16,18 @@ namespace omtt::parser
 
 using lexer::LexerFake;
 
+namespace
+{
+    void CheckOutput(const TestData &data, const std::string &expectedOutput)
+    {
+        CHECK(data.expectations.size() == 1);
+        expectation::Expectation *expectation = data.expectations.at(0).get();
+        expectation::FullOutputExpectation *fullOutput = dynamic_cast<expectation::FullOutputExpectation*>(expectation);
+        CHECK(fullOutput != nullptr);
+        CHECK(fullOutput->GetContent() == expectedOutput);
+    }
+}
+
 
 TEST_GROUP("Overall")
 {
@@ -34,7 +46,7 @@ TEST_GROUP("Overall")
         const TestData &data = sut.parse();
 
         CHECK(data.input == "example input");
-        CHECK(data.expectedOutput == "example output");
+        CheckOutput(data, "example output");
     }
 
     UNIT_TEST("Multiple 'parse()' call should return same test data")
@@ -50,21 +62,21 @@ TEST_GROUP("Overall")
         Parser<LexerFake> sut(lexer);
 
         {
-          const TestData &data = sut.parse();
-          CHECK(data.input == "example input");
-          CHECK(data.expectedOutput == "example output");
+            const TestData &data = sut.parse();
+            CHECK(data.input == "example input");
+            CheckOutput(data, "example output");
         }
 
         {
-          const TestData &data = sut.parse();
-          CHECK(data.input == "example input");
-          CHECK(data.expectedOutput == "example output");
+            const TestData &data = sut.parse();
+            CHECK(data.input == "example input");
+            CheckOutput(data, "example output");
         }
 
         {
-          const TestData &data = sut.parse();
-          CHECK(data.input == "example input");
-          CHECK(data.expectedOutput == "example output");
+            const TestData &data = sut.parse();
+            CHECK(data.input == "example input");
+            CheckOutput(data, "example output");
         }
     }
 

@@ -11,6 +11,8 @@
 #include "headers/TestData.hpp"
 #include "headers/lexer/Token.hpp"
 
+#include "headers/expectation/FullOutputExpectation.hpp"
+
 #include "headers/parser/exception/MissingKeywordException.hpp"
 #include "headers/parser/exception/WrongTokenException.hpp"
 #include "headers/parser/exception/MissingTextException.hpp"
@@ -133,7 +135,8 @@ private:
         _ThrowMissingTextWhenTokenNotPresent(token);
         _ThrowWhenKeyword(*token);
 
-        fTestData.expectedOutput = token->value;
+        auto expectation = std::make_unique<expectation::FullOutputExpectation>(token->value);
+        fTestData.expectations.emplace_back(std::move(expectation));
         fCurrentState = State::FINISHING;
     }
 

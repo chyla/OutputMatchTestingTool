@@ -11,6 +11,8 @@
 #include "headers/lexer/Lexer.hpp"
 #include "headers/parser/Parser.hpp"
 #include "headers/RunProcess.hpp"
+#include "headers/TestExecutionSummary.hpp"
+#include "headers/ValidateExpectationsAndSutResults.hpp"
 
 #include <iostream>
 
@@ -94,11 +96,13 @@ main(int argc, char **argv)
 
         const omtt::TestData &testData = parser.parse();
         std::cout << "Test input: " << testData.input << '\n';
-        std::cout << "Expected output: " <<  testData.expectedOutput << '\n';
 
         const omtt::ProcessResults &processResults = omtt::RunProcess(sut, testData.input);
         std::cout << "Process exit code: " << processResults.exitCode << '\n';
         std::cout << "Process output: " << processResults.output << '\n';
+
+        const omtt::TestExecutionSummary summary = omtt::ValidateExpectationsAndSutResults(testData, processResults);
+        std::cout << summary << '\n';
     }
     catch (std::exception &ex) {
         std::cerr << "fatal error: " << ex.what() << "\n";

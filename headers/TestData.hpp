@@ -7,7 +7,11 @@
 
 #pragma once
 
+#include "headers/expectation/Expectation.hpp"
+
+#include <memory>
 #include <string_view>
+#include <vector>
 
 
 namespace omtt
@@ -16,7 +20,7 @@ namespace omtt
 struct TestData
 {
     std::string_view input;
-    std::string_view expectedOutput;
+    std::vector<std::unique_ptr<expectation::Expectation>> expectations;
 };
 
 }  // omtt
