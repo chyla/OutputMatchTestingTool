@@ -15,8 +15,8 @@ namespace omtt
 
 TEST_CASE("Should be satisfied when expected output and SUT output is the same")
 {
-    std::string expectedOutput = "some output";
-    std::string sutOutput = "some output";
+    const std::string expectedOutput = "some output";
+    const std::string sutOutput = "some output";
 
     expectation::FullOutputExpectation expectation(expectedOutput);
 
@@ -25,8 +25,8 @@ TEST_CASE("Should be satisfied when expected output and SUT output is the same")
 
 TEST_CASE("Should not be satisfied when expected output and SUT output is not the same")
 {
-    std::string expectedOutput = "some output";
-    std::string sutOutput = "some other output";
+    const std::string expectedOutput = "some output";
+    const std::string sutOutput = "some other output";
 
     expectation::FullOutputExpectation expectation(expectedOutput);
 
@@ -35,8 +35,8 @@ TEST_CASE("Should not be satisfied when expected output and SUT output is not th
 
 TEST_CASE("Should not be satisfied when expected output and SUT output differs in letters case")
 {
-    std::string expectedOutput = "some output";
-    std::string sutOutput = "Some Output";
+    const std::string expectedOutput = "some output";
+    const std::string sutOutput = "Some Output";
 
     expectation::FullOutputExpectation expectation(expectedOutput);
 
