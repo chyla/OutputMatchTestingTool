@@ -55,12 +55,57 @@ matrix:
       script:
         - make
         - make check || cat unittests/test-suite.log
+    - name: systemtests - GCC without optimisations and AddressSanitizer
+      os: linux
+      compiler: gcc
+      env:
+        - CXXFLAGS="-Wall -pedantic -Werror -O0 -fsanitize=address"
+        - LDFLAGS="-fsanitize=address"
+      before_script:
+        - python3 -m venv venv
+        - source venv/bin/activate
+        - pip install -r systemtests/requirements.txt
+        - autoreconf --install
+        - ./configure
+      script:
+        - make
+        - robot -d systemtests_results -L DEBUG systemtests/
+    - name: systemtests - GCC optimisations on level 2 and AddressSanitizer
+      os: linux
+      compiler: gcc
+      env:
+        - CXXFLAGS="-Wall -pedantic -Werror -O2 -fsanitize=address"
+        - LDFLAGS="-fsanitize=address"
+      before_script:
+        - python3 -m venv venv
+        - source venv/bin/activate
+        - pip install -r systemtests/requirements.txt
+        - autoreconf --install
+        - ./configure
+      script:
+        - make
+        - robot -d systemtests_results -L DEBUG systemtests/
+    - name: systemtests - GCC optimisations on level 3 and AddressSanitizer
+      os: linux
+      compiler: gcc
+      env:
+        - CXXFLAGS="-Wall -pedantic -Werror -O3 -fsanitize=address"
+        - LDFLAGS="-fsanitize=address"
+      before_script:
+        - python3 -m venv venv
+        - source venv/bin/activate
+        - pip install -r systemtests/requirements.txt
+        - autoreconf --install
+        - ./configure
+      script:
+        - make
+        - robot -d systemtests_results -L DEBUG systemtests/
 
 
 before_install:
 - env
 - sudo apt-get -qq update
-- sudo apt-get install -y automake autoconf libboost1.65-all-dev
+- sudo apt-get install -y automake autoconf libboost1.65-all-dev python3-venv
 
 
 install: true
