@@ -20,6 +20,10 @@
 
 namespace po = boost::program_options;
 
+constexpr int HELP_OR_VERSION_INFORMATION_PRINTED = 251;
+constexpr int INVALID_COMMAND_LINE_OPTIONS = 252;
+constexpr int FATAL_ERROR = 255;
+
 
 int
 main(int argc, char **argv)
@@ -61,7 +65,7 @@ main(int argc, char **argv)
     if (vm.count("help")) {
         std::cout << "USAGE: " << argv[0] << " [OPTION] --sut SUT_PATH TEST_FILE\n"
                   << cmdline_options;
-        return 0;
+        return HELP_OR_VERSION_INFORMATION_PRINTED;
     }
 
     if (vm.count("version")) {
@@ -70,21 +74,23 @@ main(int argc, char **argv)
                   << "All rights reserved.\n"
                   << "\n"
                   << "Distributed under the terms of the BSD 3-Clause License.\n";
-        return 0;
+        return HELP_OR_VERSION_INFORMATION_PRINTED;
     }
 
     if (vm.count("test-file") == 0) {
         std::cerr << "fatal error: missing test file path.\n";
-        return 1;
+        return INVALID_COMMAND_LINE_OPTIONS;
     }
 
     if (vm.count("sut") == 0) {
         std::cerr << "fatal error: missing sut.\n";
-        return 1;
+        return INVALID_COMMAND_LINE_OPTIONS;
     }
 
     const std::string testFile = vm["test-file"].as<std::string>();
     const std::string sut = vm["sut"].as<std::string>();
+
+    int numberOfTestsFailed = 0;
 
     std::cout << "Testing: " << sut << '\n';
     std::cout << "Running test: " << testFile << '\n';
@@ -101,13 +107,17 @@ main(int argc, char **argv)
         std::cout << "Process exit code: " << processResults.exitCode << '\n';
         std::cout << "Process output: " << processResults.output << '\n';
 
-        const omtt::TestExecutionSummary summary = omtt::ValidateExpectationsAndSutResults(testData, processResults);
+        const omtt::TestExecutionSummary &summary = omtt::ValidateExpectationsAndSutResults(testData, processResults);
         std::cout << summary << '\n';
+
+        if (summary.verdict != omtt::Verdict::PASS) {
+            ++numberOfTestsFailed;
+        }
     }
     catch (std::exception &ex) {
         std::cerr << "fatal error: " << ex.what() << "\n";
-        return 1;
+        return FATAL_ERROR;
     }
 
-    return 0;
+    return numberOfTestsFailed;
 }
