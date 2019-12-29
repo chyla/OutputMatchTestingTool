@@ -101,11 +101,8 @@ main(int argc, char **argv)
         omtt::parser::Parser parser(lexer);
 
         const omtt::TestData &testData = parser.parse();
-        std::cout << "Test input: " << testData.input << '\n';
 
         const omtt::ProcessResults &processResults = omtt::RunProcess(sut, testData.input);
-        std::cout << "Process exit code: " << processResults.exitCode << '\n';
-        std::cout << "Process output: " << processResults.output << '\n';
 
         const omtt::TestExecutionSummary &summary = omtt::ValidateExpectationsAndSutResults(testData, processResults);
         std::cout << summary << '\n';
