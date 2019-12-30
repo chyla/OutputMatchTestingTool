@@ -10,24 +10,21 @@ matrix:
       env:
         - CXXFLAGS="-Wall -pedantic -Werror -O0"
       script:
-        - make
-        - make check || cat unittests/test-suite.log
+        - make unittests || cat unittests/test-suite.log
     - name: unittests - GCC with optimisations on level 2
       os: linux
       compiler: gcc
       env:
         - CXXFLAGS="-Wall -pedantic -Werror -O2"
       script:
-        - make
-        - make check || cat unittests/test-suite.log
+        - make unittests || cat unittests/test-suite.log
     - name: unittests - GCC with optimisations on level 3
       os: linux
       compiler: gcc
       env:
         - CXXFLAGS="-Wall -pedantic -Werror -O3"
       script:
-        - make
-        - make check || cat unittests/test-suite.log
+        - make unittests || cat unittests/test-suite.log
     - name: unittests - GCC without optimisations and AddressSanitizer
       os: linux
       compiler: gcc
@@ -35,8 +32,7 @@ matrix:
         - CXXFLAGS="-Wall -pedantic -Werror -O0 -fsanitize=address"
         - LDFLAGS="-fsanitize=address"
       script:
-        - make
-        - make check || cat unittests/test-suite.log
+        - make unittests || cat unittests/test-suite.log
     - name: unittests - GCC optimisations on level 2 and AddressSanitizer
       os: linux
       compiler: gcc
@@ -44,8 +40,7 @@ matrix:
         - CXXFLAGS="-Wall -pedantic -Werror -O2 -fsanitize=address"
         - LDFLAGS="-fsanitize=address"
       script:
-        - make
-        - make check || cat unittests/test-suite.log
+        - make unittests || cat unittests/test-suite.log
     - name: unittests - GCC optimisations on level 3 and AddressSanitizer
       os: linux
       compiler: gcc
@@ -53,8 +48,7 @@ matrix:
         - CXXFLAGS="-Wall -pedantic -Werror -O3 -fsanitize=address"
         - LDFLAGS="-fsanitize=address"
       script:
-        - make
-        - make check || cat unittests/test-suite.log
+        - make unittests || cat unittests/test-suite.log
     - name: systemtests - GCC without optimisations and AddressSanitizer
       os: linux
       compiler: gcc
@@ -68,8 +62,7 @@ matrix:
         - autoreconf --install
         - ./configure
       script:
-        - make
-        - robot -d systemtests_results -L DEBUG systemtests/
+        - make systemtests
     - name: systemtests - GCC optimisations on level 2 and AddressSanitizer
       os: linux
       compiler: gcc
@@ -83,8 +76,7 @@ matrix:
         - autoreconf --install
         - ./configure
       script:
-        - make
-        - robot -d systemtests_results -L DEBUG systemtests/
+        - make systemtests
     - name: systemtests - GCC optimisations on level 3 and AddressSanitizer
       os: linux
       compiler: gcc
@@ -98,8 +90,7 @@ matrix:
         - autoreconf --install
         - ./configure
       script:
-        - make
-        - robot -d systemtests_results -L DEBUG systemtests/
+        - make systemtests
 
 
 before_install:

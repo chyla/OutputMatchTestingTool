@@ -10,6 +10,7 @@ AC_CONFIG_FILES([
  Makefile
  src/Makefile
  unittests/Makefile
+ systemtests/Makefile
 ])
 
 # Checks for programs.
