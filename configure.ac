@@ -11,6 +11,7 @@ AC_CONFIG_FILES([
  src/Makefile
  unittests/Makefile
  systemtests/Makefile
+ systemtests/apps/Makefile
 ])
 
 # Checks for programs.
