@@ -15,3 +15,8 @@ Run SUT
     Process Should Be Stopped    job
     ${result} =    Get Process Result    job
     [Return]    ${result}
+
+Run SUT With
+    [Arguments]    ${helper_app}    ${omtt_test}
+    ${result} =    Run SUT    args=--sut=${HELPER_APPS_DIR}/${helper_app} ${OMTT_TESTS_DIR}/${omtt_test}
+    [Return]    ${result}

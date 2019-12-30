@@ -4,12 +4,12 @@ Resource    common.resource
 
 *** Test Cases ***
 Should exit with 0 status when executed test pass
-    ${result} =    Run SUT    args=--sut=${HELPER_APPS_DIR}/scat ${OMTT_TESTS_DIR}/scat-will_return_empty_output_on_empty_input.omtt
+    ${result} =    Run SUT With    scat    scat-will_return_empty_output_on_empty_input.omtt
 
     Should Be Equal As Integers    ${result.rc}    0
 
 Should exit with 1 status when one executed test fail
-    ${result} =    Run SUT    args=--sut=${HELPER_APPS_DIR}/scat ${OMTT_TESTS_DIR}/scat-failing_scenario_when_will_expect_text_on_empty_output.omtt
+    ${result} =    Run SUT With    scat    scat-failing_scenario_when_will_expect_text_on_empty_output.omtt
 
     Should Be Equal As Integers    ${result.rc}    1
 
