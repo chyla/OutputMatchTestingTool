@@ -39,3 +39,10 @@ Should exit with 252 status when executed only with omtt test path
     ${result} =    Run SUT    args=${some_correct_omtt_test_path}
 
     Should Be Equal As Integers    ${result.rc}    252
+
+Should exit with 255 status when executed with non existing test file
+    ${non_existing_test} =    Set Variable    non_existing_test.omtt
+    ${existing_binary} =    Set Variable     scat
+    ${result} =    Run SUT With    ${existing_binary}    ${non_existing_test}
+
+    Should Be Equal As Integers    ${result.rc}    255
