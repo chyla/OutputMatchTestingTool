@@ -59,7 +59,10 @@ Makefile
 /unittests/main
 /unittests/*_tests
 
-# Test binaries
+# System Tests
+# helper apps
 /systemtests/apps/false
 /systemtests/apps/true
 /systemtests/apps/scat
+# tests output
+/systemtests/output/
