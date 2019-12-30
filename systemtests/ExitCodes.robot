@@ -3,6 +3,11 @@ Resource    common.resource
 
 
 *** Test Cases ***
+Should exit with 0 status when executed test pass
+    ${result} =    Run SUT    args=--sut=${HELPER_APPS_DIR}/scat ${OMTT_TESTS_DIR}/scat-will_return_empty_output_on_empty_input.omtt
+
+    Should Be Equal As Integers    ${result.rc}    0
+
 Should exit with 251 status when executed with '--help' option
     ${result} =    Run SUT    args=--help
 

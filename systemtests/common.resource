@@ -4,6 +4,8 @@ Library    Process
 
 *** Variables ***
 ${SUT_PATH} =   src/omtt
+${HELPER_APPS_DIR} =   systemtests/apps
+${OMTT_TESTS_DIR} =   systemtests/omtt
 
 
 *** Keywords ***
