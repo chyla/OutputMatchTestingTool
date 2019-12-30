@@ -10,7 +10,8 @@ These instructions will get you a copy of the project up and running on your loc
 To build the software you will need to have:
 
 * the C++ 17 compiler,
-* GNU Build System (Autotools) - autoconf and automake packages in Ubuntu/Debian.
+* GNU Build System (Autotools) - autoconf and automake packages in Ubuntu/Debian,
+* Python 3 with working venv module - python3 and python3-venv packages in Ubuntu/Debian.
 
 
 ### Preparing the sources
