@@ -91,6 +91,13 @@ matrix:
         - ./configure
       script:
         - make systemtests
+    - name: check all - GCC without optimisations
+      os: linux
+      compiler: gcc
+      env:
+        - CXXFLAGS="-Wall -pedantic -Werror -O0"
+      script:
+        - make check || cat unittests/test-suite.log
 
 
 before_install:
