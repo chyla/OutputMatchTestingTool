@@ -18,5 +18,15 @@ Run SUT
 
 Run SUT With
     [Arguments]    ${helper_app}    ${omtt_test}
-    ${result} =    Run SUT    args=--sut=${HELPER_APPS_DIR}/${helper_app} ${OMTT_TESTS_DIR}/${omtt_test}
+    ${helper_path} =    Helper App Path    ${helper_app}
+    ${omtt_test_path} =    Omtt Test Path    ${omtt_test}
+    ${result} =    Run SUT    args=--sut=${helper_path} ${omtt_test_path}
     [Return]    ${result}
+
+Helper App Path
+    [Arguments]    ${helper_app}
+    [Return]    ${HELPER_APPS_DIR}/${helper_app}
+
+Omtt Test Path
+    [Arguments]    ${omtt_test}
+    [Return]    ${OMTT_TESTS_DIR}/${omtt_test}

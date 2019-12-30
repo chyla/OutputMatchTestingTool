@@ -27,3 +27,15 @@ Should exit with 252 status when executed without any option
     ${result} =    Run SUT    args=
 
     Should Be Equal As Integers    ${result.rc}    252
+
+Should exit with 252 status when executed only with --sut option
+    ${helper} =    Helper App Path    scat
+    ${result} =    Run SUT    args=--sut=${helper}
+
+    Should Be Equal As Integers    ${result.rc}    252
+
+Should exit with 252 status when executed only with omtt test path
+    ${some_correct_omtt_test_path} =    Omtt Test Path    scat-will_return_empty_output_on_empty_input.omtt
+    ${result} =    Run SUT    args=${some_correct_omtt_test_path}
+
+    Should Be Equal As Integers    ${result.rc}    252
