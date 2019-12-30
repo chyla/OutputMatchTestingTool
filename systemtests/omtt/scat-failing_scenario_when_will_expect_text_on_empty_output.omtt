@@ -1,0 +1,4 @@
+RUN
+WITH INPUT
+EXPECT OUTPUT
+Some text for failing scenario.
