@@ -10,21 +10,21 @@ matrix:
       env:
         - CXXFLAGS="-Wall -pedantic -Werror -O0"
       script:
-        - make unittests
+        - make unittests || (cat unittests/test-suite.log && false)
     - name: unittests - GCC with optimisations on level 2
       os: linux
       compiler: gcc
       env:
         - CXXFLAGS="-Wall -pedantic -Werror -O2"
       script:
-        - make unittests
+        - make unittests || (cat unittests/test-suite.log && false)
     - name: unittests - GCC with optimisations on level 3
       os: linux
       compiler: gcc
       env:
         - CXXFLAGS="-Wall -pedantic -Werror -O3"
       script:
-        - make unittests
+        - make unittests || (cat unittests/test-suite.log && false)
     - name: unittests - GCC without optimisations and AddressSanitizer
       os: linux
       compiler: gcc
@@ -32,7 +32,7 @@ matrix:
         - CXXFLAGS="-Wall -pedantic -Werror -O0 -fsanitize=address"
         - LDFLAGS="-fsanitize=address"
       script:
-        - make unittests
+        - make unittests || (cat unittests/test-suite.log && false)
     - name: unittests - GCC optimisations on level 2 and AddressSanitizer
       os: linux
       compiler: gcc
@@ -40,7 +40,7 @@ matrix:
         - CXXFLAGS="-Wall -pedantic -Werror -O2 -fsanitize=address"
         - LDFLAGS="-fsanitize=address"
       script:
-        - make unittests
+        - make unittests || (cat unittests/test-suite.log && false)
     - name: unittests - GCC optimisations on level 3 and AddressSanitizer
       os: linux
       compiler: gcc
@@ -48,7 +48,7 @@ matrix:
         - CXXFLAGS="-Wall -pedantic -Werror -O3 -fsanitize=address"
         - LDFLAGS="-fsanitize=address"
       script:
-        - make unittests
+        - make unittests || (cat unittests/test-suite.log && false)
     - name: systemtests - GCC without optimisations and AddressSanitizer
       os: linux
       compiler: gcc
@@ -97,7 +97,7 @@ matrix:
       env:
         - CXXFLAGS="-Wall -pedantic -Werror -O0"
       script:
-        - make check
+        - make check || (cat unittests/test-suite.log && false)
 
 
 before_install:
