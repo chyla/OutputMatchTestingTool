@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, Adam Chyła <adam@chyla.org>.
+ * Copyright (c) 2019-2020, Adam Chyła <adam@chyla.org>.
  * All rights reserved.
  *
  * Distributed under the terms of the BSD 3-Clause License.
@@ -70,7 +70,7 @@ main(int argc, char **argv)
 
     if (vm.count("version")) {
         std::cout << argv[0] << " " << VERSION << '\n'
-                  << "Copyright (c) 2019, Adam Chyła <adam@chyla.org>.\n"
+                  << "Copyright (c) 2019-2020, Adam Chyła <adam@chyla.org>.\n"
                   << "All rights reserved.\n"
                   << "\n"
                   << "Distributed under the terms of the BSD 3-Clause License.\n";
