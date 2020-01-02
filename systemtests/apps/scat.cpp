@@ -1,12 +1,13 @@
+#include <cstdio>
 #include <iostream>
-#include <string>
 
 int
 main()
 {
-    std::string line;
-    while (std::getline(std::cin, line)) {
-      std::cout << line << '\n';
+    int c = getchar();
+    while (c != EOF) {
+        std::cout << char(c);
+        c = getchar();
     }
     return 0;
 }

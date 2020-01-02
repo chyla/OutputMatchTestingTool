@@ -1,0 +1,9 @@
+RUN
+WITH INPUT
+Some
+multi line
+text.
+EXPECT OUTPUT
+Some
+multi line
+text.
