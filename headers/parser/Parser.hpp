@@ -53,8 +53,8 @@ public:
                 case State::TEXT_INPUT:
                     _HandleTextInputState();
                     break;
-                case State::EXPECT:
-                    _HandleExpectState();
+                case State::EXPECT_OR_FINISH:
+                    _HandleExpectOrFinishState();
                     break;
                 case State::OUTPUT:
                     _HandleOutputState();
@@ -77,7 +77,7 @@ private:
         WITH,
         INPUT,
         TEXT_INPUT,
-        EXPECT,
+        EXPECT_OR_FINISH,
         OUTPUT,
         TEXT_OUTPUT,
         FINISHING,
@@ -112,11 +112,11 @@ private:
         _ThrowWhenKeyword(*token);
 
         fTestData.input = token->value;
-        fCurrentState = State::EXPECT;
+        fCurrentState = State::EXPECT_OR_FINISH;
     }
 
     void
-    _HandleExpectState()
+    _HandleExpectOrFinishState()
     {
         auto token = fLexer.FindNextToken();
 
