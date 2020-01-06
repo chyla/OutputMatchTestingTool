@@ -260,7 +260,7 @@ TEST_GROUP("'TEXT_INPUT' state")
 }
 
 
-TEST_GROUP("'EXPECT' state")
+TEST_GROUP("'EXPECT_OR_FINISHING' state")
 {
     UNIT_TEST("Should throw exception when lexer returns token other than 'EXPECT'")
     {
