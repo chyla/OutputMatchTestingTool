@@ -18,6 +18,11 @@ using lexer::LexerFake;
 
 namespace
 {
+    void CheckNoExpectations(const TestData &data)
+    {
+        CHECK(data.expectations.size() == 0);
+    }
+
     void CheckOutput(const TestData &data, const std::string &expectedOutput)
     {
         CHECK(data.expectations.size() == 1);
@@ -31,6 +36,21 @@ namespace
 
 TEST_GROUP("Overall")
 {
+    UNIT_TEST("Should parse test without any EXPECT block")
+    {
+        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "INPUT"},
+                        lexer::Token{lexer::TokenKind::TEXT, "example input"}
+        };
+        Parser<LexerFake> sut(lexer);
+
+        const TestData &data = sut.parse();
+
+        CHECK(data.input == "example input");
+        CheckNoExpectations(data);
+    }
+
     UNIT_TEST("Should parse correct tokens flow")
     {
         LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
@@ -242,18 +262,6 @@ TEST_GROUP("'TEXT_INPUT' state")
 
 TEST_GROUP("'EXPECT' state")
 {
-    UNIT_TEST("Should throw exception when lexer doesn't have more tokens")
-    {
-        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
-                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
-                        lexer::Token{lexer::TokenKind::KEYWORD, "INPUT"},
-                        lexer::Token{lexer::TokenKind::TEXT, "some text"}
-        };
-        Parser<LexerFake> sut(lexer);
-
-        CHECK_THROWS_AS(sut.parse(), exception::MissingKeywordException);
-    }
-
     UNIT_TEST("Should throw exception when lexer returns token other than 'EXPECT'")
     {
         LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},

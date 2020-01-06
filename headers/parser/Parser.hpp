@@ -118,7 +118,15 @@ private:
     void
     _HandleExpectState()
     {
-        _ExpectKeywordAndSwitchToState("EXPECT", State::OUTPUT);
+        auto token = fLexer.FindNextToken();
+
+        if (token.has_value()) {
+            _ThrowWhenDifferentKindOrKeywordName("EXPECT", *token);
+            fCurrentState = State::OUTPUT;
+        }
+        else {
+            fCurrentState = State::FINISHING;
+        }
     }
 
     void

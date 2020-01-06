@@ -10,6 +10,12 @@ Resource    common.resource
 
 
 *** Test Cases ***
+Mark test as PASS when no expectations is given and SUT outputs some text
+    ${result} =    Run SUT With    scat    scat-return_input_without_checking_output.omtt
+
+    Verdict Is Set To Pass    ${result}
+    Exit Status Points To All Tests Passed    ${result}
+
 Mark test as PASS when empty output is matched
     ${result} =    Run SUT With    scat    scat-will_return_empty_output_on_empty_input.omtt
 
