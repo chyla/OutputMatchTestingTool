@@ -9,8 +9,6 @@
 
 #include "headers/expectation/Expectation.hpp"
 
-#include <string_view>
-
 
 namespace omtt::expectation
 {
