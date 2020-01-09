@@ -8,6 +8,7 @@
 #include "unittests/test_framework.hpp"
 
 #include "headers/expectation/FullOutputExpectation.hpp"
+#include "headers/ProcessResults.hpp"
 
 
 namespace omtt
@@ -16,31 +17,31 @@ namespace omtt
 TEST_CASE("Should be satisfied when expected output and SUT output is the same")
 {
     const std::string expectedOutput = "some output";
-    const std::string sutOutput = "some output";
+    const ProcessResults sutResults {0, "some output"};
 
     expectation::FullOutputExpectation expectation(expectedOutput);
 
-    CHECK(expectation.IsSatisfied(sutOutput) == true);
+    CHECK(expectation.IsSatisfied(sutResults) == true);
 }
 
 TEST_CASE("Should not be satisfied when expected output and SUT output is not the same")
 {
     const std::string expectedOutput = "some output";
-    const std::string sutOutput = "some other output";
+    const ProcessResults sutResults {0, "some other output"};
 
     expectation::FullOutputExpectation expectation(expectedOutput);
 
-    CHECK(expectation.IsSatisfied(sutOutput) == false);
+    CHECK(expectation.IsSatisfied(sutResults) == false);
 }
 
 TEST_CASE("Should not be satisfied when expected output and SUT output differs in letters case")
 {
     const std::string expectedOutput = "some output";
-    const std::string sutOutput = "Some Output";
+    const ProcessResults sutResults {0, "Some Output"};
 
     expectation::FullOutputExpectation expectation(expectedOutput);
 
-    CHECK(expectation.IsSatisfied(sutOutput) == false);
+    CHECK(expectation.IsSatisfied(sutResults) == false);
 }
 
 }

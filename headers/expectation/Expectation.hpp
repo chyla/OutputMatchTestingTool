@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <string>
+#include "headers/ProcessResults.hpp"
 
 
 namespace omtt::expectation
@@ -18,7 +18,7 @@ class Expectation
 public:
     virtual         ~Expectation() = default;
 
-    virtual bool    IsSatisfied(const std::string &output) const = 0;
+    virtual bool    IsSatisfied(const ProcessResults &processResults) const = 0;
 };
 
 }

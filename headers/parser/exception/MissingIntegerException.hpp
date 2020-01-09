@@ -13,11 +13,11 @@
 namespace omtt::parser::exception
 {
 
-class MissingTextException : public std::runtime_error {
+class MissingIntegerException : public std::runtime_error {
 public:
-    explicit MissingTextException()
+    explicit MissingIntegerException()
         :
-        std::runtime_error("Expected text, but got nothing.")
+        std::runtime_error("Expected number, but got nothing.")
     {
     }
 };

@@ -21,3 +21,35 @@ Mark test as PASS when SUT returns non-zero exit code and it's not checked expli
 
     Verdict Is Set To Pass    ${result}
     Exit Status Points To All Tests Passed    ${result}
+
+Mark test as PASS when SUT returns zero exit code and it's checked explicitly in test
+    ${result} =    Run SUT With    true    true-will_exit_with_zero.omtt
+
+    Verdict Is Set To Pass    ${result}
+    Exit Status Points To All Tests Passed    ${result}
+
+Mark test as PASS when SUT returns non-zero exit code and it's checked explicitly in test
+    ${result} =    Run SUT With    false    false-will_exit_with_one.omtt
+
+    Verdict Is Set To Pass    ${result}
+    Exit Status Points To All Tests Passed    ${result}
+
+Mark test as FAIL when SUT returns exit code other than expected in test
+    ${result} =    Run SUT With    true    true-failing_scenario-will_exit_with_one.omtt
+
+    Verdict Is Set To Fail    ${result}
+    Exit Status Points To One Test Failed    ${result}
+
+Raise an error when the 'CODE' keyword is missing
+    ${result} =    Run SUT With    true    true-error_scenario-missing_code_keyword.omtt
+
+    Verdict Is Not Present    ${result}
+    Missing Keyword Message Is Present    ${result}    CODE
+    Exit Status Points To Fatal Error    ${result}
+
+Raise an error when the exit code value is missing
+    ${result} =    Run SUT With    true    true-error_scenario-missing_exit_code_value.omtt
+
+    Verdict Is Not Present    ${result}
+    Missing Number Message Is Present    ${result}
+    Exit Status Points To Fatal Error    ${result}

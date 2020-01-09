@@ -8,12 +8,13 @@
 #pragma once
 
 
-namespace omtt::lexer::detail {
+namespace omtt::lexer::detail
+{
 
 enum class State {
     READING_KEYWORDS,
     READING_LINES_UP_TO_EXPECT,
-    READING_LINES_UP_TO_EOF
+    READING_INTEGER
 };
 
 }  // omtt::lexer::detail

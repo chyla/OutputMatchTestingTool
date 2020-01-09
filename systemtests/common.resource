@@ -40,11 +40,16 @@ Omtt Test Path
 
 Verdict Is Set To Pass
     [Arguments]    ${result}
-    Should Be True    "Verdict: PASS" in """${result.stdout}"""
+    Should Contain    ${result.stdout}    Verdict: PASS
 
 Verdict Is Set To Fail
     [Arguments]    ${result}
-    Should Be True    "Verdict: FAIL" in """${result.stdout}"""
+    Should Contain    ${result.stdout}    Verdict: FAIL
+
+Verdict Is Not Present
+    [Arguments]    ${result}
+    Should Not Contain    ${result.stdout}    Verdict: FAIL
+    Should Not Contain    ${result.stdout}    Verdict: TRUE
 
 Exit Status Points To All Tests Passed
     [Arguments]    ${result}
@@ -53,3 +58,17 @@ Exit Status Points To All Tests Passed
 Exit Status Points To One Test Failed
     [Arguments]    ${result}
     Should Be Equal As Integers    ${result.rc}    1
+
+Exit Status Points To Fatal Error
+    [Arguments]    ${result}
+    Should Be Equal As Integers    ${result.rc}    255
+
+Missing Keyword Message Is Present
+    [Arguments]    ${result}    ${expectedKeyword}
+    ${message} =    Catenate    SEPARATOR=    Expected \'    ${expectedKeyword}    \' (KEYWORD), but got nothing.
+
+    Should Contain    ${result.stderr}    ${message}
+
+Missing Number Message Is Present
+    [Arguments]    ${result}
+    Should Contain    ${result.stderr}    Expected number, but got nothing.

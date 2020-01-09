@@ -19,7 +19,7 @@ ValidateExpectationsAndSutResults(const TestData &testData,
     summary.verdict = Verdict::PASS;
 
     for (const auto &expectation : testData.expectations) {
-        if (!expectation->IsSatisfied(processResults.output)) {
+        if (!expectation->IsSatisfied(processResults)) {
             summary.verdict = Verdict::FAIL;
         }
     }

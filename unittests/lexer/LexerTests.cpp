@@ -111,6 +111,13 @@ TEST_CASE("Should return keyword token with 'OUTPUT' value")
     helper::check_token_equality(token, {TokenKind::KEYWORD, "OUTPUT"});
 }
 
+TEST_CASE("Should return keyword token with 'EXIT' value")
+{
+    const std::string buffer = "EXIT";
+    const Token expectedToken {TokenKind::KEYWORD, "EXIT"};
+    helper::test_one_token_with_buffer(buffer, expectedToken);
+}
+
 TEST_CASE("Should return keyword token with 'RUN' value even when there are spaces at the begining of the input")
 {
     const std::string buffer = "    RUN";
@@ -268,6 +275,67 @@ TEST_CASE("Should return proper text token when multiple 'INPUT' keywords are pr
     helper::check_sut_has_no_more_tokens(sut);
 }
 
+TEST_CASE("After the 'CODE' keyword should finish reading tokens when there is no more text in buffer")
+{
+    const std::string buffer = "CODE";
+    const Token expectedToken {TokenKind::KEYWORD, "CODE"};
+    helper::test_one_token_with_buffer(buffer, expectedToken);
+}
+
+TEST_CASE("After the 'CODE' keyword should return integer token with correct one digit value")
+{
+    const std::string buffer = "CODE 0";
+    const Token expectedFirstToken {TokenKind::KEYWORD, "CODE"};
+    const Token expectedSecondToken {TokenKind::INTEGER, "0"};
+    helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
+}
+
+TEST_CASE("After the 'CODE' keyword should return integer token with correct more than one digit value")
+{
+    const std::string buffer = "CODE 3152";
+    const Token expectedFirstToken {TokenKind::KEYWORD, "CODE"};
+    const Token expectedSecondToken {TokenKind::INTEGER, "3152"};
+    helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
+}
+
+TEST_CASE("After the 'CODE' keyword should return integer token with correct value when surrounded with white characters")
+{
+    const std::string buffer = "CODE    \t 3152  \t ";
+    const Token expectedFirstToken {TokenKind::KEYWORD, "CODE"};
+    const Token expectedSecondToken {TokenKind::INTEGER, "3152"};
+    helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
+}
+
+TEST_CASE("After the 'CODE' keyword should throw exception when number has characters other than digits")
+{
+    const std::string buffer = "CODE    \t 3d1d5s2  \t ";
+    const Token expectedFirstToken {TokenKind::KEYWORD, "CODE"};
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    helper::check_token_equality(token, expectedFirstToken);
+
+    CHECK_THROWS_AS(sut.FindNextToken(), exception::UnexpectedCharacterException);
+}
+
+TEST_CASE("After the 'CODE' keyword should return integer and parse next keyword")
+{
+    const std::string buffer = "CODE 3152 EXPECT";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD,
+                                         "CODE"});
+    helper::check_token_equality(secondToken, {TokenKind::INTEGER,
+                                               "3152"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD,
+                                              "EXPECT"});
+    helper::check_sut_has_no_more_tokens(sut);
+}
+
 TEST_CASE("After the 'OUTPUT' keyword should return empty text token when there is no more text in buffer")
 {
     const std::string buffer = "OUTPUT";
@@ -292,7 +360,40 @@ TEST_CASE("After the 'OUTPUT' keyword should ignore spaces and tabs up to the ne
     helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
 }
 
-TEST_CASE("After the 'OUTPUT' keyword should return all next lines as text token up to the end of file even when there are other keywords in these lines")
+TEST_CASE("After the 'OUTPUT' keyword should return all next lines as text token up to the end of file")
+{
+    const std::string buffer = "OUTPUT\nsome input\nother line\nsome text";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD,
+                                         "OUTPUT"});
+    helper::check_token_equality(secondToken, {TokenKind::TEXT,
+                                               "some input\nother line\nsome text"});
+    helper::check_sut_has_no_more_tokens(sut);
+}
+
+TEST_CASE("After the 'OUTPUT' keyword should return all next lines as text token up to the next EXPECT keyword in new line")
+{
+    const std::string buffer = "OUTPUT\nsome input\nother line\nsome text\nEXPECT";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD,
+                                         "OUTPUT"});
+    helper::check_token_equality(secondToken, {TokenKind::TEXT,
+                                               "some input\nother line\nsome text"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD,
+                                              "EXPECT"});
+    helper::check_sut_has_no_more_tokens(sut);
+}
+
+TEST_CASE("After the 'OUTPUT' keyword should return all next lines as text token up to the end of file even when there are other keywords (except 'EXPECT') in these lines")
 {
     const std::string buffer = "OUTPUT\nsome input\nother line\noline with keyword RUN\nWITH";
     Lexer sut(buffer);

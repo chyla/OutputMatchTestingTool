@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "headers/parser/exception/detail/Concatenate.hpp"
+
 #include <stdexcept>
 #include <string>
 
@@ -16,9 +18,9 @@ namespace omtt::parser::exception
 
 class MissingKeywordException : public std::runtime_error {
 public:
-  explicit MissingKeywordException(const std::string &expectedKeyword)
+    explicit MissingKeywordException(const std::initializer_list<const std::string> &expectedKeywords)
         :
-        std::runtime_error("Expected '" + expectedKeyword + "' (KEYWORD), but got nothing.")
+        std::runtime_error("Expected " + detail::concatenate(expectedKeywords) + " (KEYWORD), but got nothing.")
     {
     }
 };

@@ -45,3 +45,22 @@ Mark test as FAIL when expecting additional empty line at the end
 
     Verdict Is Set To Fail    ${result}
     Exit Status Points To One Test Failed    ${result}
+
+Mark test as PASS when keywords other than EXPECT occours in input and expected output
+    ${result} =    Run SUT With    scat    scat-keywords_in_input_and_output.omtt
+
+    Verdict Is Set To Pass    ${result}
+    Exit Status Points To All Tests Passed    ${result}
+
+Mark test as PASS when EXPECT keyword occours in input and expected output after space
+    ${result} =    Run SUT With    scat    scat-expect_keyword_in_input_and_output_after_space.omtt
+
+    Verdict Is Set To Pass    ${result}
+    Exit Status Points To All Tests Passed    ${result}
+
+Raise missing keyword error when EXPECT keyword occours in expected output
+    ${result} =    Run SUT With    scat    scat-error_scenario-expect_keyword_in_output.omtt
+
+    Verdict Is Not Present    ${result}
+    Missing Keyword Message Is Present    ${result}    OUTPUT' or 'EXIT
+    Exit Status Points To Fatal Error    ${result}

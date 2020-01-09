@@ -1,0 +1,6 @@
+RUN
+WITH INPUT
+Hello world!
+EXPECT EXIT CODE 0
+EXPECT OUTPUT
+Hello world!

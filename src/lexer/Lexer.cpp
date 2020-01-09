@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cctype>
 #include <sstream>
+#include <string>
 #include <string_view>
 
 
@@ -23,6 +24,27 @@ using detail::State;
 
 namespace
 {
+
+const lexer::exception::UnexpectedCharacterException
+prepare_unexpected_character_exception(const char character,
+                                       const std::string_view::size_type position)
+{
+    std::stringstream stream;
+    stream << "Unexpected character '" << character << "' at " << position << " byte.";
+    return exception::UnexpectedCharacterException(stream.str());
+}
+
+void
+throw_when_word_is_not_a_number(const std::string_view &word,
+                                const std::string_view::size_type position)
+{
+    for (std::string_view::size_type i = 0; i < word.size(); i++) {
+        const char character = word.at(i);
+        if (!std::isdigit(character)) {
+            throw prepare_unexpected_character_exception(character, position + i);
+        }
+    }
+}
 
 template<class UnaryPredicate>
 Lexer::PositionInBuffer
@@ -56,8 +78,8 @@ Lexer::FindNextToken()
         case State::READING_LINES_UP_TO_EXPECT:
             return _HandleReadingLinesUpToExpectState();
 
-        case State::READING_LINES_UP_TO_EOF:
-            return _HandleReadingLinesUpToEofState();
+        case State::READING_INTEGER:
+            return _HandleReadingInteger();
     };
 
     throw exception::InvalidStateHandlingException(fCurrentState);
@@ -68,22 +90,22 @@ Lexer::_HandleReadingKeywordsState()
 {
     const std::string_view word = _ReadNextWord();
 
-    if (word == "INPUT") {
+    if (word == "INPUT" || word == "OUTPUT") {
         _SwitchStateTo(State::READING_LINES_UP_TO_EXPECT);
-        _ConsumeWhiteCharactersUpToNewLine();
+        _ConsumeWhiteCharactersWithoutNewLine();
         _ConsumeNewLineCharacter();
     }
-    if (word == "OUTPUT") {
-        _SwitchStateTo(State::READING_LINES_UP_TO_EOF);
-        _ConsumeWhiteCharactersUpToNewLine();
-        _ConsumeNewLineCharacter();
+    if (word == "CODE") {
+        _SwitchStateTo(State::READING_INTEGER);
     }
 
     if (word == "RUN"
         || word == "WITH"
         || word == "INPUT"
         || word == "EXPECT"
-        || word == "OUTPUT") {
+        || word == "OUTPUT"
+        || word == "EXIT"
+        || word == "CODE") {
         return Token{TokenKind::KEYWORD, word};
     }
     else if (!word.empty()) {
@@ -114,14 +136,21 @@ Lexer::_HandleReadingLinesUpToExpectState()
 }
 
 std::optional<const Token>
-Lexer::_HandleReadingLinesUpToEofState()
+Lexer::_HandleReadingInteger()
 {
-    const PositionInBuffer beginOfLines = fCurrentPosition;
-    const PositionInBuffer endOfLines = fInputBuffer.size();
+    const auto word = _ReadNextWord();
 
-    _SwitchStateTo(State::READING_KEYWORDS);
+    if (word != "") {
+        throw_when_word_is_not_a_number(word, fCurrentPosition - word.size());
 
-    return _ConsumeAndGetTokenWithText(beginOfLines, endOfLines);
+        _SwitchStateTo(State::READING_KEYWORDS);
+
+        return Token{TokenKind::INTEGER,
+                     word};
+    }
+    else {
+        return std::nullopt;
+    }
 }
 
 void
@@ -163,7 +192,7 @@ Lexer::_FindNextWhiteCharPosition(const Lexer::PositionInBuffer begin) const
 }
 
 void
-Lexer::_ConsumeWhiteCharactersUpToNewLine()
+Lexer::_ConsumeWhiteCharactersWithoutNewLine()
 {
     fCurrentPosition = find_next_position(fInputBuffer,
                                           fCurrentPosition,
@@ -180,9 +209,7 @@ Lexer::_ConsumeNewLineCharacter()
             fCurrentPosition++;
         }
         else {
-            std::stringstream stream;
-            stream << "Unexpected character '" << character << "' at " << fCurrentPosition << " byte.";
-            throw exception::UnexpectedCharacterException(stream.str());
+            throw prepare_unexpected_character_exception(character, fCurrentPosition);
         }
     }
 }

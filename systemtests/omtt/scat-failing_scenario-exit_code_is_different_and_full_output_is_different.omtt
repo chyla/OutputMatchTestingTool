@@ -1,0 +1,6 @@
+RUN
+WITH INPUT
+Some text.
+EXPECT EXIT CODE 2
+EXPECT OUTPUT
+Some other text.

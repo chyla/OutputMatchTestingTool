@@ -12,13 +12,16 @@
 #include "headers/lexer/Token.hpp"
 
 #include "headers/expectation/FullOutputExpectation.hpp"
+#include "headers/expectation/ExitCodeExpectation.hpp"
 
 #include "headers/parser/exception/MissingKeywordException.hpp"
 #include "headers/parser/exception/WrongTokenException.hpp"
 #include "headers/parser/exception/MissingTextException.hpp"
+#include "headers/parser/exception/MissingIntegerException.hpp"
 #include "headers/parser/exception/UnexpectedKeywordException.hpp"
-#include "headers/parser/exception/UnexpectedTokenException.hpp"
 
+#include <algorithm>
+#include <initializer_list>
 #include <optional>
 #include <string>
 
@@ -56,14 +59,17 @@ public:
                 case State::EXPECT_OR_FINISH:
                     _HandleExpectOrFinishState();
                     break;
-                case State::OUTPUT:
-                    _HandleOutputState();
+                case State::OUTPUT_OR_EXIT:
+                    _HandleOutputOrExitState();
+                    break;
+                case State::CODE:
+                    _HandleCodeState();
+                    break;
+                case State::CODE_NUMBER:
+                    _HandleCodeNumberState();
                     break;
                 case State::TEXT_OUTPUT:
                     _HandleTextOutputState();
-                    break;
-                case State::FINISHING:
-                    _HandleFinishingState();
                     break;
                 case State::DONE:
                   return fTestData;
@@ -78,9 +84,10 @@ private:
         INPUT,
         TEXT_INPUT,
         EXPECT_OR_FINISH,
-        OUTPUT,
+        OUTPUT_OR_EXIT,
+        CODE,
+        CODE_NUMBER,
         TEXT_OUTPUT,
-        FINISHING,
         DONE
     };
 
@@ -121,18 +128,59 @@ private:
         auto token = fLexer.FindNextToken();
 
         if (token.has_value()) {
-            _ThrowWhenDifferentKindOrKeywordName("EXPECT", *token);
-            fCurrentState = State::OUTPUT;
+            _ThrowWhenNotKeywordOrHasDifferrentName({"EXPECT"}, *token);
+            fCurrentState = State::OUTPUT_OR_EXIT;
         }
         else {
-            fCurrentState = State::FINISHING;
+            fCurrentState = State::DONE;
         }
     }
 
     void
-    _HandleOutputState()
+    _HandleOutputOrExitState()
     {
-        _ExpectKeywordAndSwitchToState("OUTPUT", State::TEXT_OUTPUT);
+        auto token = fLexer.FindNextToken();
+
+        _ThrowMissingKeywordWhenTokenNotPresent({"OUTPUT", "EXIT"}, token);
+
+        if (token->kind == lexer::TokenKind::KEYWORD
+            && token->value == "OUTPUT") {
+            fCurrentState = State::TEXT_OUTPUT;
+        }
+        else if (token->kind == lexer::TokenKind::KEYWORD
+                 && token->value == "EXIT") {
+            fCurrentState = State::CODE;
+        }
+        else {
+            _ThrowWhenNotKeywordOrHasDifferrentName({"OUTPUT", "EXIT"}, *token);
+        }
+    }
+
+    void
+    _HandleCodeState()
+    {
+        _ExpectKeywordAndSwitchToState("CODE", State::CODE_NUMBER);
+    }
+
+    void
+    _HandleCodeNumberState()
+    {
+        constexpr auto expectedTokenKind = lexer::TokenKind::INTEGER;
+
+        auto token = fLexer.FindNextToken();
+
+        _ThrowMissingIntegerWhenTokenNotPresent(token);
+
+        if (token->kind == expectedTokenKind) {
+            const auto expectedCode = std::stoi(std::string(token->value));
+            auto expectation = std::make_unique<expectation::ExitCodeExpectation>(expectedCode);
+            fTestData.expectations.emplace_back(std::move(expectation));
+
+            fCurrentState = State::EXPECT_OR_FINISH;
+        }
+        else {
+            throw exception::WrongTokenException({}, expectedTokenKind, *token);
+        }
     }
 
     void
@@ -145,17 +193,8 @@ private:
 
         auto expectation = std::make_unique<expectation::FullOutputExpectation>(token->value);
         fTestData.expectations.emplace_back(std::move(expectation));
-        fCurrentState = State::FINISHING;
-    }
 
-    void
-    _HandleFinishingState()
-    {
-        auto token = fLexer.FindNextToken();
-
-        _ThrowWhenTokenIsPresent(token);
-
-        fCurrentState = State::DONE;
+        fCurrentState = State::EXPECT_OR_FINISH;
     }
 
     static void
@@ -163,6 +202,14 @@ private:
     {
         if (!given.has_value()) {
             throw exception::MissingTextException();
+        }
+    }
+
+    static void
+    _ThrowMissingIntegerWhenTokenNotPresent(std::optional<const lexer::Token> &given)
+    {
+        if (!given.has_value()) {
+            throw exception::MissingIntegerException();
         }
     }
 
@@ -179,36 +226,40 @@ private:
     {
         auto token = fLexer.FindNextToken();
 
-        _ThrowMissingKeywordWhenTokenNotPresent(expectedKeywordName, token);
-        _ThrowWhenDifferentKindOrKeywordName(expectedKeywordName, *token);
+        _ThrowMissingKeywordWhenTokenNotPresent({expectedKeywordName}, token);
+        _ThrowWhenNotKeywordOrHasDifferrentName({expectedKeywordName}, *token);
 
         fCurrentState = state;
     }
 
     static void
-    _ThrowMissingKeywordWhenTokenNotPresent(const std::string &expectedKeywordName, std::optional<const lexer::Token> &given)
+    _ThrowMissingKeywordWhenTokenNotPresent(const std::initializer_list<const std::string> &expectedKeywordsNames,
+                                            std::optional<const lexer::Token> &given)
     {
         if (!given.has_value()) {
-            throw exception::MissingKeywordException(expectedKeywordName);
+            throw exception::MissingKeywordException(expectedKeywordsNames);
         }
     }
 
     static void
-    _ThrowWhenDifferentKindOrKeywordName(const std::string &expectedValue, const lexer::Token &given)
+    _ThrowWhenNotKeywordOrHasDifferrentName(const std::initializer_list<const std::string> expectedNames,
+                                            const lexer::Token &given)
     {
         constexpr auto expectedKind = lexer::TokenKind::KEYWORD;
         if (given.kind != expectedKind
-            || given.value != expectedValue) {
-            throw exception::WrongTokenException(expectedValue, expectedKind, given);
+            || !_ValueIn(given.value, expectedNames)) {
+            throw exception::WrongTokenException(expectedNames, expectedKind, given);
         }
     }
 
-    static void
-    _ThrowWhenTokenIsPresent(std::optional<const lexer::Token> &token)
+    template<class Value, class Container>
+    static bool
+    _ValueIn(const Value &value, const Container &list)
     {
-        if (token.has_value()) {
-            throw exception::UnexpectedTokenException(*token);
-        }
+        return std::any_of(list.begin(), list.end(),
+                           [&](const auto &item) {
+                               return item == value;
+                           });
     }
 
 private:

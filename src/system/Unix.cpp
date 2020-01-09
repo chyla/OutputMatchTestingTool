@@ -9,6 +9,7 @@
 #include "headers/system/exception/SystemException.hpp"
 
 #include <cerrno>
+#include <limits>
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -81,7 +82,12 @@ ExitStatus(int pid)
         throw exception::SystemException("failure in waitpid()", errno);
     }
 
-    return status;
+    if (WIFEXITED(status)) {
+        return WEXITSTATUS(status);
+    }
+    else {
+        return std::numeric_limits<int>::max();
+    }
 }
 
 void

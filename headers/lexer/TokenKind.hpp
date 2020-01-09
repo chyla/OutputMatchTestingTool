@@ -17,7 +17,8 @@ namespace omtt::lexer
 
 enum class TokenKind {
     KEYWORD,
-    TEXT
+    TEXT,
+    INTEGER
 };
 
 inline std::string
@@ -27,6 +28,8 @@ to_string(const TokenKind kind) {
             return "KEYWORD";
         case TokenKind::TEXT:
             return "TEXT";
+        case TokenKind::INTEGER:
+            return "INTEGER";
     };
 
     throw exception::InvalidTokenKindToStringConversionException(kind);

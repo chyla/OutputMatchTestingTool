@@ -15,29 +15,29 @@
 namespace omtt::expectation
 {
 
-class FullOutputExpectation : public Expectation
+class ExitCodeExpectation : public Expectation
 {
 public:
-    explicit FullOutputExpectation(const std::string_view &expectedOutput)
+    explicit ExitCodeExpectation(const int expectedExitCode)
         :
-        fExpectedOutput(expectedOutput)
+        fExpectedExitCode(expectedExitCode)
     {
     }
 
     bool
     IsSatisfied(const ProcessResults &processResults) const
     {
-        return fExpectedOutput == processResults.output;
+        return fExpectedExitCode == processResults.exitCode;
     }
 
-    const std::string_view &
+    const int
     GetContent() const
     {
-        return fExpectedOutput;
+        return fExpectedExitCode;
     }
 
 private:
-    const std::string_view fExpectedOutput;
+    const int fExpectedExitCode;
 };
 
 }

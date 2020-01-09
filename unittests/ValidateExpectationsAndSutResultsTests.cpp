@@ -9,6 +9,7 @@
 
 #include "headers/expectation/Expectation.hpp"
 #include "headers/ValidateExpectationsAndSutResults.hpp"
+#include "headers/ProcessResults.hpp"
 
 
 namespace omtt
@@ -21,7 +22,7 @@ class TrueExpectation : public expectation::Expectation
 {
 public:
     bool
-    IsSatisfied(const std::string &output) const
+    IsSatisfied(const ProcessResults &output) const
     {
         return true;
     }
@@ -32,7 +33,7 @@ class FalseExpectation : public expectation::Expectation
 {
 public:
     bool
-    IsSatisfied(const std::string &output) const
+    IsSatisfied(const ProcessResults &output) const
     {
         return false;
     }

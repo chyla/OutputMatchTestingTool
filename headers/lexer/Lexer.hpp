@@ -31,13 +31,14 @@ private:
              std::optional<const Token>   _HandleReadingKeywordsState();
              std::optional<const Token>   _HandleReadingLinesUpToExpectState();
              std::optional<const Token>   _HandleReadingLinesUpToEofState();
+             std::optional<const Token>   _HandleReadingInteger();
 
     inline   void                         _SwitchStateTo(const detail::State newState);
 
     const    std::string_view             _ReadNextWord();
              PositionInBuffer             _FindNextLetterPosition(const PositionInBuffer begin) const;
              PositionInBuffer             _FindNextWhiteCharPosition(const PositionInBuffer begin) const;
-    inline   void                         _ConsumeWhiteCharactersUpToNewLine();
+    inline   void                         _ConsumeWhiteCharactersWithoutNewLine();
     inline   void                         _ConsumeNewLineCharacter();
              std::optional<const Token>   _ConsumeAndGetTokenWithText(const Lexer::PositionInBuffer begin, const Lexer::PositionInBuffer end);
 
