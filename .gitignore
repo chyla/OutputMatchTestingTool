@@ -64,5 +64,6 @@ Makefile
 /systemtests/apps/false
 /systemtests/apps/true
 /systemtests/apps/scat
+/systemtests/apps/secho
 # tests output
 /systemtests/output/

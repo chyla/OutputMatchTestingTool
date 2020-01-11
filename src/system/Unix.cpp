@@ -11,6 +11,7 @@
 #include <cerrno>
 #include <limits>
 
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -20,10 +21,15 @@ namespace omtt::system::unix
 {
 
 const Pipe
-MakePipe()
+MakePipe(const PipeOptions option)
 {
     int fd[2];
-    int err = pipe(fd);
+    int pipeFlags = 0;
+    if (option == PipeOptions::CLOSE_ON_EXEC) {
+      pipeFlags = O_CLOEXEC;
+    }
+
+    const int err = pipe2(fd, pipeFlags);
     if (err < 0) {
         throw exception::SystemException("failure in pipe()", errno);
     }
@@ -100,12 +106,29 @@ DuplicateFd(int oldFd, int newFd)
 }
 
 void
-Exec(const std::string &path)
+Exec(const std::string &path, const std::vector<std::string> &arguments)
 {
-    int err = execl(path.c_str(), path.c_str(), static_cast<const char*>(nullptr));
-    if (err < 0) {
-        throw exception::SystemException("failure in execl()", errno);
+    constexpr std::vector<std::string>::size_type ARGUMENTS_MAX_SIZE = 250;
+    if (arguments.size() > ARGUMENTS_MAX_SIZE) {
+        throw exception::SystemException("too much arguments to exec", errno);
     }
+
+    char *args[ARGUMENTS_MAX_SIZE + 2] = {0};
+    args[0] = const_cast<char*>(path.c_str());
+    for (std::vector<std::string>::size_type i = 0; i < arguments.size(); ++i) {
+        args[i + 1] = const_cast<char*>(arguments.at(i).c_str());
+    }
+
+    int err = execv(path.c_str(), static_cast<char * const *>(args));
+    if (err < 0) {
+        throw exception::SystemException("failure in execv()", errno);
+    }
+}
+
+void
+Terminate(const int status)
+{
+    _exit(status);
 }
 
 } // omtt::system::unix

@@ -8,6 +8,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include <sys/types.h>
 
@@ -17,9 +18,9 @@ namespace omtt::system::unix
 
 enum class FdId
 {
-   STDIN = 0,
-   STDOUT = 1,
-   STDERR = 2
+    STDIN = 0,
+    STDOUT = 1,
+    STDERR = 2
 };
 
 struct Pipe
@@ -28,8 +29,14 @@ struct Pipe
     const int writeEnd;
 };
 
+enum class PipeOptions
+{
+    NONE,
+    CLOSE_ON_EXEC
+};
+
 const Pipe
-MakePipe();
+MakePipe(const PipeOptions option = PipeOptions::NONE);
 
 ssize_t
 Read(int fd, void *buf, size_t count);
@@ -50,6 +57,9 @@ void
 DuplicateFd(int oldFd, int newFd);
 
 void
-Exec(const std::string &path);
+Exec(const std::string &path, const std::vector<std::string> &arguments);
+
+void
+Terminate(const int status);
 
 }  // omtt::system::unix

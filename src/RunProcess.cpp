@@ -7,9 +7,10 @@
 
 #include "headers/RunProcess.hpp"
 #include "headers/system/Unix.hpp"
+#include "headers/exception/SutExecutionException.hpp"
+#include "headers/ErrorCodes.hpp"
 
 #include <array>
-#include <iostream>
 
 
 namespace omtt
@@ -60,18 +61,22 @@ RedirectPipe(int oldFd, int newFd)
 }
 
 ProcessResults
-RunProcess(const std::string &path, const std::string_view &input)
+RunProcess(const std::string &path,
+           const std::vector<std::string> &options,
+           const std::string_view &input)
 {
     ProcessResults results;
 
     const auto toParentPipe = system::unix::MakePipe();
     const auto toChildPipe = system::unix::MakePipe();
+    const auto toParentInternalErrorsPipe = system::unix::MakePipe(system::unix::PipeOptions::CLOSE_ON_EXEC);
 
     const auto pid = system::unix::Fork();
 
     if (IsParentProcess(pid)) {
         system::unix::Close(toParentPipe.writeEnd);
         system::unix::Close(toChildPipe.readEnd);
+        system::unix::Close(toParentInternalErrorsPipe.writeEnd);
 
         WriteToFd(toChildPipe.writeEnd, input);
         system::unix::Close(toChildPipe.writeEnd);
@@ -79,16 +84,31 @@ RunProcess(const std::string &path, const std::string_view &input)
         results.output = ReadFromFd(toParentPipe.readEnd);
         results.exitCode = system::unix::ExitStatus(pid);
 
+        const std::string &internalErrors = ReadFromFd(toParentInternalErrorsPipe.readEnd);
+
         system::unix::Close(toParentPipe.readEnd);
+        system::unix::Close(toParentInternalErrorsPipe.readEnd);
+
+        if (internalErrors.length() > 0) {
+            throw exception::SutExecutionException("during SUT execution: " + internalErrors);
+        }
     }
     else {
-        system::unix::Close(toParentPipe.readEnd);
-        system::unix::Close(toChildPipe.writeEnd);
+        try {
+            system::unix::Close(toParentPipe.readEnd);
+            system::unix::Close(toChildPipe.writeEnd);
+            system::unix::Close(toParentInternalErrorsPipe.readEnd);
 
-        RedirectPipe(toChildPipe.readEnd, static_cast<int>(system::unix::FdId::STDIN));
-        RedirectPipe(toParentPipe.writeEnd, static_cast<int>(system::unix::FdId::STDOUT));
+            RedirectPipe(toChildPipe.readEnd, static_cast<int>(system::unix::FdId::STDIN));
+            RedirectPipe(toParentPipe.writeEnd, static_cast<int>(system::unix::FdId::STDOUT));
 
-        system::unix::Exec(path);
+            system::unix::Exec(path, options);
+        }
+        catch (const std::exception &ex) {
+            WriteToFd(toParentInternalErrorsPipe.writeEnd, ex.what());
+            system::unix::Terminate(FATAL_ERROR);
+            throw;
+        }
     }
 
     return results;

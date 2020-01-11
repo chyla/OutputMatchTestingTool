@@ -10,12 +10,15 @@
 #include "headers/ProcessResults.hpp"
 
 #include <string_view>
+#include <vector>
 
 
 namespace omtt
 {
 
 ProcessResults
-RunProcess(const std::string &path, const std::string_view &input);
+RunProcess(const std::string &path,
+           const std::vector<std::string> &options,
+           const std::string_view &input);
 
 }  // omtt

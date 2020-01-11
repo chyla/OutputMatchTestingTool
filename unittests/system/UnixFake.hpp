@@ -17,14 +17,15 @@ namespace omtt::system::unix
 
 struct UnixFake
 {
-    std::function<const Pipe()>  MakePipeAction;
+    std::function<const Pipe(const PipeOptions option)>  MakePipeAction;
     std::function<ssize_t (int, void *, size_t)> ReadAction;
     std::function<ssize_t (int, const void *, size_t)> WriteAction;
     std::function<void (int)> CloseAction;
     std::function<ssize_t ()> ForkAction;
     std::function<pid_t (int)> ExitStatusAction;
     std::function<void (int, int)> DuplicateFdAction;
-    std::function<void (const std::string &)> ExecAction;
+  std::function<void (const std::string &, const std::vector<std::string> &)> ExecAction;
+    std::function<void (int)> TerminateAction;
 };
 
 inline UnixFake& GlobalFake()

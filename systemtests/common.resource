@@ -30,6 +30,20 @@ Run SUT With
     ${result} =    Run SUT    args=--sut=${helper_path} ${omtt_test_path}
     [Return]    ${result}
 
+Run SUT With Interpreter Argument And Raw Helper App Path
+    [Arguments]    ${helper_interpreter}    ${helper_app}    ${omtt_test}
+    ${interpreter_path} =    Helper App Path    ${helper_interpreter}
+    ${omtt_test_path} =    Omtt Test Path    ${omtt_test}
+    ${result} =    Run SUT    args=--interpreter=${interpreter_path} --sut=${helper_app} ${omtt_test_path}
+    [Return]    ${result}
+
+Run SUT With More Than One Interpreter Argument And Raw Helper App Path
+    [Arguments]    ${helper_interpreter}    ${helper_app}    ${omtt_test}
+    ${interpreter_path} =    Helper App Path    ${helper_interpreter}
+    ${omtt_test_path} =    Omtt Test Path    ${omtt_test}
+    ${result} =    Run SUT    args=--interpreter=${interpreter_path} --interpreter=${interpreter_path} --sut=${helper_app} ${omtt_test_path}
+    [Return]    ${result}
+
 Helper App Path
     [Arguments]    ${helper_app}
     [Return]    ${HELPER_APPS_DIR}/${helper_app}
@@ -63,6 +77,10 @@ Exit Status Points To Fatal Error
     [Arguments]    ${result}
     Should Be Equal As Integers    ${result.rc}    255
 
+Exit Status Points To Invalid Command Line Options
+    [Arguments]    ${result}
+    Should Be Equal As Integers    ${result.rc}    252
+
 Missing Keyword Message Is Present
     [Arguments]    ${result}    ${expectedKeyword}
     ${message} =    Catenate    SEPARATOR=    Expected \'    ${expectedKeyword}    \' (KEYWORD), but got nothing.
@@ -72,3 +90,12 @@ Missing Keyword Message Is Present
 Missing Number Message Is Present
     [Arguments]    ${result}
     Should Contain    ${result.stderr}    Expected number, but got nothing.
+
+Fatal Error During SUT Execution Message Is Present
+    [Arguments]    ${result}
+    Should Contain    ${result.stderr}    fatal error: during SUT execution:
+
+Argument More Than Once Error Message Is Present
+    [Arguments]    ${result}
+    Should Contain    ${result.stderr}    commad line arguments error:
+    Should Contain    ${result.stderr}    cannot be specified more than once

@@ -6,6 +6,8 @@
  */
 
 #include "headers/RunProcess.hpp"
+#include "headers/ErrorCodes.hpp"
+#include "headers/exception/SutExecutionException.hpp"
 #include "unittests/system/UnixFake.hpp"
 
 #include "unittests/test_framework.hpp"
@@ -24,13 +26,14 @@ constexpr int anyChildProcessId = 1347;
 
 const std::string nonImportantEmptyInput;
 const std::string nonImportantNonEmptyInput = "XYZ";
+const std::vector<std::string> emptyRunProcessArguments = {};
 
 
 TEST_GROUP("Child Process Exit Code")
 {
     system::unix::ResetGlobalFake();
 
-    systemFake.MakePipeAction = []() -> system::unix::Pipe { return {0, 0}; };
+    systemFake.MakePipeAction = [](const system::unix::PipeOptions option) -> system::unix::Pipe { return {0, 0}; };
     systemFake.ForkAction = []() { return anyChildProcessId; };
     systemFake.CloseAction = [](int) {};
     systemFake.WriteAction = [](int, const void *, size_t) -> ssize_t { return 0; };
@@ -45,7 +48,7 @@ TEST_GROUP("Child Process Exit Code")
                                           return expectedExitCode;
                                       };
 
-        ProcessResults results = RunProcess(exampleBinaryPath, nonImportantEmptyInput);
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
 
         CHECK(results.exitCode == expectedExitCode);
     }
@@ -56,7 +59,7 @@ TEST_GROUP("Read Child Process Output")
 {
     system::unix::ResetGlobalFake();
 
-    systemFake.MakePipeAction = []() -> system::unix::Pipe { return {0, 0}; };
+    systemFake.MakePipeAction = [](const system::unix::PipeOptions option) -> system::unix::Pipe { return {0, 0}; };
     systemFake.ForkAction = []() { return anyChildProcessId; };
     systemFake.CloseAction = [](int) {};
     systemFake.WriteAction = [](int, const void *, size_t) -> ssize_t { return 0; };
@@ -69,7 +72,7 @@ TEST_GROUP("Read Child Process Output")
                                     return 0;
                                 };
 
-        ProcessResults results = RunProcess(exampleBinaryPath, nonImportantEmptyInput);
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
 
         CHECK(results.output == "");
     }
@@ -90,7 +93,7 @@ TEST_GROUP("Read Child Process Output")
                                     }
                                 };
 
-        ProcessResults results = RunProcess(exampleBinaryPath, nonImportantEmptyInput);
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
 
         CHECK(results.output == expectedProcessOutput);
     }
@@ -124,7 +127,7 @@ TEST_GROUP("Read Child Process Output")
                                     }
                                 };
 
-        ProcessResults results = RunProcess(exampleBinaryPath, nonImportantEmptyInput);
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
 
         CHECK(results.output == expectedProcessOutput);
     }
@@ -135,7 +138,7 @@ TEST_GROUP("Write To Child Process")
 {
     system::unix::ResetGlobalFake();
 
-    systemFake.MakePipeAction = []() -> system::unix::Pipe { return {0, 0}; };
+    systemFake.MakePipeAction = [](const system::unix::PipeOptions option) -> system::unix::Pipe { return {0, 0}; };
     systemFake.ForkAction = []() { return anyChildProcessId; };
     systemFake.CloseAction = [](int) {};
     systemFake.ReadAction = [](int, const void *, size_t) -> ssize_t { return 0; };
@@ -147,8 +150,9 @@ TEST_GROUP("Write To Child Process")
         systemFake.WriteAction = [&](int fd, const void *buf, size_t count) -> ssize_t {
                                      throw std::logic_error("Write function shouldn't be called.");
                                  };
+        const std::string emptyProcessInput = "";
 
-        ProcessResults results = RunProcess(exampleBinaryPath, "");
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, emptyProcessInput);
     }
 
     UNIT_TEST("Should pass input when input string is short")
@@ -165,7 +169,7 @@ TEST_GROUP("Write To Child Process")
                                     return s.length();
                                 };
 
-        ProcessResults results = RunProcess(exampleBinaryPath, input);
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, input);
 
         CHECK(result == input);
         CHECK(counts.size() == 1);
@@ -205,7 +209,7 @@ TEST_GROUP("Write To Child Process")
                                     }
                                 };
 
-        ProcessResults results = RunProcess(exampleBinaryPath, input);
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, input);
 
         CHECK(result == input);
         CHECK(counts.size() == 3);
@@ -228,13 +232,20 @@ TEST_GROUP("Pipes Management")
     constexpr int toChildWriteEnd = 23;
     constexpr system::unix::Pipe toChildPipe = {toChildReadEnd, toChildWriteEnd};
 
-    systemFake.MakePipeAction = [run = 0]() mutable -> system::unix::Pipe {
+    constexpr int toParentInternalErrorsReadEnd = 32;
+    constexpr int toParentInternalErrorsWriteEnd = 33;
+    constexpr system::unix::Pipe toParentInternalErrorsPipe = {toParentInternalErrorsReadEnd, toParentInternalErrorsWriteEnd};
+
+    systemFake.MakePipeAction = [run = 0](const system::unix::PipeOptions option) mutable -> system::unix::Pipe {
                                     ++run;
                                     if (run == 1) {
                                         return toParentPipe;
                                     }
                                     else if (run == 2) {
                                         return toChildPipe;
+                                    }
+                                    else if (run == 3) {
+                                        return toParentInternalErrorsPipe;
                                     }
                                     else {
                                         throw std::logic_error("Unexpected call to system::unix::Pipe().");
@@ -256,6 +267,8 @@ TEST_GROUP("Pipes Management")
             bool isClosedToParentWriteEnd = false;
             bool isClosedToChildReadEnd = false;
             bool isClosedToChildWriteEnd = false;
+            bool isClosedToParentInternalErrorsReadEnd = false;
+            bool isClosedToParentInternalErrorsWriteEnd = false;
 
             systemFake.CloseAction = [&](int fd) {
                                          if (isClosedToParentReadEnd == false && toParentReadEnd == fd) {
@@ -270,17 +283,25 @@ TEST_GROUP("Pipes Management")
                                          else if (isClosedToChildWriteEnd == false && toChildWriteEnd == fd) {
                                              isClosedToChildWriteEnd = true;
                                          }
+                                         else if (isClosedToParentInternalErrorsReadEnd == false && toParentInternalErrorsReadEnd == fd) {
+                                             isClosedToParentInternalErrorsReadEnd = true;
+                                         }
+                                         else if (isClosedToParentInternalErrorsWriteEnd == false && toParentInternalErrorsWriteEnd == fd) {
+                                             isClosedToParentInternalErrorsWriteEnd = true;
+                                         }
                                          else {
                                              throw std::logic_error("Unexpected fd to close or already closed: " + std::to_string(fd));
                                          }
                                      };
 
-            (void) RunProcess(exampleBinaryPath, nonImportantEmptyInput);
+            (void) RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
 
             CHECK(isClosedToParentReadEnd == true);
             CHECK(isClosedToParentWriteEnd == true);
             CHECK(isClosedToChildReadEnd == true);
             CHECK(isClosedToChildWriteEnd == true);
+            CHECK(isClosedToParentInternalErrorsReadEnd == true);
+            CHECK(isClosedToParentInternalErrorsWriteEnd == true);
         }
 
         UNIT_TEST("Should close toChildWriteEnd after the data was written to the pipe")
@@ -307,7 +328,7 @@ TEST_GROUP("Pipes Management")
                                          }
                                      };
 
-            (void) RunProcess(exampleBinaryPath, nonImportantNonEmptyInput);
+            (void) RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantNonEmptyInput);
 
             CHECK(isClosedToChildWriteEnd == true);
         }
@@ -319,6 +340,9 @@ TEST_GROUP("Pipes Management")
             systemFake.ReadAction = [&](int fd, void *, size_t) -> ssize_t {
                                          if (fd == toParentReadEnd) {
                                              isClosedToParentReadEnd = false;
+                                             return 0;
+                                         }
+                                         else if (fd == toParentInternalErrorsReadEnd) {
                                              return 0;
                                          }
                                          else {
@@ -337,9 +361,50 @@ TEST_GROUP("Pipes Management")
                                          }
                                      };
 
-            (void) RunProcess(exampleBinaryPath, nonImportantEmptyInput);
+            (void) RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
 
             CHECK(isClosedToParentReadEnd == true);
+        }
+
+        UNIT_TEST("Should close pipes ends before exception throw")
+        {
+            bool isClosedToParentReadEnd = false;
+            bool isClosedToParentInternalErrorsReadEnd = false;
+
+            systemFake.WriteAction = [](int, const void *, size_t length) -> ssize_t {
+                                         return length;
+                                     };
+            systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t) mutable -> ssize_t {
+                                      ++run;
+                                      auto dest = static_cast<char*>(buf);
+                                      constexpr int readFromParentInternalErrorsReadEndRun = 2;
+                                      if (run == readFromParentInternalErrorsReadEndRun) {
+                                          std::string someMessage = "some message";
+                                          std::copy(someMessage.begin(), someMessage.end(), dest);
+                                          return someMessage.length();
+                                      }
+                                      else {
+                                          return 0;
+                                      }
+                                    };
+            systemFake.CloseAction = [&](int fd) {
+                                         if (isClosedToParentReadEnd == false && toParentReadEnd == fd) {
+                                             isClosedToParentReadEnd = true;
+                                         }
+                                         else if (isClosedToParentInternalErrorsReadEnd == false && toParentInternalErrorsReadEnd == fd) {
+                                             isClosedToParentInternalErrorsReadEnd = true;
+                                         }
+                                         else if (toParentReadEnd == fd
+                                                  || toParentInternalErrorsReadEnd == fd) {
+                                             throw std::logic_error("Unexpected fd to close or already closed: " + std::to_string(fd));
+                                         }
+                                     };
+
+            CHECK_THROWS_AS(RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput),
+                            omtt::exception::SutExecutionException);
+
+            CHECK(isClosedToParentReadEnd == true);
+            CHECK(isClosedToParentInternalErrorsReadEnd == true);
         }
     }
 
@@ -351,8 +416,7 @@ TEST_GROUP("Pipes Management")
                                 };
         systemFake.CloseAction = [](int fd) {};
         systemFake.DuplicateFdAction = [](int oldFd, int newFd) {};
-        systemFake.ExecAction = [](const std::string &) {};
-
+        systemFake.ExecAction = [](const std::string &, const std::vector<std::string> &) {};
 
         UNIT_TEST("Should close STDIN, STDOUT before duplicating fd")
         {
@@ -386,17 +450,18 @@ TEST_GROUP("Pipes Management")
                                                }
                                            };
 
-            (void) RunProcess(exampleBinaryPath, nonImportantEmptyInput);
+            (void) RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
 
             CHECK(isClosedStdIn == true);
             CHECK(isClosedStdOut == true);
         }
 
-        UNIT_TEST("Should close toParentReadEnd, toChildWriteEnd before Exec")
+        UNIT_TEST("Should close toParentReadEnd, toChildWriteEnd, toParentInternalErrorsReadEnd before Exec")
         {
             bool isExecExecuted = false;
             bool isClosedToParentReadEnd = false;
             bool isClosedToChildWriteEnd = false;
+            bool isClosedToParentInternalErrorsReadEnd = false;
 
             systemFake.CloseAction = [&](int fd) {
                                          if (isExecExecuted == false) {
@@ -406,7 +471,12 @@ TEST_GROUP("Pipes Management")
                                              else if (isClosedToChildWriteEnd == false && toChildWriteEnd == fd) {
                                                  isClosedToChildWriteEnd = true;
                                              }
-                                             else if (toParentReadEnd == fd || toChildWriteEnd == fd) {
+                                             else if (isClosedToParentInternalErrorsReadEnd == false && toParentInternalErrorsReadEnd == fd) {
+                                                 isClosedToParentInternalErrorsReadEnd = true;
+                                             }
+                                             else if (toParentReadEnd == fd
+                                                      || toChildWriteEnd == fd
+                                                      || toParentInternalErrorsReadEnd == fd) {
                                                  throw std::logic_error("Already closed: " + std::to_string(fd));
                                              }
                                          }
@@ -414,14 +484,15 @@ TEST_GROUP("Pipes Management")
                                              throw std::logic_error("Close should be executed before Exec function for fd: " + std::to_string(fd));
                                          }
                                      };
-            systemFake.ExecAction = [&](const std::string &) {
+            systemFake.ExecAction = [&](const std::string &, const std::vector<std::string> &) {
                                         isExecExecuted = true;
                                     };
 
-            (void) RunProcess(exampleBinaryPath, nonImportantEmptyInput);
+            (void) RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
 
             CHECK(isClosedToParentReadEnd == true);
             CHECK(isClosedToChildWriteEnd == true);
+            CHECK(isClosedToParentInternalErrorsReadEnd == true);
         }
 
         UNIT_TEST("Should duplicate toChildReadEnd to STDIN")
@@ -435,7 +506,7 @@ TEST_GROUP("Pipes Management")
                                                }
                                            };
 
-            (void) RunProcess(exampleBinaryPath, nonImportantEmptyInput);
+            (void) RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
 
             CHECK(isDuplicatedToChildReadEnd == true);
         }
@@ -451,9 +522,202 @@ TEST_GROUP("Pipes Management")
                                                }
                                            };
 
-            (void) RunProcess(exampleBinaryPath, nonImportantEmptyInput);
+            (void) RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
 
             CHECK(isDuplicatedToParentWriteEnd == true);
+        }
+
+
+        UNIT_TEST("Should write error message to parent's internal pipe and terminate when error occour during SUT process creation")
+        {
+            const std::string expectedErrorMessage = "some error message";
+            std::string resultMessage;
+            bool isTerminateCalled = false;
+
+            systemFake.WriteAction = [&](int fd, const void *buf, size_t count) -> ssize_t {
+                                         auto src = static_cast<const char*>(buf);
+                                         std::string s(src, count);
+                                         resultMessage += s;
+                                         return s.length();
+                                     };
+            systemFake.TerminateAction = [&](const int exitCode) {
+                                             if (exitCode == FATAL_ERROR) {
+                                                 isTerminateCalled = true;
+                                             }
+                                             else {
+                                                 throw std::logic_error("Terminate function not called.");
+                                             }
+                                         };
+
+            SUBTEST("Error occour on toParentReadEnd pipe close")
+            {
+                systemFake.CloseAction = [&](int fd) {
+                                             if (fd == toParentReadEnd) {
+                                                 throw std::runtime_error(expectedErrorMessage);
+                                             }
+                                             else {
+                                                 throw std::logic_error("Unexpected Close call with fd:" + std::to_string(fd));
+                                             }
+                                         };
+
+                CHECK_THROWS_AS(RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput),
+                                std::runtime_error);
+
+                CHECK(resultMessage == expectedErrorMessage);
+                CHECK(isTerminateCalled == true);
+            }
+
+            SUBTEST("Error occour on toChildWriteEnd pipe close")
+            {
+                systemFake.CloseAction = [&](int fd) {
+                                             if (fd == toParentReadEnd) {
+                                                 // do nothing
+                                             }
+                                             else if (fd == toChildWriteEnd) {
+                                                 throw std::runtime_error(expectedErrorMessage);
+                                             }
+                                             else {
+                                                 throw std::logic_error("Unexpected Close call with fd:" + std::to_string(fd));
+                                             }
+                                         };
+
+                CHECK_THROWS_AS(RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput),
+                                std::runtime_error);
+
+                CHECK(resultMessage == expectedErrorMessage);
+                CHECK(isTerminateCalled == true);
+            }
+
+            SUBTEST("Error occour on toParentInternalErrorsReadEnd pipe close")
+            {
+                systemFake.CloseAction = [&](int fd) {
+                                             if (fd == toParentReadEnd
+                                                 || fd == toChildWriteEnd) {
+                                                 // do nothing
+                                             }
+                                             else if (fd == toParentInternalErrorsReadEnd) {
+                                                 throw std::runtime_error(expectedErrorMessage);
+                                             }
+                                             else {
+                                                 throw std::logic_error("Unexpected Close call with fd:" + std::to_string(fd));
+                                             }
+                                         };
+
+                CHECK_THROWS_AS(RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput),
+                                std::runtime_error);
+
+                CHECK(resultMessage == expectedErrorMessage);
+                CHECK(isTerminateCalled == true);
+            }
+
+            SUBTEST("Error occour on STDIN pipe close")
+            {
+                systemFake.CloseAction = [&](int fd) {
+                                             if (fd == toParentReadEnd
+                                                 || fd == toChildWriteEnd
+                                                 || fd == toParentInternalErrorsReadEnd) {
+                                                 // do nothing
+                                             }
+                                             else if (fd == static_cast<int>(system::unix::FdId::STDIN)) {
+                                                 throw std::runtime_error(expectedErrorMessage);
+                                             }
+                                             else {
+                                                 throw std::logic_error("Unexpected Close call with fd:" + std::to_string(fd));
+                                             }
+                                         };
+
+                CHECK_THROWS_AS(RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput),
+                                std::runtime_error);
+
+                CHECK(resultMessage == expectedErrorMessage);
+                CHECK(isTerminateCalled == true);
+            }
+
+            SUBTEST("Error occour on STDIN pipe duplication")
+            {
+                systemFake.CloseAction = [&](int fd) {
+                                             if (fd == toParentReadEnd
+                                                 || fd == toChildWriteEnd
+                                                 || fd == toParentInternalErrorsReadEnd
+                                                 || fd == static_cast<int>(system::unix::FdId::STDIN)) {
+                                                 // do nothing
+                                             }
+                                             else {
+                                                 throw std::logic_error("Unexpected Close call with fd:" + std::to_string(fd));
+                                             }
+                                         };
+                systemFake.DuplicateFdAction = [&](int oldFd, int newFd) {
+                                                   if (newFd == static_cast<int>(system::unix::FdId::STDIN)) {
+                                                       throw std::runtime_error(expectedErrorMessage);
+                                                   }
+                                                   else {
+                                                       throw std::logic_error("Unexpected DuplicateFd call with newFd:" + std::to_string(newFd));
+                                                   }
+                                               };
+
+                CHECK_THROWS_AS(RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput),
+                                std::runtime_error);
+
+                CHECK(resultMessage == expectedErrorMessage);
+                CHECK(isTerminateCalled == true);
+            }
+
+            SUBTEST("Error occour on STDOUT pipe close")
+            {
+                systemFake.CloseAction = [&](int fd) {
+                                             if (fd == toParentReadEnd
+                                                 || fd == toChildWriteEnd
+                                                 || fd == toParentInternalErrorsReadEnd
+                                                 || fd == static_cast<int>(system::unix::FdId::STDIN)) {
+                                                 // do nothing
+                                             }
+                                             else if (fd == static_cast<int>(system::unix::FdId::STDOUT)) {
+                                                 throw std::runtime_error(expectedErrorMessage);
+                                             }
+                                             else {
+                                                 throw std::logic_error("Unexpected Close call with fd:" + std::to_string(fd));
+                                             }
+                                         };
+
+                CHECK_THROWS_AS(RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput),
+                                std::runtime_error);
+
+                CHECK(resultMessage == expectedErrorMessage);
+                CHECK(isTerminateCalled == true);
+            }
+
+            SUBTEST("Error occour on STDIN pipe duplication")
+            {
+                systemFake.CloseAction = [&](int fd) {
+                                             if (fd == toParentReadEnd
+                                                 || fd == toChildWriteEnd
+                                                 || fd == toParentInternalErrorsReadEnd
+                                                 || fd == static_cast<int>(system::unix::FdId::STDIN)
+                                                 || fd == static_cast<int>(system::unix::FdId::STDOUT)) {
+                                                 // do nothing
+                                             }
+                                             else {
+                                                 throw std::logic_error("Unexpected Close call with fd:" + std::to_string(fd));
+                                             }
+                                         };
+                systemFake.DuplicateFdAction = [&](int oldFd, int newFd) {
+                                                   if (newFd == static_cast<int>(system::unix::FdId::STDIN)) {
+                                                       // do nothing
+                                                   }
+                                                   else if (newFd == static_cast<int>(system::unix::FdId::STDOUT)) {
+                                                       throw std::runtime_error(expectedErrorMessage);
+                                                   }
+                                                   else {
+                                                       throw std::logic_error("Unexpected DuplicateFd call with newFd:" + std::to_string(newFd));
+                                                   }
+                                               };
+
+                CHECK_THROWS_AS(RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput),
+                                std::runtime_error);
+
+                CHECK(resultMessage == expectedErrorMessage);
+                CHECK(isTerminateCalled == true);
+            }
         }
     }
 }
@@ -462,27 +726,119 @@ TEST_GROUP("SUT Process Execution")
 {
     system::unix::ResetGlobalFake();
 
-    systemFake.MakePipeAction = []() -> system::unix::Pipe { return {0,0}; };
+    systemFake.MakePipeAction = [](const system::unix::PipeOptions option) -> system::unix::Pipe { return {0,0}; };
     systemFake.ExitStatusAction = [](int) { return 0; };
-    systemFake.ForkAction = []() {
-                                constexpr int specialParentProcessId = 0;
-                                return specialParentProcessId;
-                            };
     systemFake.CloseAction = [](int fd) {};
     systemFake.DuplicateFdAction = [](int oldFd, int newFd) {};
 
-
-    UNIT_TEST("Should execute specified binary")
+    SUBGROUP("Parent side")
     {
-        std::string receivedPath;
+        systemFake.ForkAction = []() { return anyChildProcessId; };
 
-        systemFake.ExecAction = [&](const std::string &path) {
-                                    receivedPath = path;
+        UNIT_TEST("Should throw exception with error message from child process")
+        {
+            std::string errorMessage = "message text";
+            std::string expectedErrorMessage = "during SUT execution: " + errorMessage;
+
+            systemFake.WriteAction = [](int, const void *, size_t length) -> ssize_t {
+                                         return length;
+                                     };
+            systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t) mutable -> ssize_t {
+                                      ++run;
+                                      auto dest = static_cast<char*>(buf);
+                                      constexpr int readFromParentInternalErrorsReadEndRun = 2;
+                                      if (run == readFromParentInternalErrorsReadEndRun) {
+                                          std::copy(errorMessage.begin(), errorMessage.end(), dest);
+                                          return errorMessage.length();
+                                      }
+                                      else {
+                                          return 0;
+                                      }
+                                    };
+            systemFake.CloseAction = [](int fd) {};
+
+            CHECK_THROWS_WITH_AS(RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput),
+                                 expectedErrorMessage.c_str(),
+                                 omtt::exception::SutExecutionException);
+        }
+    }
+
+    SUBGROUP("Child side")
+    {
+        systemFake.ForkAction = []() {
+                                    constexpr int specialParentProcessId = 0;
+                                    return specialParentProcessId;
                                 };
 
-        (void) RunProcess(exampleBinaryPath, nonImportantEmptyInput);
+        UNIT_TEST("Should execute specified binary with arguments")
+        {
+            std::string receivedPath;
+            std::vector<std::string> receivedArguments;
+            std::vector<std::string> expectedArguments = {"some argument"};
 
-        CHECK(receivedPath == exampleBinaryPath);
+            systemFake.ExecAction = [&](const std::string &path, const std::vector<std::string> &arguments) {
+                                        receivedPath = path;
+                                        receivedArguments = arguments;
+                                    };
+
+            (void) RunProcess(exampleBinaryPath, expectedArguments, nonImportantEmptyInput);
+
+            CHECK(receivedPath == exampleBinaryPath);
+            CHECK(receivedArguments == expectedArguments);
+        }
+
+        UNIT_TEST("Should write error message to parent's internal pipe and terminate when error occour during SUT process exec")
+        {
+            const std::string expectedErrorMessage = "some error message";
+            std::string resultMessage;
+            bool isTerminateCalled = false;
+
+            systemFake.ExecAction = [&](const std::string &path, const std::vector<std::string> &arguments) {
+                                        throw std::runtime_error(expectedErrorMessage);
+                                    };
+            systemFake.WriteAction = [&](int fd, const void *buf, size_t count) -> ssize_t {
+                                         auto src = static_cast<const char*>(buf);
+                                         std::string s(src, count);
+                                         resultMessage += s;
+                                         return s.length();
+                                     };
+            systemFake.TerminateAction = [&](const int exitCode) {
+                                             if (exitCode == FATAL_ERROR) {
+                                                 isTerminateCalled = true;
+                                             }
+                                             else {
+                                                 throw std::logic_error("Terminate function not called.");
+                                             }
+                                         };
+
+            CHECK_THROWS_AS(RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput),
+                            std::runtime_error);
+
+            CHECK(resultMessage == expectedErrorMessage);
+            CHECK(isTerminateCalled == true);
+        }
+    }
+}
+
+
+TEST_GROUP("Unit tests dependencies")
+{
+    systemFake.WriteAction = [&](int fd, const void *buf, size_t count) -> ssize_t {
+                               auto src = static_cast<const char*>(buf);
+                               std::string s(src, count);
+                               return s.length();
+                             };
+    systemFake.TerminateAction = [&](const int exitCode) {
+                                 };
+
+    UNIT_TEST("Should rethrow exceptions to allow error detecting in some unittests (catch could match the exception raised in ut)")
+    {
+        systemFake.CloseAction = [&](int fd) {
+                                   throw std::runtime_error("any message");
+                                 };
+
+        CHECK_THROWS_AS(RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput),
+                        std::runtime_error);
     }
 }
 

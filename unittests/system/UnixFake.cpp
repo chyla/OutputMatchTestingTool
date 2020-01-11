@@ -12,9 +12,9 @@ namespace omtt::system::unix
 {
 
 const Pipe
-MakePipe()
+MakePipe(const PipeOptions option)
 {
-    return GlobalFake().MakePipeAction();
+    return GlobalFake().MakePipeAction(option);
 }
 
 ssize_t
@@ -54,9 +54,15 @@ DuplicateFd(int oldFd, int newFd)
 }
 
 void
-Exec(const std::string &path)
+Exec(const std::string &path, const std::vector<std::string> &arguments)
 {
-    GlobalFake().ExecAction(path);
+    GlobalFake().ExecAction(path, arguments);
+}
+
+void
+Terminate(const int status)
+{
+    GlobalFake().TerminateAction(status);
 }
 
 }  // omtt::system::unix
