@@ -686,7 +686,7 @@ TEST_GROUP("Pipes Management")
                 CHECK(isTerminateCalled == true);
             }
 
-            SUBTEST("Error occour on STDIN pipe duplication")
+            SUBTEST("Error occour on STDOUT pipe duplication")
             {
                 systemFake.CloseAction = [&](int fd) {
                                              if (fd == toParentReadEnd
