@@ -1,0 +1,5 @@
+RUN
+WITH INPUT
+Some text. Other text.
+EXPECT OUTPUT
+Some text.

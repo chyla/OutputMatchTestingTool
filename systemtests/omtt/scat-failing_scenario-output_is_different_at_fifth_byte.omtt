@@ -1,0 +1,5 @@
+RUN
+WITH INPUT
+Some long text.
+EXPECT OUTPUT
+Some_other text.

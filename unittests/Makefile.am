@@ -2,7 +2,8 @@ check_PROGRAMS = lexer_tests \
                  parser_tests \
                  run_process_tests \
                  validate_expectations_and_sut_results_tests \
-                 full_output_expectation_tests
+                 full_output_expectation_tests \
+		 exit_code_expectation_tests
 
 lexer_tests_SOURCES = main.cpp lexer/LexerTests.cpp
 lexer_tests_LDADD = ../src/lexer/Lexer.o \
@@ -18,5 +19,7 @@ validate_expectations_and_sut_results_tests_SOURCES = main.cpp ValidateExpectati
 validate_expectations_and_sut_results_tests_LDADD = ../src/ValidateExpectationsAndSutResults.o
 
 full_output_expectation_tests_SOURCES = main.cpp expectation/FullOutputExpectationTests.cpp
+
+exit_code_expectation_tests_SOURCES = main.cpp expectation/ExitCodeExpectationTests.cpp
 
 TESTS = $(check_PROGRAMS)

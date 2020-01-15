@@ -21,10 +21,10 @@ namespace
 class TrueExpectation : public expectation::Expectation
 {
 public:
-    bool
-    IsSatisfied(const ProcessResults &output) const
+    expectation::ValidationResult
+    Validate(const ProcessResults &output)
     {
-        return true;
+        return {true, std::nullopt};
     }
 };
 
@@ -32,10 +32,10 @@ public:
 class FalseExpectation : public expectation::Expectation
 {
 public:
-    bool
-    IsSatisfied(const ProcessResults &output) const
+    expectation::ValidationResult
+    Validate(const ProcessResults &output)
     {
-        return false;
+        return {false, "Failed at position: 12"};
     }
 };
 

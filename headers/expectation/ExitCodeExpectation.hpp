@@ -22,10 +22,24 @@ public:
     {
     }
 
-    bool
-    IsSatisfied(const ProcessResults &processResults) const
+    ValidationResult
+    Validate(const ProcessResults &processResults)
     {
-        return fExpectedExitCode == processResults.exitCode;
+        ValidationResult result;
+
+        if (fExpectedExitCode == processResults.exitCode) {
+            result.isSatisfied = true;
+            result.cause = std::nullopt;
+        }
+        else {
+            result.isSatisfied = false;
+            result.cause =
+                "Exit code doesn't match.\n"
+                "Expected: " + std::to_string(fExpectedExitCode) + "\n"
+                "Got: " + std::to_string(processResults.exitCode);
+        }
+
+        return result;
     }
 
     const int

@@ -53,3 +53,18 @@ Raise an error when the exit code value is missing
     Verdict Is Not Present    ${result}
     Missing Number Message Is Present    ${result}
     Exit Status Points To Fatal Error    ${result}
+
+Invalid Exit Code Message is not present when exit code is correct
+    ${result} =    Run SUT With    true    true-will_exit_with_zero.omtt
+
+    Verdict Is Set To Pass    ${result}
+    Invalid Exit Code Is Not Present    ${result}
+
+Invalid Exit Code Message is present when exit code is invalid
+    ${result} =    Run SUT With    true    true-failing_scenario-will_exit_with_one.omtt
+
+    Verdict Is Set To Fail    ${result}
+
+    ${expectedExitCode} =    Set Variable    1
+    ${realExitCode} =    Set Variable    0
+    Invalid Exit Code Message Is Present    ${result}    ${expectedExitCode}    ${realExitCode}

@@ -11,7 +11,7 @@
 namespace omtt
 {
 
-const TestExecutionSummary
+TestExecutionSummary
 ValidateExpectationsAndSutResults(const TestData &testData,
                                   const ProcessResults &processResults)
 {
@@ -19,8 +19,11 @@ ValidateExpectationsAndSutResults(const TestData &testData,
     summary.verdict = Verdict::PASS;
 
     for (const auto &expectation : testData.expectations) {
-        if (!expectation->IsSatisfied(processResults)) {
+        auto validationResult = expectation->Validate(processResults);
+
+        if (!validationResult.isSatisfied) {
             summary.verdict = Verdict::FAIL;
+            summary.causes.push_back(*validationResult.cause);
         }
     }
 

@@ -8,8 +8,10 @@
 #pragma once
 
 #include "headers/Verdict.hpp"
+#include "headers/expectation/ValidationResult.hpp"
 
 #include <ostream>
+#include <vector>
 
 
 namespace omtt
@@ -18,6 +20,7 @@ namespace omtt
 struct TestExecutionSummary
 {
     Verdict verdict;
+    std::vector<expectation::ValidationResult::Cause> causes;
 };
 
 std::ostream&

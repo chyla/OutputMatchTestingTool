@@ -15,7 +15,7 @@
 namespace omtt
 {
 
-const TestExecutionSummary
+TestExecutionSummary
 ValidateExpectationsAndSutResults(const TestData&,
                                   const ProcessResults&);
 

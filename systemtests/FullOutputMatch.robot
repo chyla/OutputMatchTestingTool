@@ -58,9 +58,41 @@ Mark test as PASS when EXPECT keyword occours in input and expected output after
     Verdict Is Set To Pass    ${result}
     Exit Status Points To All Tests Passed    ${result}
 
+Missing keyword error message is not present when test PASS
+    ${result} =    Run SUT With    scat    scat-expect_keyword_in_input_and_output_after_space.omtt
+
+    Verdict Is Set To Pass    ${result}
+    Missing Keyword Message Is Not Present    ${result}
+
 Raise missing keyword error when EXPECT keyword occours in expected output
     ${result} =    Run SUT With    scat    scat-error_scenario-expect_keyword_in_output.omtt
 
     Verdict Is Not Present    ${result}
     Missing Keyword Message Is Present    ${result}    OUTPUT' or 'EXIT
     Exit Status Points To Fatal Error    ${result}
+
+Output doesn't match message shouldn't be present when test PASS
+    ${result} =    Run SUT With    scat    scat-keywords_in_input_and_output.omtt
+
+    Verdict Is Set To Pass    ${result}
+    Output Doesn't Match Message Is Not Present    ${result}
+
+Output doesn't match message should points to first byte when output and expected output differs on first byte
+    ${result} =    Run SUT With    scat    scat-failing_scenario-output_is_different_at_first_byte.omtt
+
+    Output Doesn't Match Message Points To Byte    ${result}    0
+
+Output doesn't match message should points to fifth byte when output and expected output differs on fifth byte
+    ${result} =    Run SUT With    scat    scat-failing_scenario-output_is_different_at_fifth_byte.omtt
+
+    Output Doesn't Match Message Points To Byte    ${result}    4
+
+Output doesn't match message should points to last output byte when output is shorten than expected output
+    ${result} =    Run SUT With    scat    scat-failing_scenario-output_is_shorten_than_expected_output.omtt
+
+    Output Doesn't Match Message Points To Byte    ${result}    10
+
+Output doesn't match message should points to last expected output byte byte when expected output is shorten than output
+    ${result} =    Run SUT With    scat    scat-failing_scenario-expected_output_is_shorten_than_output.omtt
+
+    Output Doesn't Match Message Points To Byte    ${result}    10

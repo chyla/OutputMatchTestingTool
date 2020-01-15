@@ -15,6 +15,14 @@ std::ostream&
 operator<<(std::ostream &os, const TestExecutionSummary &tes)
 {
     os << "Verdict: " <<  to_cstring(tes.verdict);
+
+    for (const auto &cause : tes.causes) {
+        os << "\n"
+              "--------------------\n"
+              "=> Cause:\n"
+           << cause;
+    }
+
     return os;
 }
 

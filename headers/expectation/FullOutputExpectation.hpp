@@ -9,6 +9,8 @@
 
 #include "headers/expectation/Expectation.hpp"
 
+#include <algorithm>
+#include <iterator>
 #include <string_view>
 
 
@@ -24,10 +26,23 @@ public:
     {
     }
 
-    bool
-    IsSatisfied(const ProcessResults &processResults) const
+    ValidationResult
+    Validate(const ProcessResults &processResults)
     {
-        return fExpectedOutput == processResults.output;
+        ValidationResult result;
+
+        if (fExpectedOutput == processResults.output) {
+            result.isSatisfied = true;
+            result.cause = std::nullopt;
+        }
+        else {
+            result.isSatisfied = false;
+            result.cause =
+                "Output doesn't match.\n"
+                "First difference at byte: " + std::to_string(_FindFirstDifferencePosition(fExpectedOutput, processResults.output));
+        }
+
+        return result;
     }
 
     const std::string_view &
@@ -38,6 +53,13 @@ public:
 
 private:
     const std::string_view fExpectedOutput;
+
+    static std::string::size_type
+    _FindFirstDifferencePosition(const std::string_view &expectedOutput, const std::string &output)
+    {
+        auto diff = std::mismatch(output.begin(), output.end(), expectedOutput.begin());
+        return std::distance(output.begin(), diff.first);
+    }
 };
 
 }
