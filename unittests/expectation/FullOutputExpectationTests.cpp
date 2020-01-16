@@ -167,6 +167,132 @@ TEST_CASE("Cause should point after last byte of SUT output text when SUT output
     CHECK(contain(*validationReults.cause, "Output doesn't match.\nFirst difference at byte: 4"));
 }
 
+TEST_CASE("Should change space to SPC in cause")
+{
+    const std::string expectedOutput = " ";
+    const ProcessResults sutResults {0, " a"};
+
+    expectation::FullOutputExpectation expectation(expectedOutput);
+
+    auto validationReults = expectation.Validate(sutResults);
+
+    CHECK(validationReults.cause.has_value());
+    CHECK(contain(*validationReults.cause, "\
+Expected context:\n\
+SPC  \n\
+     \n\
+0x20 \n\
+Output context:\n\
+SPC  a    \n\
+     ^    \n\
+0x20 0x61 "));
+}
+
+TEST_CASE("Should change horizontal tab to TAB in cause")
+{
+    const std::string expectedOutput = "\t";
+    const ProcessResults sutResults {0, "\ta"};
+
+    expectation::FullOutputExpectation expectation(expectedOutput);
+
+    auto validationReults = expectation.Validate(sutResults);
+
+    CHECK(validationReults.cause.has_value());
+    CHECK(contain(*validationReults.cause, "\
+Expected context:\n\
+TAB  \n\
+     \n\
+0x09 \n\
+Output context:\n\
+TAB  a    \n\
+     ^    \n\
+0x09 0x61 "));
+}
+
+TEST_CASE("Should change carriage return to CR in cause")
+{
+    const std::string expectedOutput = "\r";
+    const ProcessResults sutResults {0, "\ra"};
+
+    expectation::FullOutputExpectation expectation(expectedOutput);
+
+    auto validationReults = expectation.Validate(sutResults);
+
+    CHECK(validationReults.cause.has_value());
+    CHECK(contain(*validationReults.cause, "\
+Expected context:\n\
+CR   \n\
+     \n\
+0x0d \n\
+Output context:\n\
+CR   a    \n\
+     ^    \n\
+0x0d 0x61 "));
+}
+
+TEST_CASE("Should change line feed to LF in cause")
+{
+    const std::string expectedOutput = "\n";
+    const ProcessResults sutResults {0, "\na"};
+
+    expectation::FullOutputExpectation expectation(expectedOutput);
+
+    auto validationReults = expectation.Validate(sutResults);
+
+    CHECK(validationReults.cause.has_value());
+    CHECK(contain(*validationReults.cause, "\
+Expected context:\n\
+LF   \n\
+     \n\
+0x0a \n\
+Output context:\n\
+LF   a    \n\
+     ^    \n\
+0x0a 0x61 "));
+}
+
+TEST_CASE("Should change vertical tab to VT in cause")
+{
+    const std::string expectedOutput = "\v";
+    const ProcessResults sutResults {0, "\va"};
+
+    expectation::FullOutputExpectation expectation(expectedOutput);
+
+    auto validationReults = expectation.Validate(sutResults);
+
+    CHECK(validationReults.cause.has_value());
+    CHECK(contain(*validationReults.cause, "\
+Expected context:\n\
+VT   \n\
+     \n\
+0x0b \n\
+Output context:\n\
+VT   a    \n\
+     ^    \n\
+0x0b 0x61 "));
+}
+
+TEST_CASE("Should change feed to FF in cause")
+{
+    const std::string expectedOutput = "\f";
+    const ProcessResults sutResults {0, "\fa"};
+
+    expectation::FullOutputExpectation expectation(expectedOutput);
+
+    auto validationReults = expectation.Validate(sutResults);
+
+    CHECK(validationReults.cause.has_value());
+    CHECK(contain(*validationReults.cause, "\
+Expected context:\n\
+FF   \n\
+     \n\
+0x0c \n\
+Output context:\n\
+FF   a    \n\
+     ^    \n\
+0x0c 0x61 "));
+}
+
 TEST_CASE("Cause should have context and pointer to first byte when the difference is on the first position")
 {
     const std::string expectedOutput = "some output";
@@ -179,11 +305,11 @@ TEST_CASE("Cause should have context and pointer to first byte when the differen
     CHECK(validationReults.cause.has_value());
     CHECK(contain(*validationReults.cause, "\
 Expected context:\n\
-s    o    m    e         o    u    \n\
+s    o    m    e    SPC  o    u    \n\
 ^                                  \n\
 0x73 0x6f 0x6d 0x65 0x20 0x6f 0x75 \n\
 Output context:\n\
-S    o    m    e         O    u    \n\
+S    o    m    e    SPC  O    u    \n\
 ^                                  \n\
 0x53 0x6f 0x6d 0x65 0x20 0x4f 0x75 "));
 }
@@ -221,11 +347,11 @@ TEST_CASE("Cause should have context and pointer to sixth byte when the differen
     CHECK(validationReults.cause.has_value());
     CHECK(contain(*validationReults.cause, "\
 Expected context:\n\
-s    o    m    e         T    \n\
+s    o    m    e    SPC  T    \n\
                          ^    \n\
 0x73 0x6f 0x6d 0x65 0x20 0x54 \n\
 Output context:\n\
-s    o    m    e         t    \n\
+s    o    m    e    SPC  t    \n\
                          ^    \n\
 0x73 0x6f 0x6d 0x65 0x20 0x74 "));
 }
@@ -242,11 +368,11 @@ TEST_CASE("Cause context should have context with fifth characters after wrong c
     CHECK(validationReults.cause.has_value());
     CHECK(contain(*validationReults.cause, "\
 Expected context:\n\
-     v    e    r    r    y         l    o    n    g         \n\
+SPC  v    e    r    r    y    SPC  l    o    n    g    SPC  \n\
                               ^                             \n\
 0x20 0x76 0x65 0x72 0x72 0x79 0x20 0x6c 0x6f 0x6e 0x67 0x20 \n\
 Output context:\n\
-     v    e    r    r    y    \n\
+SPC  v    e    r    r    y    \n\
                               \n\
 0x20 0x76 0x65 0x72 0x72 0x79 "));
 }
@@ -263,11 +389,11 @@ TEST_CASE("Cause context should have context with six characters before wrong ch
     CHECK(validationReults.cause.has_value());
     CHECK(contain(*validationReults.cause, "\
 Expected context:\n\
-     v    e    r    r    y         l    o    n    g         t    \n\
+SPC  v    e    r    r    y    SPC  l    o    n    g    SPC  t    \n\
                               ^                                  \n\
 0x20 0x76 0x65 0x72 0x72 0x79 0x20 0x6c 0x6f 0x6e 0x67 0x20 0x74 \n\
 Output context:\n\
-     v    e    r    r    y    \n\
+SPC  v    e    r    r    y    \n\
                               \n\
 0x20 0x76 0x65 0x72 0x72 0x79 "));
 }
@@ -284,11 +410,11 @@ TEST_CASE("Cause context should have six characters after wrong character")
     CHECK(validationReults.cause.has_value());
     CHECK(contain(*validationReults.cause, "\
 Expected context:\n\
-     v    e    r    r    y    \n\
+SPC  v    e    r    r    y    \n\
                               \n\
 0x20 0x76 0x65 0x72 0x72 0x79 \n\
 Output context:\n\
-     v    e    r    r    y         l    o    n    g         t    \n\
+SPC  v    e    r    r    y    SPC  l    o    n    g    SPC  t    \n\
                               ^                                  \n\
 0x20 0x76 0x65 0x72 0x72 0x79 0x20 0x6c 0x6f 0x6e 0x67 0x20 0x74 "));
 }

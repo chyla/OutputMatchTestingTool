@@ -29,8 +29,9 @@ find_first_difference_position(const std::string_view &expectedOutput, const std
     return std::distance(output.begin(), diff.first);
 }
 
+template<class T>
 void
-write_char(std::ostream &os, const char c)
+write_char(std::ostream &os, const T c)
 {
     os << std::setw(5) << std::left << c;
 }
@@ -38,7 +39,7 @@ write_char(std::ostream &os, const char c)
 void
 write_hex_integer(std::ostream &os, const int c)
 {
-    os << "0x" << std::hex << c << " ";
+    os << "0x" << std::setfill('0') << std::setw(2) << std::hex << c << " ";
 }
 
 template<class T>
@@ -60,6 +61,36 @@ end_position(const T textLength, const T mismatchPosition)
                     mismatchPosition + CONTEXT_SIZE + 1);
 }
 
+bool
+isSpace(const int c) {
+    return c == ' ';
+}
+
+bool
+isTab(const int c) {
+    return c == '\t';
+}
+
+bool
+isCr(const int c) {
+    return c == '\r';
+}
+
+bool
+isLf(const int c) {
+    return c == '\n';
+}
+
+bool
+isVTab(const int c) {
+    return c == '\v';
+}
+
+bool
+isFeed(const int c) {
+    return c == '\f';
+}
+
 template<class T>
 std::string
 context(const T &text, const typename T::size_type mismatchPosition)
@@ -70,7 +101,30 @@ context(const T &text, const typename T::size_type mismatchPosition)
     const typename T::size_type upper = end_position(text.length(), mismatchPosition);
     for (auto i = lower; i < upper; ++i) {
         const char c = text.at(i);
-        write_char(alnum, isprint(c) ? c : '?');
+        if (isSpace(c)) {
+            write_char(alnum, "SPC");
+        }
+        else if (isTab(c)) {
+            write_char(alnum, "TAB");
+        }
+        else if (isCr(c)) {
+            write_char(alnum, "CR");
+        }
+        else if (isLf(c)) {
+            write_char(alnum, "LF");
+        }
+        else if (isVTab(c)) {
+            write_char(alnum, "VT");
+        }
+        else if (isFeed(c)) {
+            write_char(alnum, "FF");
+        }
+        else if (std::isprint(c)) {
+            write_char(alnum, c);
+        }
+        else {
+            write_char(alnum, "NP");
+        }
         write_char(point, (i == mismatchPosition) ? '^' : ' ');
         write_hex_integer(hex, c);
     }

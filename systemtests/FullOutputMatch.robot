@@ -100,15 +100,13 @@ Output doesn't match message should points to last expected output byte byte whe
 Full match context message is present
     ${result} =    Run SUT With    scat    scat-failing_scenario-output_is_different_at_fifth_byte.omtt
 
-    Context Message Specitic For This Test Is Present    ${result}
+    Message Is Present    ${result}    ${full_match_context_message}
+
+Full match context message should have changed special characters
+    ${result} =    Run SUT With    scat    scat-failing_scenario-special_characters_at_input.omtt
+
+    Message Is Present    ${result}    ${special_characters_message}
 
 
 *** Settings ***
 Variables    FullOutputMatchVariables.py
-
-
-*** Keywords ***
-Context Message Specitic For This Test Is Present
-    [Arguments]    ${result}
-
-    Should Contain    ${result.stdout}    ${full_match_context_message}

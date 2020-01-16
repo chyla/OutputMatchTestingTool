@@ -81,6 +81,11 @@ Exit Status Points To Invalid Command Line Options
     [Arguments]    ${result}
     Should Be Equal As Integers    ${result.rc}    252
 
+Message Is Present
+    [Arguments]    ${result}    ${message}
+
+    Should Contain    ${result.stdout}    ${message}
+
 Missing Keyword Message Is Not Present
     [Arguments]    ${result}
 
