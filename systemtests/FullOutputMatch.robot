@@ -96,3 +96,19 @@ Output doesn't match message should points to last expected output byte byte whe
     ${result} =    Run SUT With    scat    scat-failing_scenario-expected_output_is_shorten_than_output.omtt
 
     Output Doesn't Match Message Points To Byte    ${result}    10
+
+Full match context message is present
+    ${result} =    Run SUT With    scat    scat-failing_scenario-output_is_different_at_fifth_byte.omtt
+
+    Context Message Specitic For This Test Is Present    ${result}
+
+
+*** Settings ***
+Variables    FullOutputMatchVariables.py
+
+
+*** Keywords ***
+Context Message Specitic For This Test Is Present
+    [Arguments]    ${result}
+
+    Should Contain    ${result.stdout}    ${full_match_context_message}

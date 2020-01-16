@@ -9,5 +9,6 @@ omtt_SOURCES = main.cpp \
                ValidateExpectationsAndSutResults.cpp \
                lexer/detail/to_hex_string.cpp \
                lexer/Lexer.cpp \
+               expectation/FullOutputExpectation.cpp \
                system/Unix.cpp
 omtt_LDADD   = @BOOST_PROGRAM_OPTIONS_LIB@
