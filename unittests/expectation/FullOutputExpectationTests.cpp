@@ -167,6 +167,48 @@ TEST_CASE("Cause should point after last byte of SUT output text when SUT output
     CHECK(contain(*validationReults.cause, "Output doesn't match.\nFirst difference at byte: 4"));
 }
 
+TEST_CASE("Context should have three empty new lines for empty process output")
+{
+    const std::string expectedOutput = "a";
+    const ProcessResults sutResults {0, ""};
+
+    expectation::FullOutputExpectation expectation(expectedOutput);
+
+    auto validationReults = expectation.Validate(sutResults);
+
+    CHECK(validationReults.cause.has_value());
+    CHECK(contain(*validationReults.cause, "\
+Expected context:\n\
+a    \n\
+^    \n\
+0x61 \n\
+Output context:\n\
+\n\
+\n\
+"));
+}
+
+TEST_CASE("Context should have three empty new lines for empty expected output")
+{
+    const std::string expectedOutput = "";
+    const ProcessResults sutResults {0, "a"};
+
+    expectation::FullOutputExpectation expectation(expectedOutput);
+
+    auto validationReults = expectation.Validate(sutResults);
+
+    CHECK(validationReults.cause.has_value());
+    CHECK(contain(*validationReults.cause, "\
+Expected context:\n\
+\n\
+\n\
+\n\
+Output context:\n\
+a    \n\
+^    \n\
+0x61"));
+}
+
 TEST_CASE("Should change space to SPC in cause")
 {
     const std::string expectedOutput = " ";
