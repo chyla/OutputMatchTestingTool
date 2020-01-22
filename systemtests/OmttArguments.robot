@@ -31,3 +31,10 @@ Raise an error when interpreter is passed on command line more than one time
     Argument More Than Once Error Message Is Present    ${result}
     Verdict Is Not Present    ${result}
     Exit Status Points To Invalid Command Line Options    ${result}
+
+Raise an error when unknown option is passed on command line
+    ${result} =    Run SUT    args=--some-non-existing-option
+
+    Unrecognised Argument Error Message Is Present    ${result}
+    Verdict Is Not Present    ${result}
+    Exit Status Points To Invalid Command Line Options    ${result}

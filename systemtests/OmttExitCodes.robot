@@ -53,3 +53,8 @@ Should exit with 255 status when executed with non existing test file
     ${result} =    Run SUT With    ${existing_binary}    ${non_existing_test}
 
     Should Be Equal As Integers    ${result.rc}    255
+
+Should exit with 252 status when executed with non-existing option
+    ${result} =    Run SUT    args=--some-non-existing-option
+
+    Should Be Equal As Integers    ${result.rc}    252
