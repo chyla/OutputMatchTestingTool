@@ -2,7 +2,7 @@ language: cpp
 os: linux
 dist: bionic
 
-matrix:
+jobs:
   include:
     - name: unittests - GCC without optimisations
       os: linux
