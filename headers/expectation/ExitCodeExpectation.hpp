@@ -42,7 +42,7 @@ public:
         return result;
     }
 
-    const int
+    int
     GetContent() const
     {
         return fExpectedExitCode;

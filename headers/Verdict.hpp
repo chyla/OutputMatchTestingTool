@@ -21,7 +21,7 @@ enum class Verdict
 
 
 inline
-const char * const to_cstring(const Verdict verdict)
+const char *to_cstring(const Verdict verdict)
 {
     if (verdict == Verdict::PASS) {
         return "PASS";

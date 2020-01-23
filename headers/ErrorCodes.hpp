@@ -5,6 +5,9 @@
  * Distributed under the terms of the BSD 3-Clause License.
  */
 
+#pragma once
+
+
 namespace omtt
 {
 
