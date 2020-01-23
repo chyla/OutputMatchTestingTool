@@ -6,7 +6,7 @@ Distributed under the terms of the BSD 3-Clause License.
 
 
 *** Settings ***
-Resource    common.resource
+Resource    common/SutExecution.resource
 
 
 *** Test Cases ***

@@ -6,7 +6,10 @@ Distributed under the terms of the BSD 3-Clause License.
 
 
 *** Settings ***
-Resource    common.resource
+Resource    common/SutExecution.resource
+Resource    common/MessageMatchers.resource
+Resource    common/VerdictMatchers.resource
+Resource    common/OmttExitStatusMatchers.resource
 
 
 *** Test Cases ***
