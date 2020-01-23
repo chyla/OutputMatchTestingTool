@@ -14,10 +14,14 @@ Exit Status Points To One Test Failed
     [Arguments]    ${result}
     Should Be Equal As Integers    ${result.rc}    1
 
-Exit Status Points To Fatal Error
+Exit Status Points To Help Or Version Information Printed
     [Arguments]    ${result}
-    Should Be Equal As Integers    ${result.rc}    255
+    Should Be Equal As Integers    ${result.rc}    251
 
 Exit Status Points To Invalid Command Line Options
     [Arguments]    ${result}
     Should Be Equal As Integers    ${result.rc}    252
+
+Exit Status Points To Fatal Error
+    [Arguments]    ${result}
+    Should Be Equal As Integers    ${result.rc}    255
