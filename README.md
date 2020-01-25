@@ -1,8 +1,19 @@
 # Output Match Testing Tool
 
+Testing tool for checking programs console output.
+
+
+## Overview
+
+The tool allows you to check the program correctness. It will run
+the SUT (System Under Test) program and match the stdout and exit code
+to assumptions given in test file.
+
+
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+These instructions will get you a copy of the project up and running
+on your local machine for development and testing purposes.
 
 
 ### Prerequisites
