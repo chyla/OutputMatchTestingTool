@@ -91,7 +91,7 @@ S    o    m    e    SPC  t    e    x    t    .
 See more tests examples in the `examples` directory.
 
 
-## Building the sources
+## Preparing the sources
 
 ### Prerequisites
 
@@ -104,7 +104,7 @@ To build the software you will need to have:
 The only supported platform is Linux. To run the tool on Windows
 you can try to use Cygwin, but there is no guarantee it will work.
 
-### Preparing the sources
+### Initialize the dependencies
 
 *This section applies only to the git cloned sources, not the release
 archive.*
@@ -123,13 +123,15 @@ Please also initialize the Autotools:
 $ autoreconf --install
 ```
 
-### Building the project
+
+## Building the project
 
 When the sources are prepared (like these with the release archive),
 use the standard commands for Autotools to build and install
 the project - `./configure`, `make`, `make install`.
 
-### Executing the tests
+
+## Executing the project tests
 
 There are two kind of tests - unit tests and system tests. Unit tests
 checks small parts of code, system tests checks the whole program.
