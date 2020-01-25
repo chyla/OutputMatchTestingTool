@@ -129,6 +129,29 @@ When the sources are prepared (like these with the release archive),
 use the standard commands for Autotools to build and install
 the project - `./configure`, `make`, `make install`.
 
+### Executing the tests
+
+There are two kind of tests - unit tests and system tests. Unit tests
+checks small parts of code, system tests checks the whole program.
+
+To execute the unit tests run the following command:
+
+```
+make unittests
+```
+
+To execute the system tests  run the following command:
+
+```
+make systemtests
+```
+
+To execute all tests run:
+
+```
+make check
+```
+
 
 ## Authors
 
