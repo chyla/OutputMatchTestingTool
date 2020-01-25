@@ -46,7 +46,8 @@ Running test: cat-will_print_input_and_exit_with_zero.omtt
 Verdict: PASS
 ```
 
-You will see more info when the test fails. See this test example:
+You will see more info when the test fails. See this test example
+for the `cat` program:
 
 ```
 RUN
