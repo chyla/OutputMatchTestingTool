@@ -9,9 +9,6 @@ The tool allows you to check the program correctness. It will run
 the SUT (System Under Test) program and match the standard output
 and exit code to assumptions given in test file.
 
-The only supported platform is Linux. To run the tool on Windows
-you can try to use Cygwin, but there is no guarantee it will work.
-
 
 ## Getting Started
 
@@ -61,6 +58,9 @@ To build the software you will need to have:
 * the C++ 17 compiler,
 * GNU Build System (Autotools) - autoconf and automake packages in Ubuntu/Debian,
 * Python 3 with working venv module - python3 and python3-venv packages in Ubuntu/Debian.
+
+The only supported platform is Linux. To run the tool on Windows
+you can try to use Cygwin, but there is no guarantee it will work.
 
 ### Preparing the sources
 
