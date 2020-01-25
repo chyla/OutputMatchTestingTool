@@ -69,6 +69,7 @@ main(int argc, char **argv)
 
         if (vm.count("help")) {
             std::cout << "USAGE: " << argv[0] << " [OPTION] --sut SUT_PATH TEST_FILE\n"
+                         "\nTesting tool for checking programs console output.\n"
                       << cmdline_options;
             return omtt::HELP_OR_VERSION_INFORMATION_PRINTED;
         }
