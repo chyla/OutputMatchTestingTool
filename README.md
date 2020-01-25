@@ -46,6 +46,42 @@ Running test: cat-will_print_input_and_exit_with_zero.omtt
 Verdict: PASS
 ```
 
+You will see more info when the test fails. See this test example:
+
+```
+RUN
+WITH INPUT
+Some text.
+EXPECT EXIT CODE 1
+EXPECT OUTPUT
+Some other text.
+```
+
+Here are the results:
+
+```
+Testing: /bin/cat
+Running test: examples/cat-failing_scenario-will_exit_with_non_zero_exit_status_and_some_output_when_some_other_input_is_given.omtt
+Verdict: FAIL
+--------------------
+=> Cause:
+Exit code doesn't match.
+Expected: 1
+Got: 0
+--------------------
+=> Cause:
+Output doesn't match.
+First difference at byte: 5
+Expected context:
+S    o    m    e    SPC  o    t    h    e    r    SPC  t
+                         ^
+0x53 0x6f 0x6d 0x65 0x20 0x6f 0x74 0x68 0x65 0x72 0x20 0x74
+Output context:
+S    o    m    e    SPC  t    e    x    t    .
+                         ^
+0x53 0x6f 0x6d 0x65 0x20 0x74 0x65 0x78 0x74 0x2e
+```
+
 See more tests examples in the `examples` directory.
 
 
