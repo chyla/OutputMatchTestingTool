@@ -6,8 +6,8 @@ Testing tool for checking programs console output.
 ## Overview
 
 The tool allows you to check the program correctness. It will run
-the SUT (System Under Test) program and match the stdout and exit code
-to assumptions given in test file.
+the SUT (System Under Test) program and match the standard output
+and exit code to assumptions given in test file.
 
 
 ## Getting Started
@@ -78,8 +78,9 @@ $ autoreconf --install
 
 ### Building the project
 
-When the sources are prepared, use the standard commands for Autotools
-to build and install the project - `./configure`, `make`, `make install`.
+When the sources are prepared (like these with the release archive),
+use the standard commands for Autotools to build and install
+the project - `./configure`, `make`, `make install`.
 
 
 ## Authors
@@ -89,4 +90,5 @@ to build and install the project - `./configure`, `make`, `make install`.
 
 ## License
 
-This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the BSD 3-Clause License - see
+the [LICENSE](LICENSE) file for details.
