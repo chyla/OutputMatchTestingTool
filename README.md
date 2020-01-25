@@ -9,6 +9,9 @@ The tool allows you to check the program correctness. It will run
 the SUT (System Under Test) program and match the standard output
 and exit code to assumptions given in test file.
 
+The only supported platform is Linux. To run the tool on Windows
+you can try to use Cygwin, but there is no guarantee it will work.
+
 
 ## Getting Started
 
