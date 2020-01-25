@@ -18,7 +18,12 @@ Then you will need to write the test and run the tool with specified
 path to the SUT. The tool will run the SUT, check the expectations
 and print the results.
 
-Here is the example test file for the `cat` program:
+The next steps of this introduction will use the Unix `cat` program.
+Here is what the manual says about it *concatenate files and print
+on the standard output*. When the input file is not given the standard
+input is printed on the standard output, we will use this.
+
+Here is the first test file example for the `cat` program:
 
 ```
 RUN
