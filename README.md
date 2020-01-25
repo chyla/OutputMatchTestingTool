@@ -46,6 +46,8 @@ Running test: cat-will_print_input_and_exit_with_zero.omtt
 Verdict: PASS
 ```
 
+See more tests examples in the `examples` directory.
+
 
 ## Building the sources
 
