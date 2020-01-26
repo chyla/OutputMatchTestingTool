@@ -68,5 +68,6 @@ Makefile
 /systemtests/apps/true
 /systemtests/apps/scat
 /systemtests/apps/secho
+/systemtests/apps/crash_null_ptr_dereference
 # tests output
 /systemtests/output/
