@@ -13,6 +13,15 @@ Resource    common/OmttExitStatusMatchers.resource
 
 
 *** Test Cases ***
+Raise an error when SUT binary doesn't exists
+    ${some_existing_test} =    Set Variable    interpreter-will_print_some_script_to_stdout.omtt
+    ${non_existing_binary} =    Set Variable     some_non_existing_binary
+    ${result} =    Run SUT With    ${non_existing_binary}    ${some_existing_test}
+
+    Fatal Error During SUT Execution Message Is Present     ${result}
+    Verdict Is Not Present    ${result}
+    Exit Status Points To Fatal Error    ${result}
+
 Execute interpreter passed on command line with script specified in sut argument
     ${result} =    Run SUT With Interpreter Argument And Raw Helper App Path    secho    some_script    interpreter-will_print_some_script_to_stdout.omtt
 
