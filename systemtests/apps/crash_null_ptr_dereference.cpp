@@ -1,7 +1,8 @@
+#include <cstdlib>
+
 int
 main()
 {
-    int *i = nullptr;
-    *i = 10;
+    std::abort();
     return 0;
 }
