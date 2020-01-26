@@ -91,7 +91,7 @@ S    o    m    e    SPC  t    e    x    t    .
 See more tests examples in the `examples` directory.
 
 
-## Installing OMTT from the sources
+## Installing from the sources
 
 ### Preparing the sources
 
@@ -126,7 +126,7 @@ $ autoreconf --install
 ```
 
 
-### Building OMTT
+### Building and installing
 
 When the sources are prepared (like these with the release archive),
 use the standard commands for Autotools to build and install
