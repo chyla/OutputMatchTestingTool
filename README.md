@@ -13,10 +13,10 @@ and exit code to assumptions given in test file.
 ## Getting Started
 
 To run the tool you will need to compile it from the sources (see
-the `Preparing the sources` section) or get the already compiled binary.
-Then you will need to write the test and run the tool with specified
-path to the SUT. The tool will run the SUT, check the expectations
-and print the results.
+the `Installing OMTT from the sources` section) or get the already
+compiled binary. Then you will need to write the test and run
+the tool with specified path to the SUT. The tool will run the SUT,
+check the expectations and print the results.
 
 The next steps of this introduction will use the Unix `cat` program.
 Here is what the manual says about it *concatenate files and print
@@ -91,9 +91,11 @@ S    o    m    e    SPC  t    e    x    t    .
 See more tests examples in the `examples` directory.
 
 
-## Preparing the sources
+## Installing OMTT from the sources
 
-### Prerequisites
+### Preparing the sources
+
+#### Prerequisites
 
 To build the software you will need to have:
 
@@ -104,7 +106,7 @@ To build the software you will need to have:
 The only supported platform is Linux. To run the tool on Windows
 you can try to use Cygwin, but there is no guarantee it will work.
 
-### Initialize the dependencies
+#### Initialize the dependencies
 
 *This section applies only to the git cloned sources, not the release
 archive.*
@@ -124,14 +126,14 @@ $ autoreconf --install
 ```
 
 
-## Building the project
+### Building OMTT
 
 When the sources are prepared (like these with the release archive),
 use the standard commands for Autotools to build and install
 the project - `./configure`, `make`, `make install`.
 
 
-## Executing the project tests
+### Executing the tests
 
 There are two kind of tests - unit tests and system tests. Unit tests
 checks small parts of code, system tests checks the whole program.
