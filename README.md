@@ -100,8 +100,9 @@ See more tests examples in the `examples` directory.
 To build the software you will need to have:
 
 * the C++ 17 compiler,
-* GNU Build System (Autotools) - autoconf and automake packages in Ubuntu/Debian,
-* Python 3 with working venv module - python3 and python3-venv packages in Ubuntu/Debian.
+* GNU Build System (Autotools) - `autoconf` and `automake` packages in Ubuntu/Debian,
+* Boost C++ Libraries 1.65 (Program Options) - `libboost-program-options-dev` package in Ubuntu/Debian,
+* Robot Framework - `robotframework` package in Python Package Index (to run system tests).
 
 The only supported platform is Linux. To run the tool on Windows
 you can try to use Cygwin, but there is no guarantee it will work.
