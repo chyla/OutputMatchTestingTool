@@ -13,7 +13,7 @@ and exit code to assumptions given in test file.
 ## Getting Started
 
 To run the tool you will need to compile it from the sources (see
-the `Building the sources` section) or get the already compiled binary.
+the `Preparing the sources` section) or get the already compiled binary.
 Then you will need to write the test and run the tool with specified
 path to the SUT. The tool will run the SUT, check the expectations
 and print the results.
