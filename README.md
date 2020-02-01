@@ -13,13 +13,13 @@ and exit code to assumptions given in test file.
 ## Getting Started
 
 To run the tool you will need to compile it from the sources (see
-the `Installing OMTT from the sources` section) or get the already
+the *Installing from the sources* section) or get the already
 compiled binary. Then you will need to write the test and run
 the tool with specified path to the SUT. The tool will run the SUT,
 check the expectations and print the results.
 
 The next steps of this introduction will use the Unix `cat` program.
-Here is what the manual says about it *concatenate files and print
+Here is what the manual says about it: *concatenate files and print
 on the standard output*. When the input file is not given the standard
 input is printed on the standard output, we will use this.
 
