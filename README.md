@@ -127,11 +127,11 @@ $ autoreconf --install
 ```
 
 
-### Building and installing
+### Building
 
 When the sources are prepared (like these with the release archive),
-use the standard commands for Autotools to build and install
-the project - `./configure`, `make`, `make install`.
+use the standard commands for Autotools to build
+the project - `./configure`, `make`.
 
 
 ### Executing the tests
@@ -156,6 +156,12 @@ To execute all tests run:
 ```
 make check
 ```
+
+
+### Installing
+
+When all the tests pass, use the `make install` command
+to install the project.
 
 
 ## Authors
