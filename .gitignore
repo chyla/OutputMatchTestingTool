@@ -69,5 +69,6 @@ Makefile
 /systemtests/apps/scat
 /systemtests/apps/secho
 /systemtests/apps/crash_null_ptr_dereference
+/systemtests/apps/sleep60
 # tests output
 /systemtests/output/

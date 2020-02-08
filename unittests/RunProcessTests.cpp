@@ -38,6 +38,8 @@ TEST_GROUP("Child Process Exit Code")
     systemFake.CloseAction = [](int) {};
     systemFake.WriteAction = [](int, const void *, size_t) -> ssize_t { return 0; };
     systemFake.ReadAction = [](int fd, void *buf, size_t count) -> ssize_t { return 0; };
+    systemFake.SigAction = [](int, const struct sigaction*, struct sigaction*) {};
+    systemFake.Signal = [](int, sighandler_t){};
 
 
     UNIT_TEST("Should return correct exit code")
@@ -64,6 +66,8 @@ TEST_GROUP("Read Child Process Output")
     systemFake.CloseAction = [](int) {};
     systemFake.WriteAction = [](int, const void *, size_t) -> ssize_t { return 0; };
     systemFake.ExitStatusAction = [](int) { return 0; };
+    systemFake.SigAction = [](int, const struct sigaction*, struct sigaction*) {};
+    systemFake.Signal = [](int, sighandler_t){};
 
 
     UNIT_TEST("Should return empty output when child output is empty")
@@ -143,6 +147,8 @@ TEST_GROUP("Write To Child Process")
     systemFake.CloseAction = [](int) {};
     systemFake.ReadAction = [](int, const void *, size_t) -> ssize_t { return 0; };
     systemFake.ExitStatusAction = [](int) { return 0; };
+    systemFake.SigAction = [](int, const struct sigaction*, struct sigaction*) {};
+    systemFake.Signal = [](int, sighandler_t){};
 
 
     UNIT_TEST("Should not pass input when empty input string is given")
@@ -252,6 +258,8 @@ TEST_GROUP("Pipes Management")
                                     }
                                 };
     systemFake.ExitStatusAction = [](int) { return 0; };
+    systemFake.SigAction = [](int, const struct sigaction*, struct sigaction*) {};
+    systemFake.Signal = [](int, sighandler_t){};
 
 
     SUBGROUP("Parent Process")
@@ -730,6 +738,9 @@ TEST_GROUP("SUT Process Execution")
     systemFake.ExitStatusAction = [](int) { return 0; };
     systemFake.CloseAction = [](int fd) {};
     systemFake.DuplicateFdAction = [](int oldFd, int newFd) {};
+    systemFake.SigAction = [](int, const struct sigaction*, struct sigaction*) {};
+    systemFake.Signal = [](int, sighandler_t){};
+
 
     SUBGROUP("Parent side")
     {
@@ -821,6 +832,43 @@ TEST_GROUP("SUT Process Execution")
 }
 
 
+TEST_GROUP("Signals Management")
+{
+    system::unix::ResetGlobalFake();
+
+    systemFake.MakePipeAction = [](const system::unix::PipeOptions option) -> system::unix::Pipe { return {0, 0}; };
+    systemFake.ForkAction = []() { return anyChildProcessId; };
+    systemFake.CloseAction = [](int) {};
+    systemFake.WriteAction = [](int, const void *, size_t) -> ssize_t { return 0; };
+    systemFake.ReadAction = [](int fd, void *buf, size_t count) -> ssize_t { return 0; };
+    systemFake.ExitStatusAction = [](int) { return 0; };
+
+
+    UNIT_TEST("Should attach signals and reset them to defaults after process execution")
+    {
+        std::vector<int> expectedSignals = {SIGHUP, SIGINT, SIGPIPE, SIGTERM, SIGUSR1, SIGUSR2},
+                         attachedSignals,
+                         resetedSignals;
+        systemFake.SigAction = [&](int signum, const struct sigaction*, struct sigaction*) {
+                                   attachedSignals.push_back(signum);
+                               };
+        systemFake.Signal = [&](int signum, sighandler_t handler) {
+                                if (handler == SIG_DFL) {
+                                    resetedSignals.push_back(signum);
+                                }
+                                else {
+                                    throw std::logic_error("Unexpected handler in signal() call for " + std::to_string(signum) + " signal.");
+                                }
+                            };
+
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
+
+        CHECK(attachedSignals == expectedSignals);
+        CHECK(resetedSignals == expectedSignals);
+    }
+}
+
+
 TEST_GROUP("Unit tests dependencies")
 {
     systemFake.WriteAction = [&](int fd, const void *buf, size_t count) -> ssize_t {
@@ -830,6 +878,8 @@ TEST_GROUP("Unit tests dependencies")
                              };
     systemFake.TerminateAction = [&](const int exitCode) {
                                  };
+    systemFake.SigAction = [](int, const struct sigaction*, struct sigaction*) {};
+    systemFake.Signal = [](int, sighandler_t){};
 
     UNIT_TEST("Should rethrow exceptions to allow error detecting in some unittests (catch could match the exception raised in ut)")
     {

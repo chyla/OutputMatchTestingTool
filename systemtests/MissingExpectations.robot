@@ -13,7 +13,7 @@ Resource    common/OmttExitStatusMatchers.resource
 
 *** Test Cases ***
 Mark test as PASS when no expectations are given explicitly in test
-    ${result} =    Run SUT With    true    test_with_no_expectations.omtt
+    ${result} =    Run SUT With Helper    true    test_with_no_expectations.omtt
 
     Verdict Is Set To Pass    ${result}
     Exit Status Points To All Tests Passed    ${result}

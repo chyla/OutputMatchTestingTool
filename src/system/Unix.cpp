@@ -131,4 +131,23 @@ Terminate(const int status)
     _exit(status);
 }
 
+void
+SigAction(int signum, const struct sigaction *act, struct sigaction *oldact)
+{
+    int err = sigaction(signum, act, oldact);
+    if (err < 0) {
+        throw exception::SystemException("failure in sigaction()", errno);
+    }
+}
+
+void
+Signal(int signum, sighandler_t handler)
+{
+    auto oldHandler = signal(signum, handler);
+    if (oldHandler == SIG_ERR) {
+        throw exception::SystemException("failure in signal()", errno);
+    }
+}
+
+
 } // omtt::system::unix

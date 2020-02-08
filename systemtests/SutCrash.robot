@@ -15,7 +15,7 @@ Resource    common/OmttExitStatusMatchers.resource
 *** Test Cases ***
 Mark test as PASS when SUT crash but test has no expectations
     ${crashing_binary} =    Set Variable     crash_null_ptr_dereference
-    ${result} =    Run SUT With    ${crashing_binary}    test_with_no_expectations.omtt
+    ${result} =    Run SUT With Helper    ${crashing_binary}    test_with_no_expectations.omtt
 
     Verdict Is Set To Pass    ${result}
     Exit Status Points To All Tests Passed    ${result}
@@ -23,7 +23,7 @@ Mark test as PASS when SUT crash but test has no expectations
 Mark test as FAIL when SUT crash and test has exit code expectation with zero value
     ${some_existing_test} =    Set Variable    true-will_exit_with_zero.omtt
     ${crashing_binary} =    Set Variable     crash_null_ptr_dereference
-    ${result} =    Run SUT With    ${crashing_binary}    ${some_existing_test}
+    ${result} =    Run SUT With Helper    ${crashing_binary}    ${some_existing_test}
 
     Cause Has Max Integer Value As Received From Sut    ${result}
     Verdict Is Set To Fail    ${result}

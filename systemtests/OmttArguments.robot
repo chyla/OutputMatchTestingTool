@@ -16,7 +16,7 @@ Resource    common/OmttExitStatusMatchers.resource
 Raise an error when SUT binary doesn't exists
     ${some_existing_test} =    Set Variable    interpreter-will_print_some_script_to_stdout.omtt
     ${non_existing_binary} =    Set Variable     some_non_existing_binary
-    ${result} =    Run SUT With    ${non_existing_binary}    ${some_existing_test}
+    ${result} =    Run SUT With Helper    ${non_existing_binary}    ${some_existing_test}
 
     Fatal Error During SUT Execution Message Is Present     ${result}
     Verdict Is Not Present    ${result}
@@ -45,7 +45,7 @@ Raise an error when interpreter is passed on command line more than one time
     Exit Status Points To Invalid Command Line Options    ${result}
 
 Raise an error when unknown option is passed on command line
-    ${result} =    Run SUT    args=--some-non-existing-option
+    ${result} =    Run SUT Process    --some-non-existing-option
 
     Unrecognised Argument Error Message Is Present    ${result}
     Verdict Is Not Present    ${result}

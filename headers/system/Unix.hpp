@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <sys/types.h>
+#include <signal.h>
 
 
 namespace omtt::system::unix
@@ -61,5 +62,11 @@ Exec(const std::string &path, const std::vector<std::string> &arguments);
 
 void
 Terminate(const int status);
+
+void
+SigAction(int signum, const struct sigaction *act, struct sigaction *oldact);
+
+void
+Signal(int signum, sighandler_t handler);
 
 }  // omtt::system::unix

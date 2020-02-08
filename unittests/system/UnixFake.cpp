@@ -65,4 +65,16 @@ Terminate(const int status)
     GlobalFake().TerminateAction(status);
 }
 
+void
+SigAction(int signum, const struct sigaction *act, struct sigaction *oldact)
+{
+    GlobalFake().SigAction(signum, act, oldact);
+}
+
+void
+Signal(int signum, sighandler_t handler)
+{
+    GlobalFake().Signal(signum, handler);
+}
+
 }  // omtt::system::unix

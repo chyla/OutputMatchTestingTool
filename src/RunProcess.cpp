@@ -11,6 +11,8 @@
 #include "headers/ErrorCodes.hpp"
 
 #include <array>
+#include <cstring>
+#include <iostream>
 
 
 namespace omtt
@@ -58,6 +60,38 @@ RedirectPipe(int oldFd, int newFd)
     system::unix::DuplicateFd(oldFd, newFd);
 }
 
+static volatile sig_atomic_t childrenPid = 0;
+
+void
+KillChildProcessThenForwardToDefaultSignalHandler(int signum, siginfo_t *info, void *ucontext)
+{
+    std::cerr << "Received signal no " << signum << ", terminating SUT...\n";
+    const int ret = kill(childrenPid, SIGKILL);
+    if (ret < 0) {
+        std::cerr << "SUT termination failed.";
+    }
+    else {
+        (void) signal(signum, SIG_DFL);
+        (void) raise(signum);
+    }
+}
+
+void
+SetSignalHandling(const int signum)
+{
+    struct sigaction act;
+    memset(&act, 0, sizeof(act));
+    act.sa_sigaction = KillChildProcessThenForwardToDefaultSignalHandler;
+    act.sa_flags = SA_SIGINFO;
+    system::unix::SigAction(signum, &act, NULL);
+}
+
+void
+SetDefaultSignalHandling(const int signum)
+{
+    system::unix::Signal(signum, SIG_DFL);
+}
+
 }
 
 ProcessResults
@@ -65,15 +99,20 @@ RunProcess(const std::string &path,
            const std::vector<std::string> &options,
            const std::string_view &input)
 {
+    const int signals[] = {SIGHUP, SIGINT, SIGPIPE, SIGTERM, SIGUSR1, SIGUSR2};
+    for (auto sig : signals) {
+        SetSignalHandling(sig);
+    }
+
     ProcessResults results;
 
     const auto toParentPipe = system::unix::MakePipe();
     const auto toChildPipe = system::unix::MakePipe();
     const auto toParentInternalErrorsPipe = system::unix::MakePipe(system::unix::PipeOptions::CLOSE_ON_EXEC);
 
-    const auto pid = system::unix::Fork();
+    childrenPid = system::unix::Fork();
 
-    if (IsParentProcess(pid)) {
+    if (IsParentProcess(childrenPid)) {
         system::unix::Close(toParentPipe.writeEnd);
         system::unix::Close(toChildPipe.readEnd);
         system::unix::Close(toParentInternalErrorsPipe.writeEnd);
@@ -82,7 +121,7 @@ RunProcess(const std::string &path,
         system::unix::Close(toChildPipe.writeEnd);
 
         results.output = ReadFromFd(toParentPipe.readEnd);
-        results.exitCode = system::unix::ExitStatus(pid);
+        results.exitCode = system::unix::ExitStatus(childrenPid);
 
         const std::string &internalErrors = ReadFromFd(toParentInternalErrorsPipe.readEnd);
 
@@ -109,6 +148,10 @@ RunProcess(const std::string &path,
             system::unix::Terminate(FATAL_ERROR);
             throw;
         }
+    }
+
+    for (auto sig : signals) {
+        SetDefaultSignalHandling(sig);
     }
 
     return results;

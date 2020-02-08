@@ -24,8 +24,10 @@ struct UnixFake
     std::function<ssize_t ()> ForkAction;
     std::function<pid_t (int)> ExitStatusAction;
     std::function<void (int, int)> DuplicateFdAction;
-  std::function<void (const std::string &, const std::vector<std::string> &)> ExecAction;
+    std::function<void (const std::string &, const std::vector<std::string> &)> ExecAction;
     std::function<void (int)> TerminateAction;
+    std::function<void (int, const struct sigaction*, struct sigaction*)> SigAction;
+    std::function<void (int, sighandler_t)> Signal;
 };
 
 inline UnixFake& GlobalFake()
