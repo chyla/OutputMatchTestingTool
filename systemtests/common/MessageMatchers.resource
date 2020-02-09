@@ -57,3 +57,7 @@ Invalid Exit Code Message Is Present
 Unrecognised Argument Error Message Is Present
     [Arguments]    ${result}
     Should Contain    ${result.stderr}    commad line arguments error: unrecognised option
+
+Fatal Error Message Is Not Present
+    [Arguments]    ${result}
+    Should Not Contain    ${result.stderr}    fatal error:

@@ -9,7 +9,6 @@ Distributed under the terms of the BSD 3-Clause License.
 Resource    common/SutExecution.resource
 Resource    common/VerdictMatchers.resource
 Resource    common/MessageMatchers.resource
-Resource    common/OmttExitStatusMatchers.resource
 
 
 *** Test Cases ***
@@ -47,6 +46,7 @@ Run Parameterized Test
     ${result} =    Get SUT Process Results    ${handle}
 
     Verdict Is Not Present    ${result}
+    Fatal Error Message Is Not Present    ${result}
 
 Wait Until Children Process Is Running
     Sleep    10ms
