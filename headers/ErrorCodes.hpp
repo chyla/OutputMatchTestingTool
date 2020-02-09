@@ -11,8 +11,8 @@
 namespace omtt
 {
 
-constexpr int HELP_OR_VERSION_INFORMATION_PRINTED = 251;
-constexpr int INVALID_COMMAND_LINE_OPTIONS = 252;
-constexpr int FATAL_ERROR = 255;
+constexpr int HELP_OR_VERSION_INFORMATION_PRINTED = 61;
+constexpr int INVALID_COMMAND_LINE_OPTIONS = 64;
+constexpr int FATAL_ERROR = 60;
 
 }  // omtt

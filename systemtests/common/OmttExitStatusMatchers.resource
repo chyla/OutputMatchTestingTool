@@ -16,12 +16,12 @@ Exit Status Points To One Test Failed
 
 Exit Status Points To Help Or Version Information Printed
     [Arguments]    ${result}
-    Should Be Equal As Integers    ${result.rc}    251
+    Should Be Equal As Integers    ${result.rc}    61
 
 Exit Status Points To Invalid Command Line Options
     [Arguments]    ${result}
-    Should Be Equal As Integers    ${result.rc}    252
+    Should Be Equal As Integers    ${result.rc}    64
 
 Exit Status Points To Fatal Error
     [Arguments]    ${result}
-    Should Be Equal As Integers    ${result.rc}    255
+    Should Be Equal As Integers    ${result.rc}    60
