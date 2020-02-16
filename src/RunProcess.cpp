@@ -21,28 +21,30 @@ namespace omtt
 namespace
 {
 
+const int INTERNAL_TMP_BUFFER_SIZE = 1024;
+
 bool
-IsParentProcess(int pid)
+IsParentProcess(const int pid)
 {
     return pid > 0;
 }
 
 void
-RedirectPipe(int oldFd, int newFd)
+RedirectPipe(const int oldFd, const int newFd)
 {
     system::unix::Close(newFd);
     system::unix::DuplicateFd(oldFd, newFd);
 }
 
 void
-ReadToBuffer(int fd, auto &buf)
+ReadToBuffer(const int fd, std::array<char, INTERNAL_TMP_BUFFER_SIZE> &buf)
 {
     const int bytes = system::unix::Read(fd, buf.data(), buf.size() - 1);
     buf.at(bytes) = 0;
 }
 
 void
-WriteAllDataToFd(int fd, const std::string_view &buf)
+WriteAllDataToFd(const int fd, const std::string_view &buf)
 {
     std::string_view::size_type wrote = 0;
 
@@ -54,7 +56,7 @@ WriteAllDataToFd(int fd, const std::string_view &buf)
 static volatile sig_atomic_t childrenPid = 0;
 
 void
-KillChildProcessThenForwardToDefaultSignalHandler(int signum, siginfo_t *info, void *ucontext)
+KillChildProcessThenForwardToDefaultSignalHandler(const int signum, siginfo_t *info, void *ucontext)
 {
     std::cerr << "Received signal no " << signum << ", terminating SUT...\n";
     const int ret = kill(childrenPid, SIGKILL);
@@ -116,10 +118,16 @@ IsAbleToWrite(const struct pollfd &pfd)
 }
 
 void
-changeToNonBlocking(int fd)
+changeToNonBlocking(const int fd)
 {
     int flags = system::unix::Fcntl(fd, F_GETFL, 0);
     system::unix::Fcntl(fd, F_SETFL, (flags | O_NONBLOCK));
+}
+
+bool
+IsAllDataWritten(const std::string_view::size_type wroteToChild, const std::string_view &input)
+{
+    return wroteToChild == input.length();
 }
 
 }
@@ -155,9 +163,9 @@ RunProcess(const std::string &path,
             {toParentInternalErrorsPipe.readEnd, POLLIN, 0}
         };
 
-        ssize_t wroteToChild = 0;
+        std::string_view::size_type wroteToChild = 0;
         std::string internalErrors;
-        std::array<char, 1024> buf;
+        std::array<char, INTERNAL_TMP_BUFFER_SIZE> buf;
         int processExitStatus;
         bool isProcessRunning = true;
         bool isToChildPipeWriteEndClosed = false;
@@ -171,13 +179,13 @@ RunProcess(const std::string &path,
                 results.output += buf.data();
             }
 
-            if (IsAbleToWrite(fds[1]) && wroteToChild != input.length()) {
+            if (IsAbleToWrite(fds[1]) && !IsAllDataWritten(wroteToChild, input)) {
                 wroteToChild += system::unix::Write(toChildPipe.writeEnd,
                                                     input.data() + wroteToChild,
                                                     input.length() - wroteToChild);
             }
 
-            if (isToChildPipeWriteEndClosed == false && wroteToChild == input.length()) {
+            if (isToChildPipeWriteEndClosed == false && IsAllDataWritten(wroteToChild, input)) {
                 system::unix::Close(toChildPipe.writeEnd);
                 isToChildPipeWriteEndClosed = true;
             }
@@ -192,7 +200,7 @@ RunProcess(const std::string &path,
                 isProcessRunning = (pidOfProcessWithChangedStatus == 0);
             }
         } while (IsOperative(fds[0]) || IsAbleToRead(fds[0])
-                 || (IsOperative(fds[1]) && wroteToChild != input.length())
+                 || (IsOperative(fds[1]) && !IsAllDataWritten(wroteToChild, input))
                  || isProcessRunning);
 
         if (isToChildPipeWriteEndClosed == false) {

@@ -149,6 +149,7 @@ Poll(struct pollfd *fds, nfds_t nfds, int timeout)
     if (count < 0) {
         throw exception::SystemException("failure in poll()", errno);
     }
+    return count;
 }
 
 int
@@ -158,6 +159,7 @@ Fcntl(int fd, int cmd, int arg)
     if (ret < 0) {
         throw exception::SystemException("failure in fcntl()", errno);
     }
+    return ret;
 }
 
 } // omtt::system::unix
