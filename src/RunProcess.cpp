@@ -27,37 +27,28 @@ IsParentProcess(int pid)
     return pid > 0;
 }
 
-std::string
-ReadFromFd(int fd)
+void
+RedirectPipe(int oldFd, int newFd)
 {
-    std::string output;
-    char buf[1024];
-    int bytes;
-
-    do {
-        bytes = system::unix::Read(fd, buf, sizeof(buf) - 1);
-        buf[bytes] = 0;
-        output += buf;
-    } while (bytes > 0);
-
-    return output;
+    system::unix::Close(newFd);
+    system::unix::DuplicateFd(oldFd, newFd);
 }
 
 void
-WriteToFd(int fd, const std::string_view &buf)
+ReadToBuffer(int fd, auto &buf)
+{
+    const int bytes = system::unix::Read(fd, buf.data(), buf.size() - 1);
+    buf.at(bytes) = 0;
+}
+
+void
+WriteAllDataToFd(int fd, const std::string_view &buf)
 {
     std::string_view::size_type wrote = 0;
 
     while (wrote < buf.length()) {
         wrote += system::unix::Write(fd, buf.data() + wrote, buf.length() - wrote);
     }
-}
-
-void
-RedirectPipe(int oldFd, int newFd)
-{
-    system::unix::Close(newFd);
-    system::unix::DuplicateFd(oldFd, newFd);
 }
 
 static volatile sig_atomic_t childrenPid = 0;
@@ -68,7 +59,7 @@ KillChildProcessThenForwardToDefaultSignalHandler(int signum, siginfo_t *info, v
     std::cerr << "Received signal no " << signum << ", terminating SUT...\n";
     const int ret = kill(childrenPid, SIGKILL);
     if (ret < 0) {
-        std::cerr << "SUT termination failed.";
+        std::cerr << "SUT termination failed.\n";
     }
     else {
         (void) signal(signum, SIG_DFL);
@@ -90,6 +81,45 @@ void
 SetDefaultSignalHandling(const int signum)
 {
     system::unix::Signal(signum, SIG_DFL);
+}
+
+bool
+IsOperative(const struct pollfd &pfd)
+{
+    const bool isHup = pfd.revents & POLLHUP;
+    const bool isErr = pfd.revents & POLLERR;
+    return isHup == false && isErr == false;
+}
+
+int
+ExitCode(const int wstatus)
+{
+    if (WIFEXITED(wstatus)) {
+        return WEXITSTATUS(wstatus);
+    }
+    else {
+        return std::numeric_limits<int>::max();
+    }
+}
+
+bool
+IsAbleToRead(const struct pollfd &pfd)
+{
+    return pfd.revents & POLLIN;
+}
+
+bool
+IsAbleToWrite(const struct pollfd &pfd)
+{
+  return pfd.revents & POLLOUT
+         && !(pfd.revents & POLLERR);
+}
+
+void
+changeToNonBlocking(int fd)
+{
+    int flags = system::unix::Fcntl(fd, F_GETFL, 0);
+    system::unix::Fcntl(fd, F_SETFL, (flags | O_NONBLOCK));
 }
 
 }
@@ -117,16 +147,62 @@ RunProcess(const std::string &path,
         system::unix::Close(toChildPipe.readEnd);
         system::unix::Close(toParentInternalErrorsPipe.writeEnd);
 
-        WriteToFd(toChildPipe.writeEnd, input);
-        system::unix::Close(toChildPipe.writeEnd);
+        changeToNonBlocking(toChildPipe.writeEnd);
 
-        results.output = ReadFromFd(toParentPipe.readEnd);
-        results.exitCode = system::unix::ExitStatus(childrenPid);
+        struct pollfd fds[] = {
+            {toParentPipe.readEnd, POLLIN, 0},
+            {toChildPipe.writeEnd, POLLOUT, 0},
+            {toParentInternalErrorsPipe.readEnd, POLLIN, 0}
+        };
 
-        const std::string &internalErrors = ReadFromFd(toParentInternalErrorsPipe.readEnd);
+        ssize_t wroteToChild = 0;
+        std::string internalErrors;
+        std::array<char, 1024> buf;
+        int processExitStatus;
+        bool isProcessRunning = true;
+        bool isToChildPipeWriteEndClosed = false;
+
+        do {
+            constexpr const int timeoutMs = 50;
+            (void) system::unix::Poll(fds, sizeof(fds) / sizeof(fds[0]), timeoutMs);
+
+            if (IsAbleToRead(fds[0])) {
+                ReadToBuffer(fds[0].fd, buf);
+                results.output += buf.data();
+            }
+
+            if (IsAbleToWrite(fds[1]) && wroteToChild != input.length()) {
+                wroteToChild += system::unix::Write(toChildPipe.writeEnd,
+                                                    input.data() + wroteToChild,
+                                                    input.length() - wroteToChild);
+            }
+
+            if (isToChildPipeWriteEndClosed == false && wroteToChild == input.length()) {
+                system::unix::Close(toChildPipe.writeEnd);
+                isToChildPipeWriteEndClosed = true;
+            }
+
+            if (IsAbleToRead(fds[2])) {
+                ReadToBuffer(fds[2].fd, buf);
+                internalErrors += buf.data();
+            }
+
+            if (isProcessRunning) {
+                const int pidOfProcessWithChangedStatus = system::unix::WaitPid(childrenPid, &processExitStatus, WNOHANG);
+                isProcessRunning = (pidOfProcessWithChangedStatus == 0);
+            }
+        } while (IsOperative(fds[0]) || IsAbleToRead(fds[0])
+                 || (IsOperative(fds[1]) && wroteToChild != input.length())
+                 || isProcessRunning);
+
+        if (isToChildPipeWriteEndClosed == false) {
+            system::unix::Close(toChildPipe.writeEnd);
+        }
 
         system::unix::Close(toParentPipe.readEnd);
         system::unix::Close(toParentInternalErrorsPipe.readEnd);
+
+        results.exitCode = ExitCode(processExitStatus);
 
         if (internalErrors.length() > 0) {
             throw exception::SutExecutionException("during SUT execution: " + internalErrors);
@@ -144,7 +220,7 @@ RunProcess(const std::string &path,
             system::unix::Exec(path, options);
         }
         catch (const std::exception &ex) {
-            WriteToFd(toParentInternalErrorsPipe.writeEnd, ex.what());
+            WriteAllDataToFd(toParentInternalErrorsPipe.writeEnd, ex.what());
             system::unix::Terminate(FATAL_ERROR);
             throw;
         }

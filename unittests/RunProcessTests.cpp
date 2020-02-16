@@ -24,6 +24,7 @@ auto &systemFake = system::unix::GlobalFake();
 constexpr const char *exampleBinaryPath = "/bin/example";
 constexpr int anyChildProcessId = 1347;
 
+const std::string emptyInput;
 const std::string nonImportantEmptyInput;
 const std::string nonImportantNonEmptyInput = "XYZ";
 const std::vector<std::string> emptyRunProcessArguments = {};
@@ -40,17 +41,52 @@ TEST_GROUP("Child Process Exit Code")
     systemFake.ReadAction = [](int fd, void *buf, size_t count) -> ssize_t { return 0; };
     systemFake.SigAction = [](int, const struct sigaction*, struct sigaction*) {};
     systemFake.Signal = [](int, sighandler_t){};
+    systemFake.FcntlAction = [](int, int, int) { return 0; };
 
 
-    UNIT_TEST("Should return correct exit code")
+    UNIT_TEST("Should return correct exit code when process is not running and fds have status HUP")
     {
-        int expectedExitCode = 1423;
+        const int expectedExitCode = 143;
 
-        systemFake.ExitStatusAction = [&](int) {
-                                          return expectedExitCode;
+        systemFake.PollAction = [](struct pollfd *fds, nfds_t nfds, int timeout) {
+                                    fds[0].revents = POLLHUP;
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
+        systemFake.WaitPidAction = [&](int pid, int *wstatus, int options) {
+                                         *wstatus = __W_EXITCODE(expectedExitCode, 0);
+                                         return pid;
                                       };
 
         ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
+
+        CHECK(results.exitCode == expectedExitCode);
+    }
+
+    UNIT_TEST("Should return correct exit code when process fds hangs up but it is still running")
+    {
+        const int expectedExitCode = 143;
+
+        systemFake.PollAction = [](struct pollfd *fds, nfds_t nfds, int timeout) {
+                                    fds[0].revents = POLLHUP;
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
+        systemFake.WaitPidAction = [&, run = 0](int pid, int *wstatus, int options) mutable {
+                                       ++run;
+                                       if (run == 1) {
+                                           *wstatus = 0;
+                                           return 0;
+                                       }
+                                       else {
+                                           *wstatus = __W_EXITCODE(expectedExitCode, 0);
+                                           return pid;
+                                       }
+                                   };
+
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, emptyInput);
 
         CHECK(results.exitCode == expectedExitCode);
     }
@@ -65,13 +101,22 @@ TEST_GROUP("Read Child Process Output")
     systemFake.ForkAction = []() { return anyChildProcessId; };
     systemFake.CloseAction = [](int) {};
     systemFake.WriteAction = [](int, const void *, size_t) -> ssize_t { return 0; };
-    systemFake.ExitStatusAction = [](int) { return 0; };
+    systemFake.WaitPidAction = [](int pid, int *wstatus, int options) {
+                                 return 1;
+                               };
     systemFake.SigAction = [](int, const struct sigaction*, struct sigaction*) {};
     systemFake.Signal = [](int, sighandler_t){};
+    systemFake.FcntlAction = [](int, int, int) { return 0; };
 
 
     UNIT_TEST("Should return empty output when child output is empty")
     {
+        systemFake.PollAction = [](struct pollfd *fds, nfds_t nfds, int timeout) {
+                                    fds[0].revents = POLLHUP;
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
         systemFake.ReadAction = [](int fd, void *buf, size_t count) -> ssize_t {
                                     return 0;
                                 };
@@ -85,6 +130,18 @@ TEST_GROUP("Read Child Process Output")
     {
         const std::string expectedProcessOutput = "ShortProcessOutput";
 
+        systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                    ++run;
+                                    if (run == 1) {
+                                        fds[0].revents = POLLIN;
+                                    }
+                                    else {
+                                        fds[0].revents = POLLHUP;
+                                    }
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
         systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t count) mutable -> ssize_t {
                                     ++run;
                                     auto dest = static_cast<char*>(buf);
@@ -111,6 +168,64 @@ TEST_GROUP("Read Child Process Output")
                                                   + expedtedProcessOutputPart2
                                                   + expedtedProcessOutputPart3;
 
+        systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                    ++run;
+                                    if (run <= 3) {
+                                        fds[0].revents = POLLIN;
+                                    }
+                                    else {
+                                        fds[0].revents = POLLHUP;
+                                    }
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
+        systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t count) mutable -> ssize_t {
+                                    ++run;
+                                    auto dest = static_cast<char*>(buf);
+                                    if (run == 1) {
+                                        std::copy(expedtedProcessOutputPart1.begin(), expedtedProcessOutputPart1.end(), dest);
+                                        return expedtedProcessOutputPart1.length();
+                                    }
+                                    else if (run == 2) {
+                                        std::copy(expedtedProcessOutputPart2.begin(), expedtedProcessOutputPart2.end(), dest);
+                                        return expedtedProcessOutputPart2.length();
+                                    }
+                                    else if (run == 3) {
+                                        std::copy(expedtedProcessOutputPart3.begin(), expedtedProcessOutputPart3.end(), dest);
+                                        return expedtedProcessOutputPart3.length();
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                };
+
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
+
+        CHECK(results.output == expectedProcessOutput);
+    }
+
+    UNIT_TEST("Should return process output when children closed stdout and exited but there are still some data to read from the system buffer")
+    {
+        const std::string expedtedProcessOutputPart1 = "Long";
+        const std::string expedtedProcessOutputPart2 = "Proc";
+        const std::string expedtedProcessOutputPart3 = "essOutput";
+        const std::string expectedProcessOutput = expedtedProcessOutputPart1
+                                                  + expedtedProcessOutputPart2
+                                                  + expedtedProcessOutputPart3;
+
+        systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                    ++run;
+                                    if (run <= 3) {
+                                        fds[0].revents = POLLHUP | POLLIN;
+                                    }
+                                    else {
+                                        fds[0].revents = POLLHUP;
+                                    }
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
         systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t count) mutable -> ssize_t {
                                     ++run;
                                     auto dest = static_cast<char*>(buf);
@@ -146,13 +261,22 @@ TEST_GROUP("Write To Child Process")
     systemFake.ForkAction = []() { return anyChildProcessId; };
     systemFake.CloseAction = [](int) {};
     systemFake.ReadAction = [](int, const void *, size_t) -> ssize_t { return 0; };
-    systemFake.ExitStatusAction = [](int) { return 0; };
+    systemFake.WaitPidAction = [](int pid, int *wstatus, int options) {
+                                 return 1;
+                               };
     systemFake.SigAction = [](int, const struct sigaction*, struct sigaction*) {};
     systemFake.Signal = [](int, sighandler_t){};
+    systemFake.FcntlAction = [](int, int, int) { return 0; };
 
 
     UNIT_TEST("Should not pass input when empty input string is given")
     {
+       systemFake.PollAction = [](struct pollfd *fds, nfds_t nfds, int timeout) {
+                                     fds[0].revents = POLLHUP;
+                                     fds[1].revents = POLLOUT;
+                                     fds[2].revents = POLLHUP;
+                                     return 0;
+                                };
         systemFake.WriteAction = [&](int fd, const void *buf, size_t count) -> ssize_t {
                                      throw std::logic_error("Write function shouldn't be called.");
                                  };
@@ -167,6 +291,12 @@ TEST_GROUP("Write To Child Process")
         std::string result;
         std::vector<ssize_t> counts;
 
+        systemFake.PollAction = [](struct pollfd *fds, nfds_t nfds, int timeout) {
+                                    fds[0].revents = POLLHUP;
+                                    fds[1].revents = POLLOUT;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
         systemFake.WriteAction = [&](int fd, const void *buf, size_t count) -> ssize_t {
                                     auto src = static_cast<const char*>(buf);
                                     std::string s(src, count);
@@ -192,6 +322,12 @@ TEST_GROUP("Write To Child Process")
         std::string result;
         std::vector<ssize_t> counts;
 
+        systemFake.PollAction = [](struct pollfd *fds, nfds_t nfds, int timeout) {
+                                    fds[0].revents = POLLHUP;
+                                    fds[1].revents = POLLOUT;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
         systemFake.WriteAction = [&, run = 0](int fd, const void *buf, size_t count) mutable -> ssize_t {
                                     ++run;
                                     auto src = static_cast<const char*>(buf);
@@ -222,6 +358,104 @@ TEST_GROUP("Write To Child Process")
         CHECK(counts.at(0) == input.length());
         CHECK(counts.at(1) == input.length() - sizeOfPart1);
         CHECK(counts.at(2) == input.length() - sizeOfPart1 - sizeOfPart2);
+    }
+
+    UNIT_TEST("Should ignore input when children closes stdin")
+    {
+        const std::string inputPart1 = "Short";
+        const std::string inputPart2 = "Process";
+        const std::string inputPart3 = "Input";
+        const std::string input = inputPart1 + inputPart2 + inputPart3;
+
+        std::string result;
+        std::vector<ssize_t> counts;
+
+        systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                    ++run;
+                                    fds[0].revents = POLLHUP;
+                                    if (run == 1 || run == 2) {
+                                        fds[1].revents = POLLOUT;
+                                    }
+                                    else {
+                                        fds[1].revents = POLLHUP;
+                                    }
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
+        systemFake.WriteAction = [&, run = 0](int fd, const void *buf, size_t count) mutable -> ssize_t {
+                                    ++run;
+                                    auto src = static_cast<const char*>(buf);
+
+                                    counts.push_back(count);
+
+                                    if (run == 1) {
+                                        std::copy_n(src, inputPart1.length(), std::back_inserter(result));
+                                        return inputPart1.length();
+                                    }
+                                    if (run == 2) {
+                                        std::copy_n(src, inputPart2.length(), std::back_inserter(result));
+                                        return inputPart2.length();
+                                    }
+                                    else {
+                                        throw std::logic_error("Write function shouldn't be called.");
+                                    }
+                                };
+
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, input);
+
+        CHECK(result == inputPart1 + inputPart2);
+        CHECK(counts.size() == 2);
+        CHECK(counts.at(0) == input.length());
+        CHECK(counts.at(1) == input.length() - inputPart1.length());
+    }
+
+    UNIT_TEST("Should ignore input when POLLERR is set with POLLOUT (this can occour when children exits or crash before all data are written)")
+    {
+        const std::string inputPart1 = "Short";
+        const std::string inputPart2 = "Process";
+        const std::string inputPart3 = "Input";
+        const std::string input = inputPart1 + inputPart2 + inputPart3;
+
+        std::string result;
+        std::vector<ssize_t> counts;
+
+        systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                    ++run;
+                                    fds[0].revents = POLLHUP;
+                                    if (run == 1 || run == 2) {
+                                        fds[1].revents = POLLOUT;
+                                    }
+                                    else {
+                                        fds[1].revents = POLLERR | POLLOUT;
+                                    }
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
+        systemFake.WriteAction = [&, run = 0](int fd, const void *buf, size_t count) mutable -> ssize_t {
+                                    ++run;
+                                    auto src = static_cast<const char*>(buf);
+
+                                    counts.push_back(count);
+
+                                    if (run == 1) {
+                                        std::copy_n(src, inputPart1.length(), std::back_inserter(result));
+                                        return inputPart1.length();
+                                    }
+                                    if (run == 2) {
+                                        std::copy_n(src, inputPart2.length(), std::back_inserter(result));
+                                        return inputPart2.length();
+                                    }
+                                    else {
+                                        throw std::logic_error("Write function shouldn't be called.");
+                                    }
+                                };
+
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, input);
+
+        CHECK(result == inputPart1 + inputPart2);
+        CHECK(counts.size() == 2);
+        CHECK(counts.at(0) == input.length());
+        CHECK(counts.at(1) == input.length() - inputPart1.length());
     }
 }
 
@@ -257,9 +491,18 @@ TEST_GROUP("Pipes Management")
                                         throw std::logic_error("Unexpected call to system::unix::Pipe().");
                                     }
                                 };
-    systemFake.ExitStatusAction = [](int) { return 0; };
+    systemFake.WaitPidAction = [](int pid, int *wstatus, int options) {
+                                 return 1;
+                               };
+    systemFake.PollAction = [](struct pollfd *fds, nfds_t nfds, int timeout) {
+                                    fds[0].revents = POLLHUP;
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
     systemFake.SigAction = [](int, const struct sigaction*, struct sigaction*) {};
     systemFake.Signal = [](int, sighandler_t){};
+    systemFake.FcntlAction = [](int, int, int) { return 0; };
 
 
     SUBGROUP("Parent Process")
@@ -268,6 +511,27 @@ TEST_GROUP("Pipes Management")
         systemFake.WriteAction = [](int, const void *, size_t) -> ssize_t { return 0; };
         systemFake.ReadAction = [](int, void *, size_t) -> ssize_t { return 0; };
 
+
+        UNIT_TEST("Should only make to children write end as non blocking, children side should block like the standard input")
+        {
+            systemFake.CloseAction = [](int fd) {};
+            systemFake.FcntlAction = [](int fd, int cmd, int arg) {
+                                         if (cmd == F_SETFL) {
+                                             if (fd != toChildWriteEnd && arg == O_NONBLOCK) {
+                                                 throw std::logic_error("O_NONBLOCK F_SETFL on wrong fd:" + std::to_string(fd));
+                                             }
+                                         }
+                                         else if (cmd == F_GETFL) {
+                                             /* do nothing */
+                                         }
+                                         else {
+                                             throw std::logic_error("Unknown command for fctl()");
+                                         }
+                                         return 0;
+                                     };
+
+            (void) RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
+        }
 
         UNIT_TEST("Should close all pipes ends during function lifetime")
         {
@@ -312,10 +576,73 @@ TEST_GROUP("Pipes Management")
             CHECK(isClosedToParentInternalErrorsWriteEnd == true);
         }
 
-        UNIT_TEST("Should close toChildWriteEnd after the data was written to the pipe")
+        UNIT_TEST("Should close toChildWriteEnd after all the data was written to the pipe and the remote side is working")
+        {
+            int isClosedToChildWriteEnd = false;
+            bool hupAllFds = false;
+
+            systemFake.PollAction = [&,run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                        ++run;
+                                        if (run == 1) {
+                                            fds[0].revents = POLLIN;
+                                            fds[1].revents = POLLOUT;
+                                            fds[2].revents = POLLIN;
+                                        }
+                                        else if (run == 2) {
+                                            fds[0].revents = POLLIN;
+                                            fds[1].revents = POLLHUP;
+                                            fds[2].revents = POLLIN;
+                                        }
+                                        else if (hupAllFds) {
+                                            fds[0].revents = POLLHUP;
+                                            fds[1].revents = POLLHUP;
+                                            fds[2].revents = POLLHUP;
+                                        }
+                                        return 0;
+                                    };
+            systemFake.WriteAction = [&](int fd, const void *, size_t) -> ssize_t {
+                                         if (fd == toChildWriteEnd) {
+                                             isClosedToChildWriteEnd = false;
+                                             return nonImportantNonEmptyInput.length();
+                                         }
+                                         else {
+                                             throw std::logic_error("Unexpected call to system::unix::Write with fd: " + std::to_string(fd));
+                                         }
+                                     };
+            systemFake.CloseAction = [&, call = 0](int fd) mutable {
+                                         if (fd == toChildWriteEnd) {
+                                             if (call == 0) {
+                                                 isClosedToChildWriteEnd = true;
+                                                 hupAllFds = true;
+                                             }
+                                             else {
+                                                 throw std::logic_error("Double call of Close on this same fd: " + std::to_string(fd));
+                                             }
+                                         }
+                                     };
+
+            (void) RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantNonEmptyInput);
+
+            CHECK(isClosedToChildWriteEnd == true);
+        }
+
+        UNIT_TEST("Should close toChildWriteEnd when all data is written to the pipe and then remote side hangs up")
         {
             int isClosedToChildWriteEnd = false;
 
+            systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                        ++run;
+                                        fds[0].revents = POLLHUP;
+                                        constexpr int writeToChildRun = 1;
+                                        if (run == writeToChildRun) {
+                                            fds[1].revents = POLLOUT;
+                                        }
+                                        else {
+                                            fds[1].revents = POLLHUP;
+                                        }
+                                        fds[2].revents = POLLHUP;
+                                        return 0;
+                                    };
             systemFake.WriteAction = [&](int fd, const void *, size_t) -> ssize_t {
                                          if (fd == toChildWriteEnd) {
                                              isClosedToChildWriteEnd = false;
@@ -337,6 +664,49 @@ TEST_GROUP("Pipes Management")
                                      };
 
             (void) RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantNonEmptyInput);
+
+            CHECK(isClosedToChildWriteEnd == true);
+        }
+
+        UNIT_TEST("Should close toChildWriteEnd when all data was not written to the pipe and then remote side hangs up")
+        {
+            const std::string input = "ShortProcessInput";
+            int isClosedToChildWriteEnd = false;
+
+            systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                        ++run;
+                                        fds[0].revents = POLLHUP;
+                                        constexpr int writeToChildRun = 1;
+                                        if (run == writeToChildRun) {
+                                            fds[1].revents = POLLOUT;
+                                        }
+                                        else {
+                                            fds[1].revents = POLLHUP;
+                                        }
+                                        fds[2].revents = POLLHUP;
+                                        return 0;
+                                    };
+            systemFake.WriteAction = [&](int fd, const void *, size_t) -> ssize_t {
+                                         if (fd == toChildWriteEnd) {
+                                             isClosedToChildWriteEnd = false;
+                                             return 0;
+                                         }
+                                         else {
+                                             throw std::logic_error("Unexpected call to system::unix::Write with fd: " + std::to_string(fd));
+                                         }
+                                     };
+            systemFake.CloseAction = [&, call = 0](int fd) mutable {
+                                         if (fd == toChildWriteEnd) {
+                                             if (call == 0) {
+                                                 isClosedToChildWriteEnd = true;
+                                             }
+                                             else {
+                                                 throw std::logic_error("Double call of Close on this same fd: " + std::to_string(fd));
+                                             }
+                                         }
+                                     };
+
+            (void) RunProcess(exampleBinaryPath, emptyRunProcessArguments, input);
 
             CHECK(isClosedToChildWriteEnd == true);
         }
@@ -376,6 +746,7 @@ TEST_GROUP("Pipes Management")
 
         UNIT_TEST("Should close pipes ends before exception throw")
         {
+            constexpr int readFromParentInternalErrorsReadEndRun = 1;
             bool isClosedToParentReadEnd = false;
             bool isClosedToParentInternalErrorsReadEnd = false;
 
@@ -385,7 +756,6 @@ TEST_GROUP("Pipes Management")
             systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t) mutable -> ssize_t {
                                       ++run;
                                       auto dest = static_cast<char*>(buf);
-                                      constexpr int readFromParentInternalErrorsReadEndRun = 2;
                                       if (run == readFromParentInternalErrorsReadEndRun) {
                                           std::string someMessage = "some message";
                                           std::copy(someMessage.begin(), someMessage.end(), dest);
@@ -407,6 +777,18 @@ TEST_GROUP("Pipes Management")
                                              throw std::logic_error("Unexpected fd to close or already closed: " + std::to_string(fd));
                                          }
                                      };
+            systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                        ++run;
+                                        fds[0].revents = POLLHUP;
+                                        fds[1].revents = POLLHUP;
+                                        if (run == readFromParentInternalErrorsReadEndRun) {
+                                            fds[2].revents = POLLIN;
+                                        }
+                                        else {
+                                            fds[2].revents = POLLHUP;
+                                        }
+                                        return 0;
+                                    };
 
             CHECK_THROWS_AS(RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput),
                             omtt::exception::SutExecutionException);
@@ -735,11 +1117,12 @@ TEST_GROUP("SUT Process Execution")
     system::unix::ResetGlobalFake();
 
     systemFake.MakePipeAction = [](const system::unix::PipeOptions option) -> system::unix::Pipe { return {0,0}; };
-    systemFake.ExitStatusAction = [](int) { return 0; };
+    systemFake.WaitPidAction = [](int pid, int *wstatus, int options) { return 1; };
     systemFake.CloseAction = [](int fd) {};
     systemFake.DuplicateFdAction = [](int oldFd, int newFd) {};
     systemFake.SigAction = [](int, const struct sigaction*, struct sigaction*) {};
     systemFake.Signal = [](int, sighandler_t){};
+    systemFake.FcntlAction = [](int, int, int) { return 0; };
 
 
     SUBGROUP("Parent side")
@@ -748,6 +1131,7 @@ TEST_GROUP("SUT Process Execution")
 
         UNIT_TEST("Should throw exception with error message from child process")
         {
+            constexpr int readFromParentInternalErrorsReadEndRun = 1;
             std::string errorMessage = "message text";
             std::string expectedErrorMessage = "during SUT execution: " + errorMessage;
 
@@ -757,7 +1141,6 @@ TEST_GROUP("SUT Process Execution")
             systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t) mutable -> ssize_t {
                                       ++run;
                                       auto dest = static_cast<char*>(buf);
-                                      constexpr int readFromParentInternalErrorsReadEndRun = 2;
                                       if (run == readFromParentInternalErrorsReadEndRun) {
                                           std::copy(errorMessage.begin(), errorMessage.end(), dest);
                                           return errorMessage.length();
@@ -767,6 +1150,18 @@ TEST_GROUP("SUT Process Execution")
                                       }
                                     };
             systemFake.CloseAction = [](int fd) {};
+            systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                        ++run;
+                                        fds[0].revents = POLLHUP;
+                                        fds[1].revents = POLLHUP;
+                                        if (run == readFromParentInternalErrorsReadEndRun) {
+                                            fds[2].revents = POLLIN;
+                                        }
+                                        else {
+                                            fds[2].revents = POLLHUP;
+                                        }
+                                        return 0;
+                                    };
 
             CHECK_THROWS_WITH_AS(RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput),
                                  expectedErrorMessage.c_str(),
@@ -841,7 +1236,16 @@ TEST_GROUP("Signals Management")
     systemFake.CloseAction = [](int) {};
     systemFake.WriteAction = [](int, const void *, size_t) -> ssize_t { return 0; };
     systemFake.ReadAction = [](int fd, void *buf, size_t count) -> ssize_t { return 0; };
-    systemFake.ExitStatusAction = [](int) { return 0; };
+    systemFake.WaitPidAction = [](int pid, int *wstatus, int options) {
+                                 return 1;
+                               };
+    systemFake.PollAction = [](struct pollfd *fds, nfds_t nfds, int timeout) {
+                                    fds[0].revents = POLLHUP;
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
+    systemFake.FcntlAction = [](int, int, int) { return 0; };
 
 
     UNIT_TEST("Should attach signals and reset them to defaults after process execution")
@@ -876,10 +1280,11 @@ TEST_GROUP("Unit tests dependencies")
                                std::string s(src, count);
                                return s.length();
                              };
-    systemFake.TerminateAction = [&](const int exitCode) {
-                                 };
+    systemFake.TerminateAction = [&](const int exitCode) {};
     systemFake.SigAction = [](int, const struct sigaction*, struct sigaction*) {};
     systemFake.Signal = [](int, sighandler_t){};
+    systemFake.FcntlAction = [](int, int, int) { return 0; };
+
 
     UNIT_TEST("Should rethrow exceptions to allow error detecting in some unittests (catch could match the exception raised in ut)")
     {

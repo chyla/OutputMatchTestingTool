@@ -61,6 +61,30 @@ Mark test as PASS when EXPECT keyword occours in input and expected output after
     Verdict Is Set To Pass    ${result}
     Exit Status Points To All Tests Passed    ${result}
 
+Mark test as PASS when 3MB input match 3MB output
+    ${result} =    Run SUT With Helper    scat    scat-3mb_input_match_3mb_output.omtt
+
+    Verdict Is Set To Pass    ${result}
+    Exit Status Points To All Tests Passed    ${result}
+
+Mark test as PASS when 9MB input match 9MB output
+    ${result} =    Run SUT With Helper    scat    scat-9mb_input_match_9mb_output.omtt
+
+    Verdict Is Set To Pass    ${result}
+    Exit Status Points To All Tests Passed    ${result}
+
+Mark test as PASS when input is not read but output matches
+    ${result} =    Run SUT With Helper    close_input_and_print_some_output    close_input_and_print_some_output-3mb_input_not_read_and_output_matches.omtt
+
+    Verdict Is Set To Pass    ${result}
+    Exit Status Points To All Tests Passed    ${result}
+
+Mark test as FAIL when input is not read and output doesn't match
+    ${result} =    Run SUT With Helper    close_input_and_print_some_output    close_input_and_print_some_output-failing_scenario-3mb_input_not_read_and_output_doesnt_match.omtt
+
+    Verdict Is Set To Fail    ${result}
+    Output Doesn't Match Message Points To Byte    ${result}    6
+
 Missing keyword error message is not present when test PASS
     ${result} =    Run SUT With Helper    scat    scat-expect_keyword_in_input_and_output_after_space.omtt
 

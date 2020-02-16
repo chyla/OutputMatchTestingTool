@@ -43,6 +43,18 @@ Mark test as FAIL when SUT returns exit code other than expected in test
     Verdict Is Set To Fail    ${result}
     Exit Status Points To One Test Failed    ${result}
 
+Mark test as PASS when input is not read but output matches
+    ${result} =    Run SUT With Helper    close_input_and_print_some_output    close_input_and_print_some_output-3mb_input_not_read_and_exit_code_matches.omtt
+
+    Verdict Is Set To Pass    ${result}
+    Exit Status Points To All Tests Passed    ${result}
+
+Mark test as FAIL when input is not read and output doesn't match
+    ${result} =    Run SUT With Helper    close_input_and_print_some_output    close_input_and_print_some_output-failing_scenario-3mb_input_not_read_and_exit_code_doesnt_match.omtt
+
+    Verdict Is Set To Fail    ${result}
+    Exit Status Points To One Test Failed    ${result}
+
 Raise an error when the 'CODE' keyword is missing
     ${result} =    Run SUT With Helper    true    true-error_scenario-missing_code_keyword.omtt
 

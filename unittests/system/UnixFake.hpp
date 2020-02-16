@@ -22,12 +22,14 @@ struct UnixFake
     std::function<ssize_t (int, const void *, size_t)> WriteAction;
     std::function<void (int)> CloseAction;
     std::function<ssize_t ()> ForkAction;
-    std::function<pid_t (int)> ExitStatusAction;
+    std::function<int (pid_t pid, int *wstatus, int options)> WaitPidAction;
     std::function<void (int, int)> DuplicateFdAction;
     std::function<void (const std::string &, const std::vector<std::string> &)> ExecAction;
     std::function<void (int)> TerminateAction;
     std::function<void (int, const struct sigaction*, struct sigaction*)> SigAction;
     std::function<void (int, sighandler_t)> Signal;
+    std::function<int (struct pollfd *fds, nfds_t nfds, int timeout)> PollAction;
+    std::function<int (int fd, int cmd, int arg)> FcntlAction;
 };
 
 inline UnixFake& GlobalFake()

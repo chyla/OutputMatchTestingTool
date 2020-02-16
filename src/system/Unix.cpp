@@ -26,7 +26,7 @@ MakePipe(const PipeOptions option)
     int fd[2];
     int pipeFlags = 0;
     if (option == PipeOptions::CLOSE_ON_EXEC) {
-      pipeFlags = O_CLOEXEC;
+        pipeFlags |= O_CLOEXEC;
     }
 
     const int err = pipe2(fd, pipeFlags);
@@ -80,20 +80,13 @@ Fork()
 }
 
 int
-ExitStatus(int pid)
+WaitPid(pid_t pid, int *wstatus, int options)
 {
-    int status = 0;
-    int err = waitpid(pid, &status, 0);
-    if (err != pid) {
+    int ret = waitpid(pid, wstatus, options);
+    if (ret < 0) {
         throw exception::SystemException("failure in waitpid()", errno);
     }
-
-    if (WIFEXITED(status)) {
-        return WEXITSTATUS(status);
-    }
-    else {
-        return std::numeric_limits<int>::max();
-    }
+    return ret;
 }
 
 void
@@ -149,5 +142,22 @@ Signal(int signum, sighandler_t handler)
     }
 }
 
+int
+Poll(struct pollfd *fds, nfds_t nfds, int timeout)
+{
+    int count = poll(fds, nfds, timeout);
+    if (count < 0) {
+        throw exception::SystemException("failure in poll()", errno);
+    }
+}
+
+int
+Fcntl(int fd, int cmd, int arg)
+{
+    int ret = fcntl(fd, cmd, arg);
+    if (ret < 0) {
+        throw exception::SystemException("failure in fcntl()", errno);
+    }
+}
 
 } // omtt::system::unix

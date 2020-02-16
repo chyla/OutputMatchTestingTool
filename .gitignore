@@ -70,5 +70,6 @@ Makefile
 /systemtests/apps/secho
 /systemtests/apps/crash_null_ptr_dereference
 /systemtests/apps/sleep60
+/systemtests/apps/close_input_and_print_some_output
 # tests output
 /systemtests/output/

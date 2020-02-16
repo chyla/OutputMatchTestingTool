@@ -41,10 +41,10 @@ Fork()
     return GlobalFake().ForkAction();
 }
 
-pid_t
-ExitStatus(int pid)
+int
+WaitPid(pid_t pid, int *wstatus, int options)
 {
-    return GlobalFake().ExitStatusAction(pid);
+    return GlobalFake().WaitPidAction(pid, wstatus, options);
 }
 
 void
@@ -75,6 +75,18 @@ void
 Signal(int signum, sighandler_t handler)
 {
     GlobalFake().Signal(signum, handler);
+}
+
+int
+Poll(struct pollfd *fds, nfds_t nfds, int timeout)
+{
+    GlobalFake().PollAction(fds, nfds, timeout);
+}
+
+int
+Fcntl(int fd, int cmd, int arg)
+{
+    GlobalFake().FcntlAction(fd, cmd, arg);
 }
 
 }  // omtt::system::unix

@@ -10,8 +10,11 @@
 #include <string>
 #include <vector>
 
-#include <sys/types.h>
+#include <fcntl.h>
+#include <poll.h>
 #include <signal.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 
 namespace omtt::system::unix
@@ -51,8 +54,8 @@ Close(int fd);
 ssize_t
 Fork();
 
-pid_t
-ExitStatus(int pid);
+int
+WaitPid(pid_t pid, int *wstatus, int options);
 
 void
 DuplicateFd(int oldFd, int newFd);
@@ -68,5 +71,11 @@ SigAction(int signum, const struct sigaction *act, struct sigaction *oldact);
 
 void
 Signal(int signum, sighandler_t handler);
+
+int
+Poll(struct pollfd *fds, nfds_t nfds, int timeout);
+
+int
+Fcntl(int fd, int cmd, int arg);
 
 }  // omtt::system::unix
