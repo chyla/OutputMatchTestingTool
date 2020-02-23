@@ -30,6 +30,7 @@ struct UnixFake
     std::function<void (int, sighandler_t)> Signal;
     std::function<int (struct pollfd *fds, nfds_t nfds, int timeout)> PollAction;
     std::function<int (int fd, int cmd, int arg)> FcntlAction;
+    std::function<void (pid_t pid, int sig)> KillAction;
 };
 
 inline UnixFake& GlobalFake()

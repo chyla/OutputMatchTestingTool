@@ -89,4 +89,10 @@ Fcntl(int fd, int cmd, int arg)
     return GlobalFake().FcntlAction(fd, cmd, arg);
 }
 
+void
+Kill(pid_t pid, int sig)
+{
+    return GlobalFake().KillAction(pid, sig);
+}
+
 }  // omtt::system::unix

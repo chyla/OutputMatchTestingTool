@@ -8,6 +8,7 @@
 #include "headers/RunProcess.hpp"
 #include "headers/ErrorCodes.hpp"
 #include "headers/exception/SutExecutionException.hpp"
+#include "headers/exception/SignalReceivedException.hpp"
 #include "unittests/system/UnixFake.hpp"
 
 #include "unittests/test_framework.hpp"
@@ -1297,13 +1298,9 @@ TEST_GROUP("Signals Management")
     systemFake.WaitPidAction = [](int pid, int *wstatus, int options) {
                                  return 1;
                                };
-    systemFake.PollAction = [](struct pollfd *fds, nfds_t nfds, int timeout) {
-                                    fds[0].revents = POLLHUP;
-                                    fds[1].revents = POLLHUP;
-                                    fds[2].revents = POLLHUP;
-                                    return 0;
-                                };
     systemFake.FcntlAction = [](int, int, int) { return 0; };
+    systemFake.SigAction = [&](int signum, const struct sigaction*, struct sigaction*) {};
+    systemFake.Signal = [&](int signum, sighandler_t handler) {};
 
 
     UNIT_TEST("Should attach signals and reset them to defaults after process execution")
@@ -1311,6 +1308,12 @@ TEST_GROUP("Signals Management")
         std::vector<int> expectedSignals = {SIGHUP, SIGINT, SIGTERM, SIGUSR1, SIGUSR2},
                          attachedSignals,
                          resetedSignals;
+        systemFake.PollAction = [](struct pollfd *fds, nfds_t nfds, int timeout) {
+                                    fds[0].revents = POLLHUP;
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
         systemFake.SigAction = [&](int signum, const struct sigaction*, struct sigaction*) {
                                    attachedSignals.push_back(signum);
                                };
@@ -1330,6 +1333,60 @@ TEST_GROUP("Signals Management")
 
         CHECK(attachedSignals == expectedSignals);
         CHECK(resetedSignals == expectedSignals);
+    }
+
+    auto RunParameterizedTestForTerminateChildrenProcessAndThrowException = [&](const int signum)
+    {
+        bool isChildProcessTerminated = false;
+
+        systemFake.PollAction = [](struct pollfd *fds, nfds_t nfds, int timeout) {
+                                    fds[0].revents = POLLIN;
+                                    fds[1].revents = POLLOUT;
+                                    fds[2].revents = POLLIN;
+                                    return 0;
+                                };
+        systemFake.ReadAction = [&](int fd, void *buf, size_t count) -> ssize_t {
+                                    RunProcessSignalHandler(signum, nullptr, nullptr);
+                                    return 0;
+                                 };
+        systemFake.ForkAction = []() {
+                                    return anyChildProcessId;
+                                };
+        systemFake.KillAction = [&](pid_t pid, int sig) {
+                                    if (pid ==  anyChildProcessId) {
+                                        isChildProcessTerminated = true;
+                                    }
+                                };
+
+        CHECK_THROWS_AS(RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput),
+                        omtt::exception::SignalReceivedException);
+
+        CHECK(isChildProcessTerminated == true);
+    };
+
+    UNIT_TEST("Should terminate working children process when SIGHUP is received and throw SignalReceivedException")
+    {
+        RunParameterizedTestForTerminateChildrenProcessAndThrowException(SIGHUP);
+    }
+
+    UNIT_TEST("Should terminate working children process when SIGINT is received and throw SignalReceivedException")
+    {
+        RunParameterizedTestForTerminateChildrenProcessAndThrowException(SIGINT);
+    }
+
+    UNIT_TEST("Should terminate working children process when SIGTERM is received and throw SignalReceivedException")
+    {
+        RunParameterizedTestForTerminateChildrenProcessAndThrowException(SIGTERM);
+    }
+
+    UNIT_TEST("Should terminate working children process when SIGUSR1 is received and throw SignalReceivedException")
+    {
+        RunParameterizedTestForTerminateChildrenProcessAndThrowException(SIGUSR1);
+    }
+
+    UNIT_TEST("Should terminate working children process when SIGUSR2 is received and throw SignalReceivedException")
+    {
+        RunParameterizedTestForTerminateChildrenProcessAndThrowException(SIGUSR2);
     }
 }
 

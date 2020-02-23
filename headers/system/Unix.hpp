@@ -84,4 +84,7 @@ Poll(struct pollfd *fds, nfds_t nfds, int timeout);
 int
 Fcntl(int fd, int cmd, int arg);
 
+void
+Kill(pid_t pid, int sig);
+
 }  // omtt::system::unix

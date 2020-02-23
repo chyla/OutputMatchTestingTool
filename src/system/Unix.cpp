@@ -40,7 +40,7 @@ MakePipe(const PipeOptions option)
 ssize_t
 Read(int fd, void *buf, size_t count)
 {
-    ssize_t bytes = read(fd, buf, count);
+    const ssize_t bytes = read(fd, buf, count);
     if (bytes < 0) {
         throw exception::SystemException("failure in read()", errno);
     }
@@ -51,7 +51,7 @@ Read(int fd, void *buf, size_t count)
 ssize_t
 Write(int fd, const void *buf, size_t count, WriteOptions options)
 {
-    ssize_t bytes = write(fd, buf, count);
+    const ssize_t bytes = write(fd, buf, count);
     if (bytes < 0) {
         if (options == system::unix::WriteOptions::IGNORE_EPIPE && errno != EPIPE) {
             return 0;
@@ -67,7 +67,7 @@ Write(int fd, const void *buf, size_t count, WriteOptions options)
 void
 Close(int fd)
 {
-    int err = close(fd);
+    const int err = close(fd);
     if (err) {
         throw exception::SystemException("failure in close()", errno);
     }
@@ -76,7 +76,7 @@ Close(int fd)
 ssize_t
 Fork()
 {
-    int pid = fork();
+    const int pid = fork();
     if (pid < 0) {
         throw exception::SystemException("failure in fork()", errno);
     }
@@ -87,7 +87,7 @@ Fork()
 int
 WaitPid(pid_t pid, int *wstatus, int options)
 {
-    int ret = waitpid(pid, wstatus, options);
+    const int ret = waitpid(pid, wstatus, options);
     if (ret < 0) {
         throw exception::SystemException("failure in waitpid()", errno);
     }
@@ -97,7 +97,7 @@ WaitPid(pid_t pid, int *wstatus, int options)
 void
 DuplicateFd(int oldFd, int newFd)
 {
-    int err = dup2(oldFd, newFd);
+    const int err = dup2(oldFd, newFd);
     if (err < 0) {
         throw exception::SystemException("failure in dup2()", errno);
     }
@@ -117,7 +117,7 @@ Exec(const std::string &path, const std::vector<std::string> &arguments)
         args[i + 1] = const_cast<char*>(arguments.at(i).c_str());
     }
 
-    int err = execv(path.c_str(), static_cast<char * const *>(args));
+    const int err = execv(path.c_str(), static_cast<char * const *>(args));
     if (err < 0) {
         throw exception::SystemException("failure in execv()", errno);
     }
@@ -132,7 +132,7 @@ Terminate(const int status)
 void
 SigAction(int signum, const struct sigaction *act, struct sigaction *oldact)
 {
-    int err = sigaction(signum, act, oldact);
+    const int err = sigaction(signum, act, oldact);
     if (err < 0) {
         throw exception::SystemException("failure in sigaction()", errno);
     }
@@ -141,7 +141,7 @@ SigAction(int signum, const struct sigaction *act, struct sigaction *oldact)
 void
 Signal(int signum, sighandler_t handler)
 {
-    auto oldHandler = signal(signum, handler);
+    const auto oldHandler = signal(signum, handler);
     if (oldHandler == SIG_ERR) {
         throw exception::SystemException("failure in signal()", errno);
     }
@@ -150,7 +150,7 @@ Signal(int signum, sighandler_t handler)
 int
 Poll(struct pollfd *fds, nfds_t nfds, int timeout)
 {
-    int count = poll(fds, nfds, timeout);
+    const int count = poll(fds, nfds, timeout);
     if (count < 0) {
         throw exception::SystemException("failure in poll()", errno);
     }
@@ -160,11 +160,21 @@ Poll(struct pollfd *fds, nfds_t nfds, int timeout)
 int
 Fcntl(int fd, int cmd, int arg)
 {
-    int ret = fcntl(fd, cmd, arg);
+    const int ret = fcntl(fd, cmd, arg);
     if (ret < 0) {
         throw exception::SystemException("failure in fcntl()", errno);
     }
     return ret;
 }
+
+void
+Kill(pid_t pid, int sig)
+{
+    const int ret = kill(pid, sig);
+    if (ret < 0) {
+        throw exception::SystemException("failure in kill()", errno);
+    }
+}
+
 
 } // omtt::system::unix

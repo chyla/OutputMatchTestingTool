@@ -19,6 +19,9 @@
 namespace omtt
 {
 
+void
+RunProcessSignalHandler(const int signum, siginfo_t *info, void *ucontext);
+
 namespace
 {
 
@@ -52,14 +55,6 @@ WriteAllDataToFd(const int fd, const std::string_view &buf)
     while (wrote < buf.length()) {
         wrote += system::unix::Write(fd, buf.data() + wrote, buf.length() - wrote);
     }
-}
-
-volatile sig_atomic_t signalReceived;
-
-void
-RunProcessSignalHandler(const int signum, siginfo_t *info, void *ucontext)
-{
-    signalReceived = signum;
 }
 
 void
@@ -129,6 +124,14 @@ IsAllDataWritten(const std::string_view::size_type wroteToChild, const std::stri
     return wroteToChild == input.length();
 }
 
+volatile sig_atomic_t signalReceived;
+
+}
+
+void
+RunProcessSignalHandler(const int signum, siginfo_t *info, void *ucontext)
+{
+    signalReceived = signum;
 }
 
 ProcessResults
@@ -207,10 +210,7 @@ RunProcess(const std::string &path,
                  && signalReceived == 0);
 
         if (signalReceived) {
-            const int ret = kill(childrenPid, SIGKILL);
-            if (ret < 0) {
-                std::cerr << "SUT termination failed.\n";
-            }
+            system::unix::Kill(childrenPid, SIGKILL);
             throw exception::SignalReceivedException(signalReceived);
         }
 
