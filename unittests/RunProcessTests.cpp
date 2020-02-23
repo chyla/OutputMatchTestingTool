@@ -9,6 +9,7 @@
 #include "headers/ErrorCodes.hpp"
 #include "headers/exception/SutExecutionException.hpp"
 #include "headers/exception/SignalReceivedException.hpp"
+#include "headers/system/exception/SystemException.hpp"
 #include "unittests/system/UnixFake.hpp"
 
 #include "unittests/test_framework.hpp"
@@ -1387,6 +1388,31 @@ TEST_GROUP("Signals Management")
     UNIT_TEST("Should terminate working children process when SIGUSR2 is received and throw SignalReceivedException")
     {
         RunParameterizedTestForTerminateChildrenProcessAndThrowException(SIGUSR2);
+    }
+
+    UNIT_TEST("Should pass system exception when children termination fails after any signal is received")
+    {
+        systemFake.PollAction = [](struct pollfd *fds, nfds_t nfds, int timeout) {
+                                    fds[0].revents = POLLIN;
+                                    fds[1].revents = POLLOUT;
+                                    fds[2].revents = POLLIN;
+                                    return 0;
+                                };
+        systemFake.ReadAction = [&](int fd, void *buf, size_t count) -> ssize_t {
+                                    constexpr auto anySignal = SIGTERM;
+                                    RunProcessSignalHandler(anySignal, nullptr, nullptr);
+                                    return 0;
+                                 };
+        systemFake.ForkAction = []() {
+                                    return anyChildProcessId;
+                                };
+        systemFake.KillAction = [&](pid_t pid, int sig) {
+                                    constexpr auto someErrno = 1;
+                                    throw omtt::system::unix::exception::SystemException("kill exception", someErrno);
+                                };
+
+        CHECK_THROWS_AS(RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput),
+                        omtt::system::unix::exception::SystemException);
     }
 }
 
