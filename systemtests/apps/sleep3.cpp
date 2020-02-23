@@ -3,6 +3,6 @@
 int
 main()
 {
-    sleep(60);
+    sleep(3);
     return 0;
 }

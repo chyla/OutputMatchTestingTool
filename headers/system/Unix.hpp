@@ -39,6 +39,12 @@ enum class PipeOptions
     CLOSE_ON_EXEC
 };
 
+enum class WriteOptions
+{
+    NONE,
+    IGNORE_EPIPE
+};
+
 const Pipe
 MakePipe(const PipeOptions option = PipeOptions::NONE);
 
@@ -46,7 +52,7 @@ ssize_t
 Read(int fd, void *buf, size_t count);
 
 ssize_t
-Write(int fd, const void *buf, size_t count);
+Write(int fd, const void *buf, size_t count, WriteOptions options = WriteOptions::NONE);
 
 void
 Close(int fd);

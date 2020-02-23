@@ -19,6 +19,9 @@
 namespace omtt
 {
 
+extern void
+RunProcessSignalHandler(const int signum, siginfo_t *info, void *ucontext);
+
 auto &systemFake = system::unix::GlobalFake();
 
 constexpr const char *exampleBinaryPath = "/bin/example";
@@ -37,7 +40,7 @@ TEST_GROUP("Child Process Exit Code")
     systemFake.MakePipeAction = [](const system::unix::PipeOptions option) -> system::unix::Pipe { return {0, 0}; };
     systemFake.ForkAction = []() { return anyChildProcessId; };
     systemFake.CloseAction = [](int) {};
-    systemFake.WriteAction = [](int, const void *, size_t) -> ssize_t { return 0; };
+    systemFake.WriteAction = [](int, const void *, size_t, system::unix::WriteOptions) -> ssize_t { return 0; };
     systemFake.ReadAction = [](int fd, void *buf, size_t count) -> ssize_t { return 0; };
     systemFake.SigAction = [](int, const struct sigaction*, struct sigaction*) {};
     systemFake.Signal = [](int, sighandler_t){};
@@ -100,7 +103,7 @@ TEST_GROUP("Read Child Process Output")
     systemFake.MakePipeAction = [](const system::unix::PipeOptions option) -> system::unix::Pipe { return {0, 0}; };
     systemFake.ForkAction = []() { return anyChildProcessId; };
     systemFake.CloseAction = [](int) {};
-    systemFake.WriteAction = [](int, const void *, size_t) -> ssize_t { return 0; };
+    systemFake.WriteAction = [](int, const void *, size_t, system::unix::WriteOptions) -> ssize_t { return 0; };
     systemFake.WaitPidAction = [](int pid, int *wstatus, int options) {
                                  return 1;
                                };
@@ -277,7 +280,7 @@ TEST_GROUP("Write To Child Process")
                                      fds[2].revents = POLLHUP;
                                      return 0;
                                 };
-        systemFake.WriteAction = [&](int fd, const void *buf, size_t count) -> ssize_t {
+        systemFake.WriteAction = [&](int fd, const void *buf, size_t count, system::unix::WriteOptions) -> ssize_t {
                                      throw std::logic_error("Write function shouldn't be called.");
                                  };
         const std::string emptyProcessInput = "";
@@ -297,7 +300,7 @@ TEST_GROUP("Write To Child Process")
                                     fds[2].revents = POLLHUP;
                                     return 0;
                                 };
-        systemFake.WriteAction = [&](int fd, const void *buf, size_t count) -> ssize_t {
+        systemFake.WriteAction = [&](int fd, const void *buf, size_t count, system::unix::WriteOptions) -> ssize_t {
                                     auto src = static_cast<const char*>(buf);
                                     std::string s(src, count);
                                     counts.push_back(count);
@@ -328,7 +331,7 @@ TEST_GROUP("Write To Child Process")
                                     fds[2].revents = POLLHUP;
                                     return 0;
                                 };
-        systemFake.WriteAction = [&, run = 0](int fd, const void *buf, size_t count) mutable -> ssize_t {
+        systemFake.WriteAction = [&, run = 0](int fd, const void *buf, size_t count, system::unix::WriteOptions) mutable -> ssize_t {
                                     ++run;
                                     auto src = static_cast<const char*>(buf);
 
@@ -360,7 +363,7 @@ TEST_GROUP("Write To Child Process")
         CHECK(counts.at(2) == input.length() - sizeOfPart1 - sizeOfPart2);
     }
 
-    UNIT_TEST("Should ignore input when children closes stdin")
+    UNIT_TEST("Should ignore remaining input string when children closes stdin")
     {
         const std::string inputPart1 = "Short";
         const std::string inputPart2 = "Process";
@@ -382,7 +385,7 @@ TEST_GROUP("Write To Child Process")
                                     fds[2].revents = POLLHUP;
                                     return 0;
                                 };
-        systemFake.WriteAction = [&, run = 0](int fd, const void *buf, size_t count) mutable -> ssize_t {
+        systemFake.WriteAction = [&, run = 0](int fd, const void *buf, size_t count, system::unix::WriteOptions) mutable -> ssize_t {
                                     ++run;
                                     auto src = static_cast<const char*>(buf);
 
@@ -409,7 +412,7 @@ TEST_GROUP("Write To Child Process")
         CHECK(counts.at(1) == input.length() - inputPart1.length());
     }
 
-    UNIT_TEST("Should ignore input when POLLERR is set with POLLOUT (this can occour when children exits or crash before all data are written)")
+    UNIT_TEST("Should ignore remaining input string when POLLERR is set with POLLOUT (this can occour when children exits or crash before all data are written)")
     {
         const std::string inputPart1 = "Short";
         const std::string inputPart2 = "Process";
@@ -431,7 +434,7 @@ TEST_GROUP("Write To Child Process")
                                     fds[2].revents = POLLHUP;
                                     return 0;
                                 };
-        systemFake.WriteAction = [&, run = 0](int fd, const void *buf, size_t count) mutable -> ssize_t {
+        systemFake.WriteAction = [&, run = 0](int fd, const void *buf, size_t count, system::unix::WriteOptions) mutable -> ssize_t {
                                     ++run;
                                     auto src = static_cast<const char*>(buf);
 
@@ -453,6 +456,61 @@ TEST_GROUP("Write To Child Process")
         ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, input);
 
         CHECK(result == inputPart1 + inputPart2);
+        CHECK(counts.size() == 2);
+        CHECK(counts.at(0) == input.length());
+        CHECK(counts.at(1) == input.length() - inputPart1.length());
+    }
+
+    UNIT_TEST("Should ignore remaining input string when children closes stdin after poll (poll returns POLLOUT but SIGPIPE is received and system write returns EPIPE)")
+    {
+        const std::string inputPart1 = "Short";
+        const std::string inputPart2 = "ProcessInput";
+        const std::string input = inputPart1 + inputPart2;
+
+        std::string result;
+        std::vector<ssize_t> counts;
+        bool isSigPipeIgnored = false;
+
+        systemFake.Signal = [&](int signum, sighandler_t handler){
+                                 if (signum == SIGPIPE && handler == SIG_IGN) {
+                                     isSigPipeIgnored = true;
+                                 }
+                            };
+        systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                    ++run;
+                                    fds[0].revents = POLLHUP;
+                                    if (run < 3) {
+                                        fds[1].revents = POLLOUT;
+                                    }
+                                    else {
+                                        fds[1].revents = POLLERR;
+                                    }
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
+        systemFake.WriteAction = [&, run = 0](int fd, const void *buf, size_t count, system::unix::WriteOptions) mutable -> ssize_t {
+                                    ++run;
+                                    auto src = static_cast<const char*>(buf);
+
+                                    counts.push_back(count);
+
+                                    if (run == 1) {
+                                        std::copy_n(src, inputPart1.length(), std::back_inserter(result));
+                                        return inputPart1.length();
+                                    }
+                                    if (run == 2) {
+                                        /* when unix::Write receive EPIPE then it returns 0 */
+                                        return 0;
+                                    }
+                                    else {
+                                        throw std::logic_error("Write function shouldn't be called.");
+                                    }
+                                };
+
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, input);
+
+        CHECK(isSigPipeIgnored == true);
+        CHECK(result == inputPart1);
         CHECK(counts.size() == 2);
         CHECK(counts.at(0) == input.length());
         CHECK(counts.at(1) == input.length() - inputPart1.length());
@@ -508,7 +566,7 @@ TEST_GROUP("Pipes Management")
     SUBGROUP("Parent Process")
     {
         systemFake.ForkAction = []() { return anyChildProcessId; };
-        systemFake.WriteAction = [](int, const void *, size_t) -> ssize_t { return 0; };
+        systemFake.WriteAction = [](int, const void *, size_t, system::unix::WriteOptions) -> ssize_t { return 0; };
         systemFake.ReadAction = [](int, void *, size_t) -> ssize_t { return 0; };
 
 
@@ -600,7 +658,7 @@ TEST_GROUP("Pipes Management")
                                         }
                                         return 0;
                                     };
-            systemFake.WriteAction = [&](int fd, const void *, size_t) -> ssize_t {
+            systemFake.WriteAction = [&](int fd, const void *, size_t, system::unix::WriteOptions) -> ssize_t {
                                          if (fd == toChildWriteEnd) {
                                              isClosedToChildWriteEnd = false;
                                              return nonImportantNonEmptyInput.length();
@@ -643,7 +701,7 @@ TEST_GROUP("Pipes Management")
                                         fds[2].revents = POLLHUP;
                                         return 0;
                                     };
-            systemFake.WriteAction = [&](int fd, const void *, size_t) -> ssize_t {
+            systemFake.WriteAction = [&](int fd, const void *, size_t, system::unix::WriteOptions) -> ssize_t {
                                          if (fd == toChildWriteEnd) {
                                              isClosedToChildWriteEnd = false;
                                              return nonImportantNonEmptyInput.length();
@@ -686,7 +744,7 @@ TEST_GROUP("Pipes Management")
                                         fds[2].revents = POLLHUP;
                                         return 0;
                                     };
-            systemFake.WriteAction = [&](int fd, const void *, size_t) -> ssize_t {
+            systemFake.WriteAction = [&](int fd, const void *, size_t, system::unix::WriteOptions) -> ssize_t {
                                          if (fd == toChildWriteEnd) {
                                              isClosedToChildWriteEnd = false;
                                              return 0;
@@ -750,7 +808,7 @@ TEST_GROUP("Pipes Management")
             bool isClosedToParentReadEnd = false;
             bool isClosedToParentInternalErrorsReadEnd = false;
 
-            systemFake.WriteAction = [](int, const void *, size_t length) -> ssize_t {
+            systemFake.WriteAction = [](int, const void *, size_t length, system::unix::WriteOptions) -> ssize_t {
                                          return length;
                                      };
             systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t) mutable -> ssize_t {
@@ -924,7 +982,7 @@ TEST_GROUP("Pipes Management")
             std::string resultMessage;
             bool isTerminateCalled = false;
 
-            systemFake.WriteAction = [&](int fd, const void *buf, size_t count) -> ssize_t {
+            systemFake.WriteAction = [&](int fd, const void *buf, size_t count, system::unix::WriteOptions) -> ssize_t {
                                          auto src = static_cast<const char*>(buf);
                                          std::string s(src, count);
                                          resultMessage += s;
@@ -1135,7 +1193,7 @@ TEST_GROUP("SUT Process Execution")
             std::string errorMessage = "message text";
             std::string expectedErrorMessage = "during SUT execution: " + errorMessage;
 
-            systemFake.WriteAction = [](int, const void *, size_t length) -> ssize_t {
+            systemFake.WriteAction = [](int, const void *, size_t length, system::unix::WriteOptions) -> ssize_t {
                                          return length;
                                      };
             systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t) mutable -> ssize_t {
@@ -1202,7 +1260,7 @@ TEST_GROUP("SUT Process Execution")
             systemFake.ExecAction = [&](const std::string &path, const std::vector<std::string> &arguments) {
                                         throw std::runtime_error(expectedErrorMessage);
                                     };
-            systemFake.WriteAction = [&](int fd, const void *buf, size_t count) -> ssize_t {
+            systemFake.WriteAction = [&](int fd, const void *buf, size_t count, system::unix::WriteOptions) -> ssize_t {
                                          auto src = static_cast<const char*>(buf);
                                          std::string s(src, count);
                                          resultMessage += s;
@@ -1234,7 +1292,7 @@ TEST_GROUP("Signals Management")
     systemFake.MakePipeAction = [](const system::unix::PipeOptions option) -> system::unix::Pipe { return {0, 0}; };
     systemFake.ForkAction = []() { return anyChildProcessId; };
     systemFake.CloseAction = [](int) {};
-    systemFake.WriteAction = [](int, const void *, size_t) -> ssize_t { return 0; };
+    systemFake.WriteAction = [](int, const void *, size_t, system::unix::WriteOptions) -> ssize_t { return 0; };
     systemFake.ReadAction = [](int fd, void *buf, size_t count) -> ssize_t { return 0; };
     systemFake.WaitPidAction = [](int pid, int *wstatus, int options) {
                                  return 1;
@@ -1250,7 +1308,7 @@ TEST_GROUP("Signals Management")
 
     UNIT_TEST("Should attach signals and reset them to defaults after process execution")
     {
-        std::vector<int> expectedSignals = {SIGHUP, SIGINT, SIGPIPE, SIGTERM, SIGUSR1, SIGUSR2},
+        std::vector<int> expectedSignals = {SIGHUP, SIGINT, SIGTERM, SIGUSR1, SIGUSR2},
                          attachedSignals,
                          resetedSignals;
         systemFake.SigAction = [&](int signum, const struct sigaction*, struct sigaction*) {
@@ -1259,6 +1317,9 @@ TEST_GROUP("Signals Management")
         systemFake.Signal = [&](int signum, sighandler_t handler) {
                                 if (handler == SIG_DFL) {
                                     resetedSignals.push_back(signum);
+                                }
+                                else if (handler == SIG_IGN) {
+                                    /* ignore */
                                 }
                                 else {
                                     throw std::logic_error("Unexpected handler in signal() call for " + std::to_string(signum) + " signal.");
@@ -1275,7 +1336,7 @@ TEST_GROUP("Signals Management")
 
 TEST_GROUP("Unit tests dependencies")
 {
-    systemFake.WriteAction = [&](int fd, const void *buf, size_t count) -> ssize_t {
+    systemFake.WriteAction = [&](int fd, const void *buf, size_t count, system::unix::WriteOptions) -> ssize_t {
                                auto src = static_cast<const char*>(buf);
                                std::string s(src, count);
                                return s.length();

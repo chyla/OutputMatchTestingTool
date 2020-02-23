@@ -61,3 +61,7 @@ Unrecognised Argument Error Message Is Present
 Fatal Error Message Is Not Present
     [Arguments]    ${result}
     Should Not Contain    ${result.stderr}    fatal error:
+
+Signal Received Fatal Error Message Is Present
+    [Arguments]    ${result}
+    Should Contain    ${result.stderr}    fatal error: System signal received

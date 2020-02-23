@@ -8,6 +8,7 @@
 #include "headers/RunProcess.hpp"
 #include "headers/system/Unix.hpp"
 #include "headers/exception/SutExecutionException.hpp"
+#include "headers/exception/SignalReceivedException.hpp"
 #include "headers/ErrorCodes.hpp"
 
 #include <array>
@@ -53,20 +54,12 @@ WriteAllDataToFd(const int fd, const std::string_view &buf)
     }
 }
 
-static volatile sig_atomic_t childrenPid = 0;
+volatile sig_atomic_t signalReceived;
 
 void
-KillChildProcessThenForwardToDefaultSignalHandler(const int signum, siginfo_t *info, void *ucontext)
+RunProcessSignalHandler(const int signum, siginfo_t *info, void *ucontext)
 {
-    std::cerr << "Received signal no " << signum << ", terminating SUT...\n";
-    const int ret = kill(childrenPid, SIGKILL);
-    if (ret < 0) {
-        std::cerr << "SUT termination failed.\n";
-    }
-    else {
-        (void) signal(signum, SIG_DFL);
-        (void) raise(signum);
-    }
+    signalReceived = signum;
 }
 
 void
@@ -74,7 +67,7 @@ SetSignalHandling(const int signum)
 {
     struct sigaction act;
     memset(&act, 0, sizeof(act));
-    act.sa_sigaction = KillChildProcessThenForwardToDefaultSignalHandler;
+    act.sa_sigaction = RunProcessSignalHandler;
     act.sa_flags = SA_SIGINFO;
     system::unix::SigAction(signum, &act, NULL);
 }
@@ -83,6 +76,12 @@ void
 SetDefaultSignalHandling(const int signum)
 {
     system::unix::Signal(signum, SIG_DFL);
+}
+
+void
+IgnoreSignalHandling(const int signum)
+{
+    system::unix::Signal(signum, SIG_IGN);
 }
 
 bool
@@ -137,10 +136,12 @@ RunProcess(const std::string &path,
            const std::vector<std::string> &options,
            const std::string_view &input)
 {
-    const int signals[] = {SIGHUP, SIGINT, SIGPIPE, SIGTERM, SIGUSR1, SIGUSR2};
+    signalReceived = 0;
+    const int signals[] = {SIGHUP, SIGINT, SIGTERM, SIGUSR1, SIGUSR2};
     for (auto sig : signals) {
         SetSignalHandling(sig);
     }
+    IgnoreSignalHandling(SIGPIPE);
 
     ProcessResults results;
 
@@ -148,7 +149,7 @@ RunProcess(const std::string &path,
     const auto toChildPipe = system::unix::MakePipe();
     const auto toParentInternalErrorsPipe = system::unix::MakePipe(system::unix::PipeOptions::CLOSE_ON_EXEC);
 
-    childrenPid = system::unix::Fork();
+    const auto childrenPid = system::unix::Fork();
 
     if (IsParentProcess(childrenPid)) {
         system::unix::Close(toParentPipe.writeEnd);
@@ -182,7 +183,8 @@ RunProcess(const std::string &path,
             if (IsAbleToWrite(fds[1]) && !IsAllDataWritten(wroteToChild, input)) {
                 wroteToChild += system::unix::Write(toChildPipe.writeEnd,
                                                     input.data() + wroteToChild,
-                                                    input.length() - wroteToChild);
+                                                    input.length() - wroteToChild,
+                                                    system::unix::WriteOptions::IGNORE_EPIPE);
             }
 
             if (isToChildPipeWriteEndClosed == false && IsAllDataWritten(wroteToChild, input)) {
@@ -199,9 +201,18 @@ RunProcess(const std::string &path,
                 const int pidOfProcessWithChangedStatus = system::unix::WaitPid(childrenPid, &processExitStatus, WNOHANG);
                 isProcessRunning = (pidOfProcessWithChangedStatus == 0);
             }
-        } while (IsOperative(fds[0]) || IsAbleToRead(fds[0])
-                 || (IsOperative(fds[1]) && !IsAllDataWritten(wroteToChild, input))
-                 || isProcessRunning);
+        } while ((IsOperative(fds[0]) || IsAbleToRead(fds[0])
+                  || (IsOperative(fds[1]) && !IsAllDataWritten(wroteToChild, input))
+                  || isProcessRunning)
+                 && signalReceived == 0);
+
+        if (signalReceived) {
+            const int ret = kill(childrenPid, SIGKILL);
+            if (ret < 0) {
+                std::cerr << "SUT termination failed.\n";
+            }
+            throw exception::SignalReceivedException(signalReceived);
+        }
 
         if (isToChildPipeWriteEndClosed == false) {
             system::unix::Close(toChildPipe.writeEnd);

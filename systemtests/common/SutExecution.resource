@@ -62,7 +62,7 @@ Run SUT With More Than One Interpreter Argument And Raw Helper App Path
     ${result} =    Run SUT Process    --interpreter=${interpreter_path}     --interpreter=${interpreter_path}     --sut=${helper_app}     ${omtt_test_path}
     [Return]    ${result}
 
-Terminate SUT
+Send Signal To SUT
     [Arguments]    ${handle}    ${signal}
     Send Signal To Process    ${signal}    handle=${handle}
     Wait Until SUT Process Handle The Signal
@@ -83,4 +83,4 @@ Omtt Test Path
     [Return]    ${OMTT_TESTS_DIR}/${omtt_test}
 
 Wait Until SUT Process Handle The Signal
-    Sleep    10ms
+    Sleep    100ms

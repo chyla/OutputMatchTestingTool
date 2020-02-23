@@ -8,17 +8,18 @@
 #pragma once
 
 #include <stdexcept>
+#include <string>
 
 
 namespace omtt::exception
 {
 
-class FileReadException : public std::runtime_error
+class SignalReceivedException : public std::runtime_error
 {
 public:
-    explicit FileReadException(const std::string &msg)
+    explicit SignalReceivedException(int signum)
         :
-        std::runtime_error(msg)
+      std::runtime_error("System signal received (signum: " + std::to_string(signum) + ").")
     {
     }
 };

@@ -49,11 +49,16 @@ Read(int fd, void *buf, size_t count)
 }
 
 ssize_t
-Write(int fd, const void *buf, size_t count)
+Write(int fd, const void *buf, size_t count, WriteOptions options)
 {
     ssize_t bytes = write(fd, buf, count);
     if (bytes < 0) {
-        throw exception::SystemException("failure in write()", errno);
+        if (options == system::unix::WriteOptions::IGNORE_EPIPE && errno != EPIPE) {
+            return 0;
+        }
+        else {
+            throw exception::SystemException("failure in write()", errno);
+        }
     }
 
     return bytes;
