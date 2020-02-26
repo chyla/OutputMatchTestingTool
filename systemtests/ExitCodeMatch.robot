@@ -84,6 +84,19 @@ Invalid Exit Code Message is present when exit code is invalid
     ${realExitCode} =    Set Variable    0
     Invalid Exit Code Message Is Present    ${result}    ${expectedExitCode}    ${realExitCode}
 
+Two Invalid Exit Code Message are present when exit code is invalid in two expectations
+    ${result} =    Run SUT With Helper    true    true-failing_scenario-two_exit_code_expectations.omtt
+
+    Verdict Is Set To Fail    ${result}
+
+    ${expectedExitCode} =    Set Variable    1
+    ${realExitCode} =    Set Variable    0
+    Invalid Exit Code Message Is Present    ${result}    ${expectedExitCode}    ${realExitCode}
+
+    ${secondExpectedExitCode} =    Set Variable    2
+    ${secondRealExitCode} =    Set Variable    0
+    Invalid Exit Code Message Is Present    ${result}    ${expectedExitCode}    ${realExitCode}
+
 Allow each test keywords with values in separate lines
     ${result} =    Run SUT With Helper    true    true-keywords_and_values_in_separate_lines.omtt
 
