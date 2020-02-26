@@ -83,3 +83,9 @@ Invalid Exit Code Message is present when exit code is invalid
     ${expectedExitCode} =    Set Variable    1
     ${realExitCode} =    Set Variable    0
     Invalid Exit Code Message Is Present    ${result}    ${expectedExitCode}    ${realExitCode}
+
+Allow each test keywords with values in separate lines
+    ${result} =    Run SUT With Helper    true    true-keywords_and_values_in_separate_lines.omtt
+
+    Verdict Is Set To Pass    ${result}
+    Exit Status Points To All Tests Passed    ${result}
