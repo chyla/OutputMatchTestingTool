@@ -11,6 +11,8 @@ Resource    common/VerdictMatchers.resource
 Resource    common/MessageMatchers.resource
 Resource    common/OmttExitStatusMatchers.resource
 
+Variables    FullOutputMatchVariables.py
+
 
 *** Test Cases ***
 Mark test as PASS when no expectations is given and SUT outputs some text
@@ -95,7 +97,7 @@ Raise missing keyword error when EXPECT keyword occours in expected output
     ${result} =    Run SUT With Helper    scat    scat-error_scenario-expect_keyword_in_output.omtt
 
     Verdict Is Not Present    ${result}
-    Missing Keyword Message Is Present    ${result}    OUTPUT' or 'EXIT
+    Missing Keyword Message Is Present    ${result}    OUTPUT' or 'EXIT' or 'IN
     Exit Status Points To Fatal Error    ${result}
 
 Output doesn't match message shouldn't be present when test PASS
@@ -129,11 +131,7 @@ Full match context message is present
 
     Message Is Present    ${result}    ${full_match_context_message}
 
-Full match context message should have changed special characters
+Full match context message should have changed special characters to readable form
     ${result} =    Run SUT With Helper    scat    scat-failing_scenario-special_characters_at_input.omtt
 
     Message Is Present    ${result}    ${special_characters_message}
-
-
-*** Settings ***
-Variables    FullOutputMatchVariables.py

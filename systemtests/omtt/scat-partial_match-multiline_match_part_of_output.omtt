@@ -1,0 +1,7 @@
+RUN
+WITH INPUT
+Multiline hello
+world.
+EXPECT IN OUTPUT
+llo
+world

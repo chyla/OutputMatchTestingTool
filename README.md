@@ -88,6 +88,27 @@ S    o    m    e    SPC  t    e    x    t    .
 0x53 0x6f 0x6d 0x65 0x20 0x74 0x65 0x78 0x74 0x2e
 ```
 
+It's possible to match only part of output, here's example:
+
+```
+RUN
+WITH INPUT
+Hello world.
+EXPECT IN OUTPUT
+Hello
+EXPECT IN OUTPUT
+world
+EXPECT EXIT CODE 0
+```
+
+The results:
+
+```
+Testing: /bin/cat
+Running test: examples/cat-will_match_part_of_output.omtt
+Verdict: PASS
+```
+
 See more tests examples in the `examples` directory.
 
 

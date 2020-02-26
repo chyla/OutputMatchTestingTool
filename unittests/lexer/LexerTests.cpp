@@ -118,6 +118,41 @@ TEST_CASE("Should return keyword token with 'EXIT' value")
     helper::test_one_token_with_buffer(buffer, expectedToken);
 }
 
+TEST_CASE("Should return keyword token with 'IN' value")
+{
+    const std::string buffer = "IN";
+    const Token expectedToken {TokenKind::KEYWORD, "IN"};
+    helper::test_one_token_with_buffer(buffer, expectedToken);
+}
+
+TEST_CASE("Should return keyword token with 'IN' value even when there are spaces at the begining of the input")
+{
+    const std::string buffer = "  IN";
+    const Token expectedToken {TokenKind::KEYWORD, "IN"};
+    helper::test_one_token_with_buffer(buffer, expectedToken);
+}
+
+TEST_CASE("Should return keyword token with 'IN' value even when there are spaces at the end of the input")
+{
+    const std::string buffer = "IN  ";
+    const Token expectedToken {TokenKind::KEYWORD, "IN"};
+    helper::test_one_token_with_buffer(buffer, expectedToken);
+}
+
+TEST_CASE("Should return keyword token with 'IN' value even when there are tabs at the begining of the input")
+{
+    const std::string buffer = "\t\tIN";
+    const Token expectedToken {TokenKind::KEYWORD, "IN"};
+    helper::test_one_token_with_buffer(buffer, expectedToken);
+}
+
+TEST_CASE("Should return keyword token with 'IN' value even when there are tabs at the end of the input")
+{
+    const std::string buffer = "IN\t\t";
+    const Token expectedToken {TokenKind::KEYWORD, "IN"};
+    helper::test_one_token_with_buffer(buffer, expectedToken);
+}
+
 TEST_CASE("Should return keyword token with 'RUN' value even when there are spaces at the begining of the input")
 {
     const std::string buffer = "    RUN";
@@ -424,6 +459,23 @@ TEST_CASE("After handling the whole input should return empty optional when ther
     helper::check_sut_has_no_more_tokens(sut);
     helper::check_sut_has_no_more_tokens(sut);
     helper::check_sut_has_no_more_tokens(sut);
+    helper::check_sut_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read 'IN' keyword when separated with new lines")
+{
+    const std::string buffer = "EXPECT\nIN\nOUTPUT";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "IN"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::TEXT, ""});
     helper::check_sut_has_no_more_tokens(sut);
 }
 

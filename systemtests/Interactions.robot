@@ -41,3 +41,15 @@ Mark test as PASS when output match is before exit code match
 
     Verdict Is Set To Pass    ${result}
     Exit Status Points To All Tests Passed    ${result}
+
+Mark test as PASS when exit code, full output and partial output match are correct
+    ${result} =    Run SUT With Helper    scat    scat-match_exit_code_and_full_output_and_partial_output.omtt
+
+    Verdict Is Set To Pass    ${result}
+    Exit Status Points To All Tests Passed    ${result}
+
+Mark test as FAIL when exit code, full output match are coorect but partial output match failed
+    ${result} =    Run SUT With Helper    scat    scat-failing_scenario-match_exit_code_and_full_output_and_incorrect_partial_output.omtt
+
+    Verdict Is Set To Fail    ${result}
+    Exit Status Points To One Test Failed    ${result}

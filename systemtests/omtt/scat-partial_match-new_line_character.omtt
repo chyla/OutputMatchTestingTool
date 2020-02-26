@@ -1,0 +1,6 @@
+RUN
+WITH INPUT
+Some text.
+Second line.
+EXPECT IN OUTPUT
+

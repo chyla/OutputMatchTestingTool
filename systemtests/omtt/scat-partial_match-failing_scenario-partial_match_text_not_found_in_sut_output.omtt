@@ -1,0 +1,5 @@
+RUN
+WITH INPUT
+Hello world.
+EXPECT IN OUTPUT
+Not in SUT output.

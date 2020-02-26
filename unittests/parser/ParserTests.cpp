@@ -41,6 +41,14 @@ namespace
         CHECK(fullOutput->GetContent() == expectedOutput);
     }
 
+    void CheckPartialOutput(const TestData &data, const std::string &expectedOutput, const int position = 0)
+    {
+        expectation::Expectation *expectation = data.expectations.at(position).get();
+        expectation::PartialOutputExpectation *fullOutput = dynamic_cast<expectation::PartialOutputExpectation*>(expectation);
+        CHECK(fullOutput != nullptr);
+        CHECK(fullOutput->GetContent() == expectedOutput);
+    }
+
     void CheckExitCode(const TestData &data, const int expectedCode, const int position = 0)
     {
         expectation::Expectation *expectation = data.expectations.at(position).get();
@@ -161,6 +169,26 @@ TEST_GROUP("Overall")
 
         constexpr int exitCodeExpectationPosition = 1;
         CheckExitCode(data, 4561, exitCodeExpectationPosition);
+    }
+
+    UNIT_TEST("Should parse correct partial output match tokens flow")
+    {
+        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "INPUT"},
+                        lexer::Token{lexer::TokenKind::TEXT, "example input"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EXPECT"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "IN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "OUTPUT"},
+                        lexer::Token{lexer::TokenKind::TEXT, "partial output"}
+        };
+        Parser<LexerFake> sut(lexer);
+
+        const TestData &data = sut.parse();
+
+        CHECK(data.input == "example input");
+        CheckHasOneExpectation(data);
+        CheckPartialOutput(data, "partial output");
     }
 
     UNIT_TEST("Multiple 'parse()' call should return same test data")
@@ -398,7 +426,7 @@ TEST_GROUP("'EXPECT_OR_FINISHING' state")
 }
 
 
-TEST_GROUP("'OUTPUT_OR_EXIT' state")
+TEST_GROUP("'OUTPUT_OR_EXIT_OR_IN' state")
 {
     UNIT_TEST("Should throw exception when lexer doesn't have more tokens")
     {
@@ -454,8 +482,69 @@ TEST_GROUP("'OUTPUT_OR_EXIT' state")
 
         CHECK_THROWS_AS(sut.parse(), exception::WrongTokenException);
     }
+
+    UNIT_TEST("Should throw exception when lexer returns 'IN' text token")
+    {
+        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "INPUT"},
+                        lexer::Token{lexer::TokenKind::TEXT, "some text"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EXPECT"},
+                        lexer::Token{lexer::TokenKind::TEXT, "IN"}
+        };
+        Parser<LexerFake> sut(lexer);
+
+        CHECK_THROWS_AS(sut.parse(), exception::WrongTokenException);
+    }
 }
 
+
+TEST_GROUP("'IN_OUTPUT' state")
+{
+    UNIT_TEST("Should throw exception when lexer doesn't have more tokens")
+    {
+        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "INPUT"},
+                        lexer::Token{lexer::TokenKind::TEXT, "some text"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EXPECT"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "IN"}
+        };
+        Parser<LexerFake> sut(lexer);
+
+        CHECK_THROWS_AS(sut.parse(), exception::MissingKeywordException);
+    }
+
+    UNIT_TEST("Should throw exception when lexer returns 'OUTPUT' text token")
+    {
+        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "INPUT"},
+                        lexer::Token{lexer::TokenKind::TEXT, "some text"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EXPECT"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "IN"},
+                        lexer::Token{lexer::TokenKind::TEXT, "OUTPUT"}
+        };
+        Parser<LexerFake> sut(lexer);
+
+        CHECK_THROWS_AS(sut.parse(), exception::WrongTokenException);
+    }
+
+    UNIT_TEST("Should throw exception when lexer returns unexpected keyword token")
+    {
+        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "INPUT"},
+                        lexer::Token{lexer::TokenKind::TEXT, "some text"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EXPECT"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "IN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "INPUT"}
+        };
+        Parser<LexerFake> sut(lexer);
+
+        CHECK_THROWS_AS(sut.parse(), exception::WrongTokenException);
+    }
+}
 
 TEST_GROUP("'CODE' state")
 {
@@ -611,6 +700,41 @@ TEST_GROUP("'TEXT_OUTPUT' state")
                         lexer::Token{lexer::TokenKind::KEYWORD, "INPUT"},
                         lexer::Token{lexer::TokenKind::TEXT, "some text"},
                         lexer::Token{lexer::TokenKind::KEYWORD, "EXPECT"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "OUTPUT"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "OUTPUT"}
+        };
+        Parser<LexerFake> sut(lexer);
+
+        CHECK_THROWS_AS(sut.parse(), exception::UnexpectedKeywordException);
+    }
+}
+
+
+TEST_GROUP("'TEXT_IN_OUTPUT' state")
+{
+    UNIT_TEST("Should throw exception when lexer doesn't have more tokens")
+    {
+        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "INPUT"},
+                        lexer::Token{lexer::TokenKind::TEXT, "some text"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EXPECT"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "IN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "OUTPUT"}
+        };
+        Parser<LexerFake> sut(lexer);
+
+        CHECK_THROWS_AS(sut.parse(), exception::MissingTextException);
+    }
+
+    UNIT_TEST("Should throw exception when lexer returns token other than text token")
+    {
+        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "INPUT"},
+                        lexer::Token{lexer::TokenKind::TEXT, "some text"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EXPECT"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "IN"},
                         lexer::Token{lexer::TokenKind::KEYWORD, "OUTPUT"},
                         lexer::Token{lexer::TokenKind::KEYWORD, "OUTPUT"}
         };
