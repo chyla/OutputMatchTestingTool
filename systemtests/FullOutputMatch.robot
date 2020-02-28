@@ -11,6 +11,7 @@ Resource    common/VerdictMatchers.resource
 Resource    common/MessageMatchers.resource
 Resource    common/OmttExitStatusMatchers.resource
 
+Library      FullOutputMatchLibrary.py
 Variables    FullOutputMatchVariables.py
 
 
@@ -135,3 +136,14 @@ Full match context message should have changed special characters to readable fo
     ${result} =    Run SUT With Helper    scat    scat-failing_scenario-special_characters_at_input.omtt
 
     Message Is Present    ${result}    ${special_characters_message}
+
+Check more than one expect statement
+    ${result} =    Run SUT With Helper    scat    scat-failing_scenario-more-than_one_full_output_match_statement.omtt
+
+    Message Is Present    ${result}    ${CheckMoreThanOneExpectStatement.first_full_match_not_found_message}
+    Message Is Present    ${result}    ${CheckMoreThanOneExpectStatement.third_full_match_not_found_message}
+
+    Has Only Two Output Doesnt Match Messages    ${result}
+
+    Verdict Is Set To Fail    ${result}
+    Exit Status Points To One Test Failed    ${result}

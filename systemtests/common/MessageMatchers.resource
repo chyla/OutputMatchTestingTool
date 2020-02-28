@@ -10,6 +10,10 @@ Message Is Present
     [Arguments]    ${result}    ${message}
     Should Contain    ${result.stdout}    ${message}
 
+Message Is Not Present
+    [Arguments]    ${result}    ${message}
+    Should Not Contain    ${result.stdout}    ${message}
+
 Missing Keyword Message Is Not Present
     [Arguments]    ${result}
     Should Not Contain    ${result.stderr}    (KEYWORD), but got nothing

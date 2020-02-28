@@ -1,0 +1,9 @@
+RUN
+WITH INPUT
+Hello world!
+EXPECT OUTPUT
+HELLO world
+EXPECT OUTPUT
+Hello world!
+EXPECT OUTPUT
+Hello WORLD
