@@ -185,12 +185,36 @@ When all the tests pass, use the `make install` command
 to install the project.
 
 
-## Authors
+## Versioning
 
-* **Adam Chyła** - [chyla.org](https://chyla.org/)
+The project uses [Semantic Versioning](https://semver.org) 2.0.0. The project version
+format is MAJOR.MINOR.PATCH.
+
+The specification says:
+
+1. Major version X (X.y.z | X > 0) - incremented if any backwards incompatible
+   changes are introduced to the public API. It MAY also include minor and patch
+   level changes. Patch and minor version MUST be reset to 0 when major version
+   is incremented.
+2. Minor version Y (x.Y.z | x > 0) - incremented if new, backwards compatible
+   functionality is introduced to the public API. It MUST be incremented if any public
+   API functionality is marked as deprecated. It MAY be incremented if substantial
+   new functionality or improvements are introduced within the private code. It MAY
+   include patch level changes. Patch version MUST be reset to 0 when minor version
+   is incremented.
+3. Patch version Z (x.y.Z | x > 0) - incremented if only backwards compatible
+   bug fixes are introduced. A bug fix is defined as an internal change that fixes
+   incorrect behavior.
+
+Read the [VERSIONING.md](VERSIONING.md) file for details.
 
 
 ## License
 
 This project is licensed under the BSD 3-Clause License - see
 the [LICENSE](LICENSE) file for details.
+
+
+## Authors
+
+* **Adam Chyła** - [chyla.org](https://chyla.org/)
