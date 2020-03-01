@@ -36,7 +36,7 @@ PartialOutputExpectation::Validate(const ProcessResults &processResults)
             "Given text context:\n"
           + detail::context(fExpectedPartialOutput,
                             differencePosition,
-                            detail::PointerVisibility::NO_POINTER) + "\n";
+                            detail::PointerVisibility::NO_POINTER);
     }
 
     return result;
