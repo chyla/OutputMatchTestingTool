@@ -141,7 +141,7 @@ TEST_CASE("Cause should contain text and hex context up to six bytes when expect
     CHECK(contain(*validationReults.cause, "\
 Given text context:\n\
 s    o    m    e    SPC  l    o    \n\
-0x73 0x6f 0x6d 0x65 0x20 0x6c 0x6f \n"));
+0x73 0x6f 0x6d 0x65 0x20 0x6c 0x6f"));
 }
 
 TEST_CASE("Cause should contain text and hex context up to five bytes when expected partial text have five bytes")
@@ -158,7 +158,7 @@ TEST_CASE("Cause should contain text and hex context up to five bytes when expec
     CHECK(contain(*validationReults.cause, "\
 Given text context:\n\
 S    o    m    e    SPC  \n\
-0x53 0x6f 0x6d 0x65 0x20 \n"));
+0x53 0x6f 0x6d 0x65 0x20"));
 }
 
 TEST_CASE("Cause should contain one byte of text and hex context up when expected partial text have one byte")
@@ -175,7 +175,7 @@ TEST_CASE("Cause should contain one byte of text and hex context up when expecte
     CHECK(contain(*validationReults.cause, "\
 Given text context:\n\
 S    \n\
-0x53 \n"));
+0x53"));
 }
 
 TEST_CASE("Should change space to SPC in cause")
