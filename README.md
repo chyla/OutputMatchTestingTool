@@ -88,7 +88,7 @@ S    o    m    e    SPC  t    e    x    t    .
 0x53 0x6f 0x6d 0x65 0x20 0x74 0x65 0x78 0x74 0x2e
 ```
 
-It's possible to match only part of output, here's example:
+It's possible to search for only part of output, it won't give you detailed description about the mismatch like in full output match. Here's example:
 
 ```
 RUN
