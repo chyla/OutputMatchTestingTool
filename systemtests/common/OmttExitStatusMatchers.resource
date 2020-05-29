@@ -14,6 +14,14 @@ Exit Status Points To One Test Failed
     [Arguments]    ${result}
     Should Be Equal As Integers    ${result.rc}    1
 
+Exit Status Points To Two Tests Failed
+    [Arguments]    ${result}
+    Should Be Equal As Integers    ${result.rc}    2
+
+Exit Status Points To Maximum Tests Failed
+    [Arguments]    ${result}
+    Should Be Equal As Integers    ${result.rc}    50
+
 Exit Status Points To Help Or Version Information Printed
     [Arguments]    ${result}
     Should Be Equal As Integers    ${result.rc}    61

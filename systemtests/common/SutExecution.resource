@@ -7,6 +7,7 @@ Distributed under the terms of the BSD 3-Clause License.
 
 *** Settings ***
 Library    Process
+Library    Collections
 
 
 *** Variables ***
@@ -35,24 +36,24 @@ Run SUT Process
     [Return]    ${result}
 
 Run SUT With Helper
-    [Arguments]    ${helper_app}    ${omtt_test}
+    [Arguments]    ${helper_app}    @{omtt_tests}
     ${helper_path} =    Helper App Path    ${helper_app}
-    ${omtt_test_path} =    Omtt Test Path    ${omtt_test}
-    ${result} =    Run SUT Process    --sut=${helper_path}     ${omtt_test_path}
+    @{omtt_tests_path} =    Omtt Test Path    @{omtt_tests}
+    ${result} =    Run SUT Process    --sut=${helper_path}     @{omtt_tests_path}
     [Return]    ${result}
 
 Run SUT With Helper And Don't Wait For Finishing
-    [Arguments]    ${helper_app}    ${omtt_test}
+    [Arguments]    ${helper_app}    @{omtt_tests}
     ${helper_path} =    Helper App Path    ${helper_app}
-    ${omtt_test_path} =    Omtt Test Path    ${omtt_test}
-    ${handle} =    Run SUT Process Without Waiting To Completion    --sut=${helper_path}     ${omtt_test_path}
+    @{omtt_tests_path} =    Omtt Test Path    @{omtt_tests}
+    ${handle} =    Run SUT Process Without Waiting To Completion    --sut=${helper_path}     @{omtt_tests_path}
     [Return]    ${handle}
 
 Run SUT With Interpreter Argument And Raw Helper App Path
-    [Arguments]    ${helper_interpreter}    ${helper_app}    ${omtt_test}
+    [Arguments]    ${helper_interpreter}    ${helper_app}    @{omtt_tests}
     ${interpreter_path} =    Helper App Path    ${helper_interpreter}
-    ${omtt_test_path} =    Omtt Test Path    ${omtt_test}
-    ${result} =    Run SUT Process    --interpreter=${interpreter_path}    --sut=${helper_app}    ${omtt_test_path}
+    @{omtt_tests_path} =    Omtt Test Path    @{omtt_tests}
+    ${result} =    Run SUT Process    --interpreter=${interpreter_path}    --sut=${helper_app}    @{omtt_tests_path}
     [Return]    ${result}
 
 Run SUT With More Than One Interpreter Argument And Raw Helper App Path
@@ -79,8 +80,12 @@ Helper App Path
     [Return]    ${HELPER_APPS_DIR}/${helper_app}
 
 Omtt Test Path
-    [Arguments]    ${omtt_test}
-    [Return]    ${OMTT_TESTS_DIR}/${omtt_test}
+    [Arguments]    @{omtt_test}
+    @{tests} =   Create List
+    FOR    ${item}    IN    @{omtt_test}
+        Append To List    ${tests}    ${OMTT_TESTS_DIR}/${item}
+    END
+    [Return]    @{tests}
 
 Wait Until SUT Process Handle The Signal
     Sleep    100ms

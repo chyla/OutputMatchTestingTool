@@ -47,8 +47,11 @@ and the test verdict:
 
 ```
 Testing: /bin/cat
-Running test: cat-will_print_input_and_exit_with_zero.omtt
+====================
+Running test (1/1): cat-will_print_input_and_exit_with_zero.omtt
 Verdict: PASS
+====================
+1 tests total, 1 passed, 0 failed
 ```
 
 You will see more info when the test fails. See this test example
@@ -67,7 +70,8 @@ Here are the results:
 
 ```
 Testing: /bin/cat
-Running test: examples/cat-failing_scenario-will_exit_with_non_zero_exit_status_and_some_output_when_some_other_input_is_given.omtt
+====================
+Running test (1/1): examples/cat-failing_scenario-will_exit_with_non_zero_exit_status_and_some_output_when_some_other_input_is_given.omtt
 Verdict: FAIL
 --------------------
 => Cause:
@@ -86,6 +90,8 @@ Output context:
 S    o    m    e    SPC  t    e    x    t    .
                          ^
 0x53 0x6f 0x6d 0x65 0x20 0x74 0x65 0x78 0x74 0x2e
+====================
+1 tests total, 0 passed, 1 failed
 ```
 
 It's possible to search for only part of output, it won't give you detailed description about the mismatch like in full output match. Here's example:
@@ -105,8 +111,57 @@ The results:
 
 ```
 Testing: /bin/cat
-Running test: examples/cat-will_match_part_of_output.omtt
+====================
+Running test (1/1): examples/cat-will_match_part_of_output.omtt
 Verdict: PASS
+====================
+1 tests total, 1 passed, 0 failed
+```
+
+Multiple tests can be executed by passing its paths in command line:
+
+```
+omtt --sut /bin/cat examples/cat-will_match_part_of_output.omtt examples/cat-will_print_input_and_exit_with_zero.omtt
+```
+
+Tests will be executed in order they appeared in command line:
+
+```
+Testing: /bin/cat
+====================
+Running test (1/2): examples/cat-will_match_part_of_output.omtt
+Verdict: PASS
+====================
+Running test (2/2): examples/cat-will_print_input_and_exit_with_zero.omtt
+Verdict: PASS
+====================
+2 tests total, 2 passed, 0 failed
+```
+
+With a little help of shell you can run tests by name pattern:
+
+```
+omtt --sut /bin/cat examples/cat-will*.omtt
+```
+
+Results:
+
+```
+Testing: /bin/cat
+====================
+Running test (1/4): examples/cat-will-exit-with-zero.omtt
+Verdict: PASS
+====================
+Running test (2/4): examples/cat-will_match_part_of_output.omtt
+Verdict: PASS
+====================
+Running test (3/4): examples/cat-will-output-user-given-input.omtt
+Verdict: PASS
+====================
+Running test (4/4): examples/cat-will_print_input_and_exit_with_zero.omtt
+Verdict: PASS
+====================
+4 tests total, 4 passed, 0 failed
 ```
 
 See more tests examples in the `examples` directory.

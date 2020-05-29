@@ -21,6 +21,15 @@
 
 namespace po = boost::program_options;
 
+typedef std::string Path;
+typedef std::vector<Path> TestPaths;
+
+
+TestPaths::size_type
+RunAllTests(std::optional<Path> interpreter, const Path &sut, const TestPaths &tests);
+
+omtt::TestExecutionSummary
+ExecuteTest(std::optional<Path> interpreter, const Path &sut, const Path &test);
 
 int
 main(int argc, char **argv)
@@ -30,12 +39,12 @@ main(int argc, char **argv)
     try {
         po::options_description sutOptions("System under test");
         sutOptions.add_options()
-            ("sut", po::value<std::string>(), "path to SUT")
+            ("sut", po::value<Path>(), "path to SUT")
             ;
 
         po::options_description interpreterOptions("Interpreter");
         interpreterOptions.add_options()
-            ("interpreter", po::value<std::string>(), "path to interpreter")
+            ("interpreter", po::value<Path>(), "path to interpreter")
             ;
 
         po::options_description miscOptions("Miscellaneous");
@@ -51,7 +60,7 @@ main(int argc, char **argv)
 
         po::options_description hidden;
         hidden.add_options()
-            ("test-file", po::value<std::string>(), "Test file to run.")
+          ("test-file", po::value<TestPaths>(), "Test files to run.")
             ;
 
         po::options_description allOptions;
@@ -59,7 +68,7 @@ main(int argc, char **argv)
         allOptions.add(hidden);
 
         po::positional_options_description positional;
-        positional.add("test-file", 1);
+        positional.add("test-file", -1);
 
         po::store(po::command_line_parser(argc, argv)
                       .options(allOptions)
@@ -68,7 +77,7 @@ main(int argc, char **argv)
         po::notify(vm);
 
         if (vm.count("help")) {
-            std::cout << "USAGE: " << argv[0] << " [OPTION] --sut SUT_PATH TEST_FILE\n"
+            std::cout << "USAGE: " << argv[0] << " [OPTION] --sut SUT_PATH TEST_FILE...\n"
                          "\nTesting tool for checking programs console output.\n"
                       << cmdline_options;
             return omtt::HELP_OR_VERSION_INFORMATION_PRINTED;
@@ -98,45 +107,73 @@ main(int argc, char **argv)
         return omtt::INVALID_COMMAND_LINE_OPTIONS;
     }
 
-    const std::string testFile = vm["test-file"].as<std::string>();
-    const std::string sut = vm["sut"].as<std::string>();
-    std::optional<std::string> interpreter;
+    const TestPaths &testFiles = vm["test-file"].as<TestPaths>();
+    const Path &sut = vm["sut"].as<std::string>();
+    std::optional<Path> interpreter;
 
     if (vm.count("interpreter") == 1) {
         interpreter = vm["interpreter"].as<std::string>();
     }
 
-    int numberOfTestsFailed = 0;
-
     std::cout << "Testing: " << sut << '\n';
-    std::cout << "Running test: " << testFile << '\n';
 
     try {
-        const std::string &testFileBuffer = omtt::readFile(testFile);
-        omtt::lexer::Lexer lexer(testFileBuffer);
-        omtt::parser::Parser parser(lexer);
+        TestPaths::size_type numberOfTestsFailed = RunAllTests(interpreter, sut, testFiles);
 
-        const omtt::TestData &testData = parser.parse();
-
-        omtt::ProcessResults processResults;
-        if (interpreter.has_value()) {
-            processResults = omtt::RunProcess(*interpreter, {sut}, testData.input);
+        if (numberOfTestsFailed > omtt::MAX_TESTS_FAILED) {
+            return omtt::MAX_TESTS_FAILED;
         }
         else {
-            processResults = omtt::RunProcess(sut, {}, testData.input);
-        }
-
-        const omtt::TestExecutionSummary &summary = omtt::ValidateExpectationsAndSutResults(testData, processResults);
-        std::cout << summary << '\n';
-
-        if (summary.verdict != omtt::Verdict::PASS) {
-            ++numberOfTestsFailed;
+            return numberOfTestsFailed;
         }
     }
     catch (std::exception &ex) {
         std::cerr << "fatal error: " << ex.what() << "\n";
         return omtt::FATAL_ERROR;
     }
+}
+
+TestPaths::size_type
+RunAllTests(std::optional<Path> interpreter, const Path &sut, const TestPaths &tests)
+{
+    TestPaths::size_type executedTests = 0;
+    TestPaths::size_type numberOfTestsFailed = 0;
+
+    for (const auto &test : tests) {
+        ++executedTests;
+        std::cout << "====================\n"
+                     "Running test (" << executedTests << "/" << tests.size() << "): " << test << '\n';
+
+        const omtt::TestExecutionSummary &summary = ExecuteTest(interpreter, sut, test);
+        std::cout << summary << '\n';
+
+        if (summary.verdict != omtt::Verdict::PASS) {
+            ++numberOfTestsFailed;
+        }
+    }
+
+    std::cout << "====================\n"
+              << tests.size() << " tests total, " << (tests.size() - numberOfTestsFailed) << " passed, " << numberOfTestsFailed << " failed\n";
 
     return numberOfTestsFailed;
+}
+
+omtt::TestExecutionSummary
+ExecuteTest(std::optional<Path> interpreter, const Path &sut, const Path &test)
+{
+    const std::string &testFileBuffer = omtt::readFile(test);
+    omtt::lexer::Lexer lexer(testFileBuffer);
+    omtt::parser::Parser parser(lexer);
+
+    const omtt::TestData &testData = parser.parse();
+
+    omtt::ProcessResults processResults;
+    if (interpreter.has_value()) {
+        processResults = omtt::RunProcess(*interpreter, {sut}, testData.input);
+    }
+    else {
+        processResults = omtt::RunProcess(sut, {}, testData.input);
+    }
+
+    return omtt::ValidateExpectationsAndSutResults(testData, processResults);
 }

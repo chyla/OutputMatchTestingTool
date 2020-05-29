@@ -11,8 +11,9 @@
 namespace omtt
 {
 
+constexpr int MAX_TESTS_FAILED = 50;
+constexpr int FATAL_ERROR = 60;
 constexpr int HELP_OR_VERSION_INFORMATION_PRINTED = 61;
 constexpr int INVALID_COMMAND_LINE_OPTIONS = 64;
-constexpr int FATAL_ERROR = 60;
 
 }  // omtt
