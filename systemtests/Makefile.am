@@ -1,21 +1,26 @@
 SUBDIRS = apps
-EXTRA_DIST = $(top_srcdir)/systemtests/*.robot \
-             $(top_srcdir)/systemtests/*.py \
-             $(top_srcdir)/systemtests/common/*.py \
-             $(top_srcdir)/systemtests/common/*.resource \
-             $(top_srcdir)/systemtests/omtt/*
+SYSTEMTESTS_SRC_DIR = $(top_srcdir)/systemtests
+SYSTEMTESTS_BUILD_DIR = $(top_builddir)/systemtests
+EXTRA_DIST = $(SYSTEMTESTS_SRC_DIR)/*.robot \
+             $(SYSTEMTESTS_SRC_DIR)/*.py \
+             $(SYSTEMTESTS_SRC_DIR)/common/*.py \
+             $(SYSTEMTESTS_SRC_DIR)/common/*.resource \
+             $(SYSTEMTESTS_SRC_DIR)/omtt/*
 SYSTEMTESTS_LOGS_DIR = output
-SYSTEMTESTS_DIR = $(top_srcdir)/systemtests
 
 clean-local:
 	rm -rf $(SYSTEMTESTS_LOGS_DIR)
 
 check:
-	@echo "PWD: " `pwd`
 	@echo "Checking systemtests UT's..."
-	python3 -m unittest discover -v $(SYSTEMTESTS_DIR)
+	python3 -m unittest discover -v $(SYSTEMTESTS_SRC_DIR)
 
 	@echo "Running systemtests..."
-	robot -d $(SYSTEMTESTS_LOGS_DIR) --variable SUT_PATH:$(top_builddir)/src/omtt --variable OMTT_TESTS_DIR:$(top_srcdir)/systemtests/omtt -L DEBUG $(SYSTEMTESTS_DIR)
+	robot -d $(SYSTEMTESTS_LOGS_DIR) \
+              --variable SUT_PATH:$(top_builddir)/src/omtt \
+              --variable OMTT_TESTS_DIR:$(SYSTEMTESTS_SRC_DIR)/omtt \
+              --variable HELPER_APPS_DIR:$(SYSTEMTESTS_BUILD_DIR)/apps \
+              -L DEBUG \
+              $(SYSTEMTESTS_SRC_DIR)
 
 .PHONY: check

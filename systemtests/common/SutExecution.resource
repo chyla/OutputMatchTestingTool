@@ -10,10 +10,6 @@ Library    Process
 Library    Collections
 
 
-*** Variables ***
-${HELPER_APPS_DIR} =   apps
-
-
 *** Keywords ***
 Run SUT Process Without Waiting To Completion
     [Arguments]    @{options}
