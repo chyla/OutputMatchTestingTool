@@ -13,7 +13,7 @@ clean-local:
 
 check:
 	@echo "Checking systemtests UT's..."
-	python3 -m unittest discover -v $(SYSTEMTESTS_SRC_DIR)
+	$(PYTHON) -m unittest discover -v $(SYSTEMTESTS_SRC_DIR)
 
 	@echo "Running systemtests..."
 	robot -d $(SYSTEMTESTS_LOGS_DIR) \
