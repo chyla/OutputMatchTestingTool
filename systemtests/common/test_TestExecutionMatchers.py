@@ -146,7 +146,7 @@ Verdict: PASS
             TestExecutionMatchers.test_was_executed_with_pass(result,
                                                               first_test_name)
 
-        self.assertEqual(f"Test verdict ({first_test_name}) not found.", str(cm.exception))
+        self.assertEqual(f"Test verdict (for {first_test_name}) not found.", str(cm.exception))
 
     def test_exception_is_thrown_when_test_verdict_is_missing_due_to_cutted_output(self):
         result = unittest.mock.Mock()
@@ -163,7 +163,7 @@ Running test (2/2): examples/{second_test_name}
             TestExecutionMatchers.test_was_executed_with_pass(result,
                                                               second_test_name)
 
-        self.assertEqual(f"Test verdict ({second_test_name}) not found.", str(cm.exception))
+        self.assertEqual(f"Test verdict (for {second_test_name}) not found.", str(cm.exception))
 
 
 class TestWasExecutedWithFailTestSuite(unittest.TestCase):
@@ -213,7 +213,7 @@ Verdict: FAIL
             TestExecutionMatchers.test_was_executed_with_fail(result,
                                                               first_test_name)
 
-        self.assertEqual(f"Test verdict ({first_test_name}) not found.", str(cm.exception))
+        self.assertEqual(f"Test verdict (for {first_test_name}) not found.", str(cm.exception))
 
     def test_exception_is_thrown_when_test_verdict_is_missing_due_to_cutted_output(self):
         result = unittest.mock.Mock()
@@ -230,4 +230,4 @@ Running test (2/2): examples/{second_test_name}
             TestExecutionMatchers.test_was_executed_with_fail(result,
                                                               second_test_name)
 
-        self.assertEqual(f"Test verdict ({second_test_name}) not found.", str(cm.exception))
+        self.assertEqual(f"Test verdict (for {second_test_name}) not found.", str(cm.exception))

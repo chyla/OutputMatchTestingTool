@@ -1,3 +1,5 @@
+AM_CPPFLAGS      = -I$(top_srcdir) -I$(top_srcdir)/..
+
 check_PROGRAMS = lexer_tests \
                  parser_tests \
                  run_process_tests \

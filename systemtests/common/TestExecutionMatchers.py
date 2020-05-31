@@ -65,4 +65,4 @@ def __index_of_test_in_lines(lines, test_name):
 def __check_test_vertdict_exists(tests_names_with_verdicts, line_with_test, test_file_name):
     if (len(tests_names_with_verdicts) <= line_with_test + 1
             or "Verdict:" not in tests_names_with_verdicts[line_with_test + 1]):
-        raise Exception(f"Test verdict ({test_file_name}) not found.")
+        raise Exception(f"Test verdict (for {test_file_name}) not found.")

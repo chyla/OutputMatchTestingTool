@@ -104,6 +104,19 @@ jobs:
         - ./configure
       script:
         - make check || (cat unittests/test-suite.log && false)
+    - name: distcheck - GCC without optimisations
+      os: linux
+      compiler: gcc
+      env:
+        - CXXFLAGS="-Wall -pedantic -Werror -O0"
+      before_script:
+        - python3 -m venv venv
+        - source venv/bin/activate
+        - pip install -r systemtests/requirements.txt
+        - autoreconf --install
+        - ./configure
+      script:
+        - make distcheck
 
 
 before_install:

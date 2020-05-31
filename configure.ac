@@ -14,6 +14,9 @@ AC_CONFIG_FILES([
  systemtests/apps/Makefile
 ])
 
+# Change default tar command
+am__tar='$${TAR-tar} -c -h --format pax -f - "$$tardir"' am__untar='$${TAR-tar} xf -'
+
 # Checks for programs.
 AC_PROG_CXX
 AX_CXX_COMPILE_STDCXX_17([noext], [mandatory])
