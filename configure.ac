@@ -20,7 +20,7 @@ am__tar='$${TAR-tar} -c -h --format pax -f - "$$tardir"' am__untar='$${TAR-tar} 
 # Checks for programs.
 AC_PROG_CXX
 AX_CXX_COMPILE_STDCXX_17([noext], [mandatory])
-AM_PATH_PYTHON([3.8.0])
+AM_PATH_PYTHON([3.6.0])
 
 # Checks for libraries.
 AX_BOOST_BASE([1.65], [], [AC_MSG_ERROR([cannot find Boost libraries])])
