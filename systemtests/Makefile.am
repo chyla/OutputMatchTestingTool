@@ -12,7 +12,7 @@ clean-local:
 	rm -rf $(SYSTEMTESTS_LOGS_DIR)
 
 check:
-	@if [ "$(PYTHON)" = ":" ] ; then                                                      \
+	@if [ "x$(PYTHON)" = "x:" ] ; then                                                    \
 		echo "Python not found, not able to execute system tests." ;                  \
 		exit 1 ;                                                                      \
 	fi
