@@ -5,10 +5,10 @@
 #
 # DESCRIPTION
 #
-#   This macro searches for the Robot Framework and sets the variable "ROBOT"
-#   to the name of the application and the "ROBOT_VERSION" variable to the version
-#   of the Robot Framework. When Robot Framework is found sets the "HAS_ROBOT" to "yes"
-#   otherwise to "no".
+#   This macro searches for the "robot" command from the Robot Framework
+#   and sets the variable "ROBOT" to the name of the application
+#   and the "ROBOT_VERSION" variable to the version of the Robot Framework.
+#   When robot is found sets the "HAS_ROBOT" to "yes", otherwise to "no".
 #
 #   Example:
 #
@@ -16,10 +16,10 @@
 #
 # LICENSE
 #
-# Copyright (c) 2019-2020, Adam Chyła <adam@chyla.org>.
-# All rights reserved.
+#   Copyright (c) 2020, Adam Chyła <adam@chyla.org>.
+#   All rights reserved.
 #
-# Distributed under the terms of the BSD 3-Clause License.
+#   Distributed under the terms of the BSD 3-Clause License.
 #
 
 #serial 1
@@ -38,24 +38,25 @@ AC_DEFUN([AX_PROG_ROBOT],
             $3
         ],
         [
-            AC_MSG_CHECKING([for robot framework version])
+            AC_MSG_CHECKING([for robot version])
             changequote(<<,>>)
             robot_version=`$ROBOT --version | $SED -e 's/^[^0-9]* \([0-9]*\.[0-9]*\.[0-9]*\) .*/\1/'`
             changequote([,])
             AC_MSG_RESULT($robot_version)
 
             AX_COMPARE_VERSION([$ax_robot_version],[le],[$robot_version],
-            [
-                AC_SUBST([HAS_ROBOT],[yes])
-                AC_SUBST([ROBOT_VERSION],[$robot_version])
-                $2
-            ],
-            [
-                AC_SUBST([HAS_ROBOT],[no])
-                AC_SUBST([ROBOT],[])
-                AC_SUBST([ROBOT_VERSION],[])
-                $3
-            ])
+                [
+                    AC_SUBST([HAS_ROBOT],[yes])
+                    AC_SUBST([ROBOT_VERSION],[$robot_version])
+                    $2
+                ],
+                [
+                    AC_SUBST([HAS_ROBOT],[no])
+                    AC_SUBST([ROBOT],[])
+                    AC_SUBST([ROBOT_VERSION],[])
+                    $3
+                ]
+            )
         ]
     )
 ])
