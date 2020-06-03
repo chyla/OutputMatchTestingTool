@@ -46,10 +46,10 @@ throw_when_word_is_not_a_number(const std::string_view &word,
     }
 }
 
-template<class UnaryPredicate>
-Lexer::PositionInBuffer
+template<class UnaryPredicate, class PositionInBuffer>
+PositionInBuffer
 find_next_position(const std::string &buffer,
-                   Lexer::PositionInBuffer begin,
+                   PositionInBuffer begin,
                    UnaryPredicate predicate)
 {
     return std::distance(buffer.begin(),
