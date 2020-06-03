@@ -40,11 +40,12 @@ RedirectPipe(const int oldFd, const int newFd)
     system::unix::DuplicateFd(oldFd, newFd);
 }
 
-void
+int
 ReadToBuffer(const int fd, std::array<char, INTERNAL_TMP_BUFFER_SIZE> &buf)
 {
     const int bytes = system::unix::Read(fd, buf.data(), buf.size() - 1);
     buf.at(bytes) = 0;
+    return bytes;
 }
 
 void
@@ -173,14 +174,28 @@ RunProcess(const std::string &path,
         int processExitStatus;
         bool isProcessRunning = true;
         bool isToChildPipeWriteEndClosed = false;
+        bool lastTimeReadDataFromStdout = false;
+        bool isAllDataReadFromStdout = true;
 
         do {
             constexpr const int timeoutMs = 50;
             (void) system::unix::Poll(fds, sizeof(fds) / sizeof(fds[0]), timeoutMs);
 
             if (IsAbleToRead(fds[0])) {
-                ReadToBuffer(fds[0].fd, buf);
-                results.output += buf.data();
+                const int readBytes = ReadToBuffer(fds[0].fd, buf);
+                if (readBytes > 0) {
+                    results.output += buf.data();
+                    isAllDataReadFromStdout = false;
+                    lastTimeReadDataFromStdout = true;
+                }
+                else {
+                    if (lastTimeReadDataFromStdout) {
+                        lastTimeReadDataFromStdout = false;
+                    }
+                    else {
+                        isAllDataReadFromStdout = true;
+                    }
+                }
             }
 
             if (IsAbleToWrite(fds[1]) && !IsAllDataWritten(wroteToChild, input)) {
@@ -204,7 +219,8 @@ RunProcess(const std::string &path,
                 const int pidOfProcessWithChangedStatus = system::unix::WaitPid(childrenPid, &processExitStatus, WNOHANG);
                 isProcessRunning = (pidOfProcessWithChangedStatus == 0);
             }
-        } while ((IsOperative(fds[0]) || IsAbleToRead(fds[0])
+        } while ((IsOperative(fds[0])
+                  || (!IsOperative(fds[0]) && IsAbleToRead(fds[0]) && !isAllDataReadFromStdout)
                   || (IsOperative(fds[1]) && !IsAllDataWritten(wroteToChild, input))
                   || isProcessRunning)
                  && signalReceived == 0);

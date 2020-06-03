@@ -131,6 +131,23 @@ TEST_GROUP("Read Child Process Output")
         CHECK(results.output == "");
     }
 
+    UNIT_TEST("Should return empty output when child output is empty and POLLIN is still set (FreeBSD)")
+    {
+        systemFake.PollAction = [](struct pollfd *fds, nfds_t nfds, int timeout) {
+                                    fds[0].revents = POLLHUP | POLLIN;
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
+        systemFake.ReadAction = [](int fd, void *buf, size_t count) -> ssize_t {
+                                    return 0;
+                                };
+
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
+
+        CHECK(results.output == "");
+    }
+
     UNIT_TEST("Should return process output when output is short")
     {
         const std::string expectedProcessOutput = "ShortProcessOutput";
@@ -153,6 +170,67 @@ TEST_GROUP("Read Child Process Output")
                                     if (run == 1) {
                                         std::copy(expectedProcessOutput.begin(), expectedProcessOutput.end(), dest);
                                         return expectedProcessOutput.length();
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                };
+
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
+
+        CHECK(results.output == expectedProcessOutput);
+    }
+
+    UNIT_TEST("Should return process output when output is long and requires multiple read calls, but there is not always POLLIN set")
+    {
+        const std::string expedtedProcessOutputPart1 = "L";
+        const std::string expedtedProcessOutputPart2 = "ongProcess";
+        const std::string expedtedProcessOutputPart3 = "Output";
+        const std::string expectedProcessOutput = expedtedProcessOutputPart1
+                                                  + expedtedProcessOutputPart2
+                                                  + expedtedProcessOutputPart3;
+
+        systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                    ++run;
+                                    if (run == 1) {
+                                        fds[0].revents = POLLIN;
+                                    }
+                                    else if (run == 2) {
+                                        fds[0].revents = 0;
+                                    }
+                                    else if (run == 3) {
+                                        fds[0].revents = POLLIN;
+                                    }
+                                    else if (run == 4) {
+                                        fds[0].revents = POLLIN;
+                                    }
+                                    else if (run == 5) {
+                                        fds[0].revents = 0;
+                                    }
+                                    else if (run == 6) {
+                                        fds[0].revents = 0;
+                                    }
+                                    else {
+                                        fds[0].revents = POLLHUP;
+                                    }
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
+        systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t count) mutable -> ssize_t {
+                                    ++run;
+                                    auto dest = static_cast<char*>(buf);
+                                    if (run == 1) {
+                                        std::copy(expedtedProcessOutputPart1.begin(), expedtedProcessOutputPart1.end(), dest);
+                                        return expedtedProcessOutputPart1.length();
+                                    }
+                                    else if (run == 2) {
+                                        std::copy(expedtedProcessOutputPart2.begin(), expedtedProcessOutputPart2.end(), dest);
+                                        return expedtedProcessOutputPart2.length();
+                                    }
+                                    else if (run == 3) {
+                                        std::copy(expedtedProcessOutputPart3.begin(), expedtedProcessOutputPart3.end(), dest);
+                                        return expedtedProcessOutputPart3.length();
                                     }
                                     else {
                                         return 0;
@@ -210,7 +288,7 @@ TEST_GROUP("Read Child Process Output")
         CHECK(results.output == expectedProcessOutput);
     }
 
-    UNIT_TEST("Should return process output when children closed stdout and exited but there are still some data to read from the system buffer")
+    UNIT_TEST("Should return process output when children closed stdout and exited but there are still some data to read from the system buffer, POLLIN is NOT SET when there is no more data (Linux)")
     {
         const std::string expedtedProcessOutputPart1 = "Long";
         const std::string expedtedProcessOutputPart2 = "Proc";
@@ -255,6 +333,48 @@ TEST_GROUP("Read Child Process Output")
 
         CHECK(results.output == expectedProcessOutput);
     }
+
+    UNIT_TEST("Should return process output when children closed stdout and exited but there are still some data to read from the system buffer, POLLIN is STILL SET when there is no data (FreeBSD)")
+    {
+        const std::string expedtedProcessOutputPart1 = "Long";
+        const std::string expedtedProcessOutputPart2 = "Proc";
+        const std::string expedtedProcessOutputPart3 = "essOutput";
+        const std::string expectedProcessOutput = expedtedProcessOutputPart1
+                                                  + expedtedProcessOutputPart2
+                                                  + expedtedProcessOutputPart3;
+
+        systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                    ++run;
+                                    fds[0].revents = POLLHUP | POLLIN;
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
+        systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t count) mutable -> ssize_t {
+                                    ++run;
+                                    auto dest = static_cast<char*>(buf);
+                                    if (run == 1) {
+                                        std::copy(expedtedProcessOutputPart1.begin(), expedtedProcessOutputPart1.end(), dest);
+                                        return expedtedProcessOutputPart1.length();
+                                    }
+                                    else if (run == 2) {
+                                        std::copy(expedtedProcessOutputPart2.begin(), expedtedProcessOutputPart2.end(), dest);
+                                        return expedtedProcessOutputPart2.length();
+                                    }
+                                    else if (run == 3) {
+                                        std::copy(expedtedProcessOutputPart3.begin(), expedtedProcessOutputPart3.end(), dest);
+                                        return expedtedProcessOutputPart3.length();
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                };
+
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
+
+        CHECK(results.output == expectedProcessOutput);
+    }
+
 }
 
 
