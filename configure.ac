@@ -35,6 +35,10 @@ AX_PYTHON_MODULE([unittest], [
 # Checks for header files.
 
 # Checks for typedefs, structures, and compiler characteristics.
+AC_CHECK_TYPE([sighandler_t],
+              [AC_DEFINE(HAVE_SIGHANDLER, [], [Define if the sighandler_t type is available])],
+              [],
+              [#include <signal.h>])
 
 # Checks for library functions.
 

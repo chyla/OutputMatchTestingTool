@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "config.h"
+
 #include <string>
 #include <vector>
 
@@ -76,8 +78,14 @@ Terminate(const int status);
 void
 SigAction(int signum, const struct sigaction *act, struct sigaction *oldact);
 
+#ifdef HAVE_SIGHANDLER_T
+using signal_handler = sighandler_t;
+#else
+using signal_handler = sig_t;
+#endif
+
 void
-Signal(int signum, sighandler_t handler);
+Signal(int signum, signal_handler handler);
 
 int
 Poll(struct pollfd *fds, nfds_t nfds, int timeout);

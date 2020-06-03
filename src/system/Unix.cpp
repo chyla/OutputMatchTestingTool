@@ -139,7 +139,7 @@ SigAction(int signum, const struct sigaction *act, struct sigaction *oldact)
 }
 
 void
-Signal(int signum, sighandler_t handler)
+Signal(int signum, signal_handler handler)
 {
     const auto oldHandler = signal(signum, handler);
     if (oldHandler == SIG_ERR) {
