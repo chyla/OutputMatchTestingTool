@@ -1,6 +1,6 @@
 SUBDIRS = src unittests systemtests
 dist_doc_DATA = README.md LICENSE
-EXTRA_DIST = headers unittests/doctest
+EXTRA_DIST = headers unittests/doctest examples
 
 unittests:
 	cd unittests && $(MAKE) $(AM_MAKEFLAGS) check
