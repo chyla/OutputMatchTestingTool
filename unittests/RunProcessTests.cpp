@@ -181,6 +181,76 @@ TEST_GROUP("Read Child Process Output")
         CHECK(results.output == expectedProcessOutput);
     }
 
+    UNIT_TEST("Should return process output when output is long and requires multiple read calls, but sometimes read returns nothing")
+    {
+        const std::string expedtedProcessOutputPart1 = "L";
+        const std::string expedtedProcessOutputPart2 = "ongProcess";
+        const std::string expedtedProcessOutputPart3 = "Output";
+        const std::string expectedProcessOutput = expedtedProcessOutputPart1
+                                                  + expedtedProcessOutputPart2
+                                                  + expedtedProcessOutputPart3;
+
+        systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                    ++run;
+                                    if (run == 1) {
+                                        fds[0].revents = POLLIN;
+                                    }
+                                    else if (run == 2) {
+                                        fds[0].revents = POLLIN;
+                                    }
+                                    else if (run == 3) {
+                                        fds[0].revents = POLLIN;
+                                    }
+                                    else if (run == 4) {
+                                        fds[0].revents = POLLIN;
+                                    }
+                                    else if (run == 5) {
+                                        fds[0].revents = POLLIN;
+                                    }
+                                    else if (run == 6) {
+                                        fds[0].revents = POLLIN;
+                                    }
+                                    else {
+                                        fds[0].revents = POLLHUP | POLLIN;
+                                    }
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
+        systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t count) mutable -> ssize_t {
+                                    ++run;
+                                    auto dest = static_cast<char*>(buf);
+                                    if (run == 1) {
+                                        std::copy(expedtedProcessOutputPart1.begin(), expedtedProcessOutputPart1.end(), dest);
+                                        return expedtedProcessOutputPart1.length();
+                                    }
+                                    else if (run == 2) {
+                                        return 0;
+                                    }
+                                    else if (run == 3) {
+                                        return 0;
+                                    }
+                                    else if (run == 4) {
+                                        std::copy(expedtedProcessOutputPart2.begin(), expedtedProcessOutputPart2.end(), dest);
+                                        return expedtedProcessOutputPart2.length();
+                                    }
+                                    else if (run == 5) {
+                                        return 0;
+                                    }
+                                    else if (run == 6) {
+                                        std::copy(expedtedProcessOutputPart3.begin(), expedtedProcessOutputPart3.end(), dest);
+                                        return expedtedProcessOutputPart3.length();
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                };
+
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
+
+        CHECK(results.output == expectedProcessOutput);
+    }
+
     UNIT_TEST("Should return process output when output is long and requires multiple read calls, but there is not always POLLIN set")
     {
         const std::string expedtedProcessOutputPart1 = "L";
