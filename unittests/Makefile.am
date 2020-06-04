@@ -1,4 +1,8 @@
-AM_CPPFLAGS      = -I$(top_srcdir) -I$(top_srcdir)/..
+AM_CPPFLAGS      = -I$(top_srcdir)
+EXTRA_DIST       = doctest             \
+                   lexer/LexerFake.hpp \
+                   system/UnixFake.hpp \
+                   test_framework.hpp
 
 check_PROGRAMS = lexer_tests \
                  parser_tests \
