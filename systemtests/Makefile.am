@@ -27,15 +27,15 @@ check:
 		exit 1 ;                                                                      \
 	fi
 
-	echo "Checking systemtests UT's..." ;
-	$(PYTHON) -m unittest discover -v $(SYSTEMTESTS_SRC_DIR) ;
+	echo "Checking systemtests UT's..."
+	$(PYTHON) -m unittest discover -v $(SYSTEMTESTS_SRC_DIR)
 
-	echo "Running systemtests..." ;
+	echo "Running systemtests..."
 	$(ROBOT) -d $(SYSTEMTESTS_LOGS_DIR)                                   \
 		 --variable SUT_PATH:$(top_builddir)/src/omtt                 \
 		 --variable OMTT_TESTS_DIR:$(SYSTEMTESTS_SRC_DIR)/omtt        \
 		 --variable HELPER_APPS_DIR:$(SYSTEMTESTS_BUILD_DIR)/apps     \
 		 -L DEBUG                                                     \
-		 $(SYSTEMTESTS_SRC_DIR) ;
+		 $(SYSTEMTESTS_SRC_DIR)
 
 .PHONY: check
