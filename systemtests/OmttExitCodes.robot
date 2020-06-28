@@ -24,12 +24,17 @@ Should exit with 1 status when one executed test fail
 Should exit with 61 status when executed with '--help' option
     ${result} =    Run SUT Process    --help
 
-    Exit Status Points To Help Or Version Information Printed    ${result}
+    Exit Status Points To Information Printed    ${result}
 
 Should exit with 61 status when executed with '--version' option
     ${result} =    Run SUT Process    --version
 
-    Exit Status Points To Help Or Version Information Printed    ${result}
+    Exit Status Points To Information Printed    ${result}
+
+Should exit with 61 status when executed with '--license' option
+    ${result} =    Run SUT Process    --license
+
+    Exit Status Points To Information Printed    ${result}
 
 Should exit with 64 status when executed without any option
     ${result} =    Run SUT Process

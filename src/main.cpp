@@ -24,6 +24,36 @@ namespace po = boost::program_options;
 typedef std::string Path;
 typedef std::vector<Path> TestPaths;
 
+const char * const license_text = R"(BSD 3-Clause License
+
+Copyright (c) 2019-2020, Adam Chyła <adam@chyla.org>
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)";
+
 
 TestPaths::size_type
 RunAllTests(std::optional<Path> interpreter, const Path &sut, const TestPaths &tests);
@@ -51,6 +81,7 @@ main(int argc, char **argv)
         miscOptions.add_options()
             ("help", "display this help text and exit")
             ("version", "display version information and exit")
+            ("license", "display license text")
             ;
 
         po::options_description cmdline_options;
@@ -80,7 +111,7 @@ main(int argc, char **argv)
             std::cout << "USAGE: " << argv[0] << " [OPTION] --sut SUT_PATH TEST_FILE...\n"
                          "\nTesting tool for checking programs console output.\n"
                       << cmdline_options;
-            return omtt::HELP_OR_VERSION_INFORMATION_PRINTED;
+            return omtt::INFORMATION_PRINTED;
         }
 
         if (vm.count("version")) {
@@ -89,7 +120,12 @@ main(int argc, char **argv)
                       << "All rights reserved.\n"
                       << "\n"
                       << "Distributed under the terms of the BSD 3-Clause License.\n";
-            return omtt::HELP_OR_VERSION_INFORMATION_PRINTED;
+            return omtt::INFORMATION_PRINTED;
+        }
+
+        if (vm.count("license")) {
+            std::cout << license_text << '\n';
+            return omtt::INFORMATION_PRINTED;
         }
     }
     catch (std::exception &ex) {

@@ -22,7 +22,7 @@ Exit Status Points To Maximum Tests Failed
     [Arguments]    ${result}
     Should Be Equal As Integers    ${result.rc}    50
 
-Exit Status Points To Help Or Version Information Printed
+Exit Status Points To Information Printed
     [Arguments]    ${result}
     Should Be Equal As Integers    ${result.rc}    61
 
