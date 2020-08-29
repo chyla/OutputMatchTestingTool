@@ -16,10 +16,10 @@ namespace omtt::expectation
 {
 
 
-ValidationResult
+validation::ValidationResult
 PartialOutputExpectation::Validate(const ProcessResults &processResults)
 {
-    ValidationResult result;
+    validation::ValidationResult result;
 
     const auto pos = processResults.output.find(fExpectedPartialOutput);
 

@@ -8,7 +8,7 @@
 #pragma once
 
 #include "headers/ProcessResults.hpp"
-#include "headers/expectation/ValidationResult.hpp"
+#include "headers/expectation/validation/ValidationResult.hpp"
 
 
 namespace omtt::expectation
@@ -17,9 +17,9 @@ namespace omtt::expectation
 class Expectation
 {
 public:
-    virtual                     ~Expectation() = default;
+    virtual                               ~Expectation() = default;
 
-    virtual ValidationResult    Validate(const ProcessResults &processResults) = 0;
+    virtual validation::ValidationResult  Validate(const ProcessResults &processResults) = 0;
 };
 
 }

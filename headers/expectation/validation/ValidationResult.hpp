@@ -11,7 +11,7 @@
 #include <optional>
 
 
-namespace omtt::expectation
+namespace omtt::expectation::validation
 {
 
 struct ValidationResult

@@ -21,7 +21,7 @@ namespace
 class TrueExpectation : public expectation::Expectation
 {
 public:
-    expectation::ValidationResult
+    expectation::validation::ValidationResult
     Validate(const ProcessResults &output)
     {
         return {true, std::nullopt};
@@ -32,7 +32,7 @@ public:
 class FalseExpectation : public expectation::Expectation
 {
 public:
-    expectation::ValidationResult
+    expectation::validation::ValidationResult
     Validate(const ProcessResults &output)
     {
         return {false, "Failed at position: 12"};

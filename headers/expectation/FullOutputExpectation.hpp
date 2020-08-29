@@ -24,7 +24,7 @@ public:
     {
     }
 
-    ValidationResult Validate(const ProcessResults &processResults);
+    validation::ValidationResult Validate(const ProcessResults &processResults);
 
     const std::string_view &
     GetContent() const

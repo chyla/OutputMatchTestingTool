@@ -28,10 +28,10 @@ find_first_difference_position(const std::string_view &expectedOutput, const std
 
 }
 
-ValidationResult
+validation::ValidationResult
 FullOutputExpectation::Validate(const ProcessResults &processResults)
 {
-    ValidationResult result;
+    validation::ValidationResult result;
 
     if (fExpectedOutput == processResults.output) {
         result.isSatisfied = true;

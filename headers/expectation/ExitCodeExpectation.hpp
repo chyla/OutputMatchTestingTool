@@ -22,10 +22,10 @@ public:
     {
     }
 
-    ValidationResult
+    validation::ValidationResult
     Validate(const ProcessResults &processResults)
     {
-        ValidationResult result;
+        validation::ValidationResult result;
 
         if (fExpectedExitCode == processResults.exitCode) {
             result.isSatisfied = true;
