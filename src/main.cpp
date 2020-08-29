@@ -16,6 +16,7 @@
 #include "headers/ErrorCodes.hpp"
 
 #include <iostream>
+#include <algorithm>
 
 #include <boost/program_options.hpp>
 
@@ -155,13 +156,7 @@ main(int argc, char **argv)
 
     try {
         TestPaths::size_type numberOfTestsFailed = RunAllTests(interpreter, sut, testFiles);
-
-        if (numberOfTestsFailed > omtt::MAX_TESTS_FAILED) {
-            return omtt::MAX_TESTS_FAILED;
-        }
-        else {
-            return numberOfTestsFailed;
-        }
+        return std::min<TestPaths::size_type>(numberOfTestsFailed, omtt::MAX_TESTS_FAILED);
     }
     catch (std::exception &ex) {
         std::cerr << "fatal error: " << ex.what() << "\n";
