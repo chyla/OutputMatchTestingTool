@@ -18,7 +18,7 @@ namespace helper
 {
 
 void
-check_sut_has_no_more_tokens(Lexer &sut)
+check_has_no_more_tokens(Lexer &sut)
 {
     auto token = sut.FindNextToken();
     CHECK(!token.has_value());
@@ -41,7 +41,7 @@ test_one_token_with_buffer(const std::string &buffer,
     auto token = sut.FindNextToken();
 
     check_token_equality(token, expectedToken);
-    check_sut_has_no_more_tokens(sut);
+    check_has_no_more_tokens(sut);
 }
 
 void
@@ -56,7 +56,7 @@ test_two_tokens_with_buffer(const std::string &buffer,
 
     check_token_equality(token, expectedFirstToken);
     check_token_equality(secondToken, expectedSecondToken);
-    check_sut_has_no_more_tokens(sut);
+    check_has_no_more_tokens(sut);
 }
 
 } // helper
@@ -67,7 +67,7 @@ TEST_CASE("Should return empty optional on empty input")
     const std::string buffer = "";
     Lexer sut(buffer);
 
-    helper::check_sut_has_no_more_tokens(sut);
+    helper::check_has_no_more_tokens(sut);
 }
 
 TEST_CASE("Should return keyword token with 'RUN' value")
@@ -268,7 +268,7 @@ TEST_CASE("After the 'INPUT' keyword should return empty text token when the nex
     helper::check_token_equality(token, {TokenKind::KEYWORD, "INPUT"});
     helper::check_token_equality(secondToken, {TokenKind::TEXT, ""});
     helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "EXPECT"});
-    helper::check_sut_has_no_more_tokens(sut);
+    helper::check_has_no_more_tokens(sut);
 }
 
 TEST_CASE("After the 'INPUT' keyword should return all next lines as text token up to line begining with 'EXPECT' keyword")
@@ -286,7 +286,7 @@ TEST_CASE("After the 'INPUT' keyword should return all next lines as text token 
                                                "some input\nother line\none more line"});
     helper::check_token_equality(thirdToken, {TokenKind::KEYWORD,
                                               "EXPECT"});
-    helper::check_sut_has_no_more_tokens(sut);
+    helper::check_has_no_more_tokens(sut);
 }
 
 TEST_CASE("Should return proper text token when multiple 'INPUT' keywords are present")
@@ -307,7 +307,7 @@ TEST_CASE("Should return proper text token when multiple 'INPUT' keywords are pr
     helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "INPUT"});
     helper::check_token_equality(fifthToken, {TokenKind::TEXT, "other line"});
     helper::check_token_equality(sixthToken, {TokenKind::KEYWORD, "EXPECT"});
-    helper::check_sut_has_no_more_tokens(sut);
+    helper::check_has_no_more_tokens(sut);
 }
 
 TEST_CASE("After the 'CODE' keyword should finish reading tokens when there is no more text in buffer")
@@ -368,7 +368,7 @@ TEST_CASE("After the 'CODE' keyword should return integer and parse next keyword
                                                "3152"});
     helper::check_token_equality(thirdToken, {TokenKind::KEYWORD,
                                               "EXPECT"});
-    helper::check_sut_has_no_more_tokens(sut);
+    helper::check_has_no_more_tokens(sut);
 }
 
 TEST_CASE("After the 'OUTPUT' keyword should return empty text token when there is no more text in buffer")
@@ -407,7 +407,7 @@ TEST_CASE("After the 'OUTPUT' keyword should return all next lines as text token
                                          "OUTPUT"});
     helper::check_token_equality(secondToken, {TokenKind::TEXT,
                                                "some input\nother line\nsome text"});
-    helper::check_sut_has_no_more_tokens(sut);
+    helper::check_has_no_more_tokens(sut);
 }
 
 TEST_CASE("After the 'OUTPUT' keyword should return all next lines as text token up to the next EXPECT keyword in new line")
@@ -425,7 +425,7 @@ TEST_CASE("After the 'OUTPUT' keyword should return all next lines as text token
                                                "some input\nother line\nsome text"});
     helper::check_token_equality(thirdToken, {TokenKind::KEYWORD,
                                               "EXPECT"});
-    helper::check_sut_has_no_more_tokens(sut);
+    helper::check_has_no_more_tokens(sut);
 }
 
 TEST_CASE("After the 'OUTPUT' keyword should return all next lines as text token up to the end of file even when there are other keywords (except 'EXPECT') in these lines")
@@ -440,7 +440,7 @@ TEST_CASE("After the 'OUTPUT' keyword should return all next lines as text token
                                          "OUTPUT"});
     helper::check_token_equality(secondToken, {TokenKind::TEXT,
                                                "some input\nother line\noline with keyword RUN\nWITH"});
-    helper::check_sut_has_no_more_tokens(sut);
+    helper::check_has_no_more_tokens(sut);
 }
 
 TEST_CASE("After handling the whole input should return empty optional when there are multiple check for next token")
@@ -455,11 +455,11 @@ TEST_CASE("After handling the whole input should return empty optional when ther
                                          "RUN"});
     helper::check_token_equality(secondToken, {TokenKind::KEYWORD,
                                                "WITH"});
-    helper::check_sut_has_no_more_tokens(sut);
-    helper::check_sut_has_no_more_tokens(sut);
-    helper::check_sut_has_no_more_tokens(sut);
-    helper::check_sut_has_no_more_tokens(sut);
-    helper::check_sut_has_no_more_tokens(sut);
+    helper::check_has_no_more_tokens(sut);
+    helper::check_has_no_more_tokens(sut);
+    helper::check_has_no_more_tokens(sut);
+    helper::check_has_no_more_tokens(sut);
+    helper::check_has_no_more_tokens(sut);
 }
 
 TEST_CASE("Should read 'IN' keyword when separated with new lines")
@@ -476,7 +476,7 @@ TEST_CASE("Should read 'IN' keyword when separated with new lines")
     helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "IN"});
     helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "OUTPUT"});
     helper::check_token_equality(fourthToken, {TokenKind::TEXT, ""});
-    helper::check_sut_has_no_more_tokens(sut);
+    helper::check_has_no_more_tokens(sut);
 }
 
 }  // omtt::lexer
