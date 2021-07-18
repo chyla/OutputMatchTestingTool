@@ -10,6 +10,7 @@ jobs:
   prepare_environment_and_sources:
     runs-on: ubuntu-20.04
 
+    steps:
     - uses: actions/checkout@v2
       with:
         submodules: true
@@ -18,8 +19,10 @@ jobs:
     - name: autoreconf
       run: autoreconf --install
 
+
   unittests_-_GCC_without_optimisations:
     needs: prepare_environment_and_sources
+    
     steps:
     - name: configure
       run: ./configure
