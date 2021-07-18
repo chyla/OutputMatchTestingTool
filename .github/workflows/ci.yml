@@ -1,0 +1,248 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+
+jobs:
+  unittests_-_GCC_without_optimisations:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: install build dependencies
+      run: sudo apt-get install -y automake autoconf libboost-all-dev python3-venv
+    - name: autoreconf
+      run: autoreconf --install
+    - name: configure
+      run: ./configure
+      env:
+        CXXFLAGS: "-Wall -pedantic -Werror -O0"
+    - name: make unittests
+      run: make unittests || (cat unittests/test-suite.log && false)
+
+
+  unittests_-_GCC_with_optimisations_on_level_2:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: install build dependencies
+      run: sudo apt-get install -y automake autoconf libboost-all-dev python3-venv
+    - name: autoreconf
+      run: autoreconf --install
+    - name: configure
+      run: ./configure
+      env:
+        CXXFLAGS: "-Wall -pedantic -Werror -O2"
+    - name: make unittests
+      run: make unittests || (cat unittests/test-suite.log && false)
+
+
+  unittests_-_GCC_with_optimisations_on_level_3:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: install build dependencies
+      run: sudo apt-get install -y automake autoconf libboost-all-dev python3-venv
+    - name: autoreconf
+      run: autoreconf --install
+    - name: configure
+      run: ./configure
+      env:
+        CXXFLAGS: "-Wall -pedantic -Werror -O3"
+    - name: make unittests
+      run: make unittests || (cat unittests/test-suite.log && false)
+
+
+  unittests_-_GCC_without_optimisations_and_AddressSanitizer:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: install build dependencies
+      run: sudo apt-get install -y automake autoconf libboost-all-dev python3-venv
+    - name: autoreconf
+      run: autoreconf --install
+    - name: configure
+      run: ./configure
+      env:
+        CXXFLAGS: "-Wall -pedantic -Werror -O0 -fsanitize=address"
+        LDFLAGS: "-fsanitize=address"
+    - name: make unittests
+      run: make unittests || (cat unittests/test-suite.log && false)
+
+
+  unittests_-_GCC_with_optimisations_on_level_2_and_AddressSanitizer:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: install build dependencies
+      run: sudo apt-get install -y automake autoconf libboost-all-dev python3-venv
+    - name: autoreconf
+      run: autoreconf --install
+    - name: configure
+      run: ./configure
+      env:
+        CXXFLAGS: "-Wall -pedantic -Werror -O2 -fsanitize=address"
+        LDFLAGS: "-fsanitize=address"
+    - name: make unittests
+      run: make unittests || (cat unittests/test-suite.log && false)
+
+
+  unittests_-_GCC_with_optimisations_on_level_3_and_AddressSanitizer:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: install build dependencies
+      run: sudo apt-get install -y automake autoconf libboost-all-dev python3-venv
+    - name: autoreconf
+      run: autoreconf --install
+    - name: configure
+      run: ./configure
+      env:
+        CXXFLAGS: "-Wall -pedantic -Werror -O3 -fsanitize=address"
+        LDFLAGS: "-fsanitize=address"
+    - name: make unittests
+      run: make unittests || (cat unittests/test-suite.log && false)
+
+
+  systemtests_-_GCC_without_optimisations_and_AddressSanitizer:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: install build dependencies
+      run: sudo apt-get install -y automake autoconf libboost-all-dev python3-venv
+    - name: autoreconf
+      run: autoreconf --install
+    - name: prepare python virtual environment
+      run: |
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install -r systemtests/requirements.txt
+    - name: configure
+      run: source venv/bin/activate && ./configure
+      env:
+        CXXFLAGS: "-Wall -pedantic -Werror -O0 -fsanitize=address"
+        LDFLAGS: "-fsanitize=address"
+    - name: make systemtests
+      run: source venv/bin/activate && make systemtests
+
+
+  systemtests_-_GCC_with_optimisations_on_level_2_and_AddressSanitizer:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: install build dependencies
+      run: sudo apt-get install -y automake autoconf libboost-all-dev python3-venv
+    - name: autoreconf
+      run: autoreconf --install
+    - name: prepare python virtual environment
+      run: |
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install -r systemtests/requirements.txt
+    - name: configure
+      run: source venv/bin/activate && ./configure
+      env:
+        CXXFLAGS: "-Wall -pedantic -Werror -O2 -fsanitize=address"
+        LDFLAGS: "-fsanitize=address"
+    - name: make systemtests
+      run: source venv/bin/activate && make systemtests
+
+
+  systemtests_-_GCC_with_optimisations_on_level_3_and_AddressSanitizer:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: install build dependencies
+      run: sudo apt-get install -y automake autoconf libboost-all-dev python3-venv
+    - name: autoreconf
+      run: autoreconf --install
+    - name: prepare python virtual environment
+      run: |
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install -r systemtests/requirements.txt
+    - name: configure
+      run: source venv/bin/activate && ./configure
+      env:
+        CXXFLAGS: "-Wall -pedantic -Werror -O3 -fsanitize=address"
+        LDFLAGS: "-fsanitize=address"
+    - name: make systemtests
+      run: source venv/bin/activate && make systemtests
+
+
+  check_all_-_GCC_without_optimisations:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: install build dependencies
+      run: sudo apt-get install -y automake autoconf libboost-all-dev python3-venv
+    - name: autoreconf
+      run: autoreconf --install
+    - name: prepare python virtual environment
+      run: |
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install -r systemtests/requirements.txt
+    - name: configure
+      run: source venv/bin/activate && ./configure
+      env:
+        CXXFLAGS: "-Wall -pedantic -Werror -O0"
+    - name: make check
+      run: source venv/bin/activate && make check || (cat unittests/test-suite.log && false)
+
+
+  distcheck_-_GCC_without_optimisations:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: install build dependencies
+      run: sudo apt-get install -y automake autoconf libboost-all-dev python3-venv
+    - name: autoreconf
+      run: autoreconf --install
+    - name: prepare python virtual environment
+      run: |
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install -r systemtests/requirements.txt
+    - name: configure
+      run: source venv/bin/activate && ./configure
+      env:
+        CXXFLAGS: "-Wall -pedantic -Werror -O0"
+    - name: make distcheck
+      run: source venv/bin/activate && make distcheck
