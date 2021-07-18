@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: true
     - name: install build dependencies
       run: sudo apt-get install -y automake autoconf libboost-all-dev python3-venv
     - name: autoreconf
