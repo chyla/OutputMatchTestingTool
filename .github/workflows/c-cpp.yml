@@ -6,6 +6,7 @@ on:
   pull_request:
     branches: [ master ]
 
+
 jobs:
   unittests_-_GCC_without_optimisations:
     runs-on: ubuntu-20.04
@@ -148,6 +149,7 @@ jobs:
     - name: make systemtests
       run: source venv/bin/activate && make systemtests
 
+
   systemtests_-_GCC_with_optimisations_on_level_2_and_AddressSanitizer:
     runs-on: ubuntu-20.04
 
@@ -171,6 +173,7 @@ jobs:
         LDFLAGS: "-fsanitize=address"
     - name: make systemtests
       run: source venv/bin/activate && make systemtests
+
 
   systemtests_-_GCC_with_optimisations_on_level_3_and_AddressSanitizer:
     runs-on: ubuntu-20.04
