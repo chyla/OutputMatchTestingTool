@@ -1,0 +1,23 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  unittests_-_GCC_without_optimisations:
+
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: install build dependencies
+      run: sudo apt-get install -y automake autoconf libboost1.65-all-dev python3-venv
+    - name: configure
+      run: ./configure
+      env:
+        CXXFLAGS: "-Wall -pedantic -Werror -O0"
+    - name: make unittests
+      run: make unittests || (cat unittests/test-suite.log && false)
