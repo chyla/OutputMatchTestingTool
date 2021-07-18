@@ -21,8 +21,9 @@ jobs:
 
 
   unittests_-_GCC_without_optimisations:
+    runs-on: ubuntu-20.04
     needs: prepare_environment_and_sources
-    
+
     steps:
     - name: configure
       run: ./configure
