@@ -146,7 +146,7 @@ jobs:
         CXXFLAGS: "-Wall -pedantic -Werror -O0 -fsanitize=address"
         LDFLAGS: "-fsanitize=address"
     - name: make systemtests
-      run: make systemtests
+      run: source venv/bin/activate && make systemtests
 
   systemtests_-_GCC_with_optimisations_on_level_2_and_AddressSanitizer:
     runs-on: ubuntu-20.04
@@ -170,7 +170,7 @@ jobs:
         CXXFLAGS: "-Wall -pedantic -Werror -O2 -fsanitize=address"
         LDFLAGS: "-fsanitize=address"
     - name: make systemtests
-      run: make systemtests
+      run: source venv/bin/activate && make systemtests
 
   systemtests_-_GCC_with_optimisations_on_level_3_and_AddressSanitizer:
     runs-on: ubuntu-20.04
@@ -194,7 +194,7 @@ jobs:
         CXXFLAGS: "-Wall -pedantic -Werror -O3 -fsanitize=address"
         LDFLAGS: "-fsanitize=address"
     - name: make systemtests
-      run: make systemtests
+      run: source venv/bin/activate && make systemtests
 
 
   check_all_-_GCC_without_optimisations:
@@ -218,7 +218,7 @@ jobs:
       env:
         CXXFLAGS: "-Wall -pedantic -Werror -O0"
     - name: make check
-      run: make check || (cat unittests/test-suite.log && false)
+      run: source venv/bin/activate && make check || (cat unittests/test-suite.log && false)
 
 
   distcheck_-_GCC_without_optimisations:
@@ -242,4 +242,4 @@ jobs:
       env:
         CXXFLAGS: "-Wall -pedantic -Werror -O0"
     - name: make distcheck
-      run: make distcheck
+      run: source venv/bin/activate && make distcheck
