@@ -7,8 +7,13 @@
 
 #pragma once
 
+#include "headers/expectation/validation/ExitCodeCause.hpp"
+#include "headers/expectation/validation/FullOutputCause.hpp"
+#include "headers/expectation/validation/PartialOutputCause.hpp"
+
 #include <string>
 #include <optional>
+#include <variant>
 
 
 namespace omtt::expectation::validation
@@ -16,10 +21,12 @@ namespace omtt::expectation::validation
 
 struct ValidationResult
 {
-    typedef std::string Cause;
+    typedef std::variant<validation::ExitCodeCause,
+                         validation::FullOutputCause,
+                         validation::PartialOutputCause> Cause;
 
-    bool isSatisfied;
-    std::optional<Cause> cause;
+    const bool isSatisfied;
+    const std::optional<Cause> cause;
 };
 
 }

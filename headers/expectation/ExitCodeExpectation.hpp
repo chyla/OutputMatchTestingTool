@@ -8,6 +8,7 @@
 #pragma once
 
 #include "headers/expectation/Expectation.hpp"
+#include "headers/expectation/validation/ExitCodeCause.hpp"
 
 
 namespace omtt::expectation
@@ -25,21 +26,14 @@ public:
     validation::ValidationResult
     Validate(const ProcessResults &processResults)
     {
-        validation::ValidationResult result;
-
         if (fExpectedExitCode == processResults.exitCode) {
-            result.isSatisfied = true;
-            result.cause = std::nullopt;
+            return {true,
+                    std::nullopt};
         }
         else {
-            result.isSatisfied = false;
-            result.cause =
-                "Exit code doesn't match.\n"
-                "Expected: " + std::to_string(fExpectedExitCode) + "\n"
-                "Got: " + std::to_string(processResults.exitCode);
+            return {false,
+                    validation::ExitCodeCause{fExpectedExitCode, processResults.exitCode}};
         }
-
-        return result;
     }
 
     int

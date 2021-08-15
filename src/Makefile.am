@@ -5,10 +5,10 @@ bin_PROGRAMS = omtt
 omtt_SOURCES = main.cpp \
                ReadFile.cpp \
                RunProcess.cpp \
-               TestExecutionSummary.cpp \
                ValidateExpectationsAndSutResults.cpp \
                lexer/detail/to_hex_string.cpp \
                lexer/Lexer.cpp \
+               logger/ConsoleLogger.cpp \
                expectation/FullOutputExpectation.cpp \
                expectation/PartialOutputExpectation.cpp \
                system/Unix.cpp

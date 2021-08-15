@@ -14,16 +14,17 @@
 #include "headers/TestExecutionSummary.hpp"
 #include "headers/ValidateExpectationsAndSutResults.hpp"
 #include "headers/ErrorCodes.hpp"
+#include "headers/logger/ConsoleLogger.hpp"
+#include "headers/Path.hpp"
 
 #include <iostream>
 #include <algorithm>
+#include <memory>
+#include <utility>
 
 #include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
-
-typedef std::string Path;
-typedef std::vector<Path> TestPaths;
 
 const char * const license_text = R"(BSD 3-Clause License
 
@@ -56,11 +57,18 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)";
 
 
-TestPaths::size_type
-RunAllTests(std::optional<Path> interpreter, const Path &sut, const TestPaths &tests);
+omtt::TestPaths::size_type
+RunAllTests(std::optional<omtt::Path> interpreter,
+            const omtt::Path &sut,
+            const omtt::TestPaths &tests,
+            const std::unique_ptr<omtt::logger::Logger> &logger);
 
-omtt::TestExecutionSummary
-ExecuteTest(std::optional<Path> interpreter, const Path &sut, const Path &test);
+omtt::TestData
+ParseTestFile(const std::string &testFileBuffer);
+
+omtt::ProcessResults
+ExecuteSut(std::optional<omtt::Path> interpreter, const omtt::Path &sut, const omtt::TestData &testData);
+
 
 int
 main(int argc, char **argv)
@@ -70,12 +78,12 @@ main(int argc, char **argv)
     try {
         po::options_description sutOptions("System under test");
         sutOptions.add_options()
-            ("sut", po::value<Path>(), "path to SUT")
+            ("sut", po::value<omtt::Path>(), "path to SUT")
             ;
 
         po::options_description interpreterOptions("Interpreter");
         interpreterOptions.add_options()
-            ("interpreter", po::value<Path>(), "path to interpreter")
+            ("interpreter", po::value<omtt::Path>(), "path to interpreter")
             ;
 
         po::options_description miscOptions("Miscellaneous");
@@ -92,7 +100,7 @@ main(int argc, char **argv)
 
         po::options_description hidden;
         hidden.add_options()
-          ("test-file", po::value<TestPaths>(), "Test files to run.")
+          ("test-file", po::value<omtt::TestPaths>(), "Test files to run.")
             ;
 
         po::options_description allOptions;
@@ -144,19 +152,21 @@ main(int argc, char **argv)
         return omtt::INVALID_COMMAND_LINE_OPTIONS;
     }
 
-    const TestPaths &testFiles = vm["test-file"].as<TestPaths>();
-    const Path &sut = vm["sut"].as<std::string>();
-    std::optional<Path> interpreter;
+    const omtt::TestPaths &testFiles = vm["test-file"].as<omtt::TestPaths>();
+    const omtt::Path &sut = vm["sut"].as<std::string>();
+    std::optional<omtt::Path> interpreter;
 
     if (vm.count("interpreter") == 1) {
         interpreter = vm["interpreter"].as<std::string>();
     }
 
-    std::cout << "Testing: " << sut << '\n';
+    std::unique_ptr<omtt::logger::Logger> logger = std::make_unique<omtt::logger::ConsoleLogger>();
+
+    logger->SutPath(sut);
 
     try {
-        TestPaths::size_type numberOfTestsFailed = RunAllTests(interpreter, sut, testFiles);
-        return std::min<TestPaths::size_type>(numberOfTestsFailed, omtt::MAX_TESTS_FAILED);
+        omtt::TestPaths::size_type numberOfTestsFailed = RunAllTests(interpreter, sut, testFiles, logger);
+        return std::min<omtt::TestPaths::size_type>(numberOfTestsFailed, omtt::MAX_TESTS_FAILED);
     }
     catch (std::exception &ex) {
         std::cerr << "fatal error: " << ex.what() << "\n";
@@ -164,47 +174,60 @@ main(int argc, char **argv)
     }
 }
 
-TestPaths::size_type
-RunAllTests(std::optional<Path> interpreter, const Path &sut, const TestPaths &tests)
+omtt::TestPaths::size_type
+RunAllTests(std::optional<omtt::Path> interpreter,
+            const omtt::Path &sut,
+            const omtt::TestPaths &tests,
+            const std::unique_ptr<omtt::logger::Logger> &logger)
 {
-    TestPaths::size_type executedTests = 0;
-    TestPaths::size_type numberOfTestsFailed = 0;
+    omtt::TestPaths::size_type executedTests = 0;
+    omtt::TestPaths::size_type numberOfTestsFailed = 0;
 
-    for (const auto &test : tests) {
+    for (const auto &testFileName : tests) {
         ++executedTests;
-        std::cout << "====================\n"
-                     "Running test (" << executedTests << "/" << tests.size() << "): " << test << '\n';
 
-        const omtt::TestExecutionSummary &summary = ExecuteTest(interpreter, sut, test);
-        std::cout << summary << '\n';
+        logger->BeginTestExecution(executedTests, tests.size(), testFileName);
+
+        const std::string testFileBuffer = omtt::readFile(testFileName);
+
+        const omtt::TestData testData = ParseTestFile(testFileBuffer);
+
+        const omtt::ProcessResults processResults = ExecuteSut(interpreter, sut, testData);
+
+        const omtt::TestExecutionSummary summary = omtt::ValidateExpectationsAndSutResults(testData, processResults);
+
+        logger->EndTestExecution(summary);
 
         if (summary.verdict != omtt::Verdict::PASS) {
             ++numberOfTestsFailed;
         }
     }
 
-    std::cout << "====================\n"
-              << tests.size() << " tests total, " << (tests.size() - numberOfTestsFailed) << " passed, " << numberOfTestsFailed << " failed\n";
+    logger->OverallStatistics(tests.size(),
+                              tests.size() - numberOfTestsFailed,
+                              numberOfTestsFailed);
 
     return numberOfTestsFailed;
 }
 
-omtt::TestExecutionSummary
-ExecuteTest(std::optional<Path> interpreter, const Path &sut, const Path &test)
+
+omtt::TestData
+ParseTestFile(const std::string &testFileBuffer)
 {
-    const std::string &testFileBuffer = omtt::readFile(test);
     omtt::lexer::Lexer lexer(testFileBuffer);
     omtt::parser::Parser parser(lexer);
 
-    const omtt::TestData &testData = parser.parse();
+    return parser.parse();
+}
 
-    omtt::ProcessResults processResults;
+
+omtt::ProcessResults
+ExecuteSut(std::optional<omtt::Path> interpreter, const omtt::Path &sut, const omtt::TestData &testData)
+{
     if (interpreter.has_value()) {
-        processResults = omtt::RunProcess(*interpreter, {sut}, testData.input);
+        return omtt::RunProcess(*interpreter, {sut}, testData.input);
     }
     else {
-        processResults = omtt::RunProcess(sut, {}, testData.input);
+        return omtt::RunProcess(sut, {}, testData.input);
     }
-
-    return omtt::ValidateExpectationsAndSutResults(testData, processResults);
 }

@@ -23,7 +23,4 @@ struct TestExecutionSummary
     std::vector<expectation::validation::ValidationResult::Cause> causes;
 };
 
-std::ostream&
-operator<<(std::ostream &os, const TestExecutionSummary &tes);
-
 }  // omtt

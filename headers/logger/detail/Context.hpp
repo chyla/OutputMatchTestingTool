@@ -12,7 +12,7 @@
 #include <sstream>
 
 
-namespace omtt::expectation::detail
+namespace omtt::logger::detail
 {
 
 namespace

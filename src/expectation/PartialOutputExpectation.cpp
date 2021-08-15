@@ -6,7 +6,7 @@
  */
 
 #include "headers/expectation/PartialOutputExpectation.hpp"
-#include "headers/expectation/detail/Context.hpp"
+#include "headers/expectation/validation/PartialOutputCause.hpp"
 
 #include <algorithm>
 #include <string>
@@ -19,27 +19,14 @@ namespace omtt::expectation
 validation::ValidationResult
 PartialOutputExpectation::Validate(const ProcessResults &processResults)
 {
-    validation::ValidationResult result;
-
     const auto pos = processResults.output.find(fExpectedPartialOutput);
 
     if (pos != std::string::npos) {
-        result.isSatisfied = true;
-        result.cause = std::nullopt;
+        return {true, std::nullopt};
     }
     else {
-        constexpr auto differencePosition = 0;
-
-        result.isSatisfied = false;
-        result.cause =
-            "Text not found in output.\n"
-            "Given text context:\n"
-          + detail::context(fExpectedPartialOutput,
-                            differencePosition,
-                            detail::PointerVisibility::NO_POINTER);
+        return {false, validation::PartialOutputCause{fExpectedPartialOutput}};
     }
-
-    return result;
 }
 
 }  // omtt::expectation

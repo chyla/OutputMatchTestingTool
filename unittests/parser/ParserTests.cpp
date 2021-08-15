@@ -191,37 +191,6 @@ TEST_GROUP("Overall")
         CheckPartialOutput(data, "partial output");
     }
 
-    UNIT_TEST("Multiple 'parse()' call should return same test data")
-    {
-        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
-                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
-                        lexer::Token{lexer::TokenKind::KEYWORD, "INPUT"},
-                        lexer::Token{lexer::TokenKind::TEXT, "example input"},
-                        lexer::Token{lexer::TokenKind::KEYWORD, "EXPECT"},
-                        lexer::Token{lexer::TokenKind::KEYWORD, "OUTPUT"},
-                        lexer::Token{lexer::TokenKind::TEXT, "example output"}
-        };
-        Parser<LexerFake> sut(lexer);
-
-        {
-            const TestData &data = sut.parse();
-            CHECK(data.input == "example input");
-            CheckOutput(data, "example output");
-        }
-
-        {
-            const TestData &data = sut.parse();
-            CHECK(data.input == "example input");
-            CheckOutput(data, "example output");
-        }
-
-        {
-            const TestData &data = sut.parse();
-            CHECK(data.input == "example input");
-            CheckOutput(data, "example output");
-        }
-    }
-
     UNIT_TEST("Should throw exception on additional EXPECT keyword at the end")
     {
         LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},

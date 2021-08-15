@@ -5,16 +5,20 @@ EXTRA_DIST       = doctest             \
                    test_framework.hpp
 
 check_PROGRAMS = lexer_tests \
+                 logger_tests \
                  parser_tests \
                  run_process_tests \
                  validate_expectations_and_sut_results_tests \
                  full_output_expectation_tests \
                  partial_output_expectation_tests \
-		 exit_code_expectation_tests
+                 exit_code_expectation_tests
 
 lexer_tests_SOURCES = main.cpp lexer/LexerTests.cpp
 lexer_tests_LDADD = ../src/lexer/Lexer.o \
                     ../src/lexer/detail/to_hex_string.o
+
+logger_tests_SOURCES = main.cpp logger/ConsoleLoggerTests.cpp
+logger_tests_LDADD = ../src/logger/ConsoleLogger.o
 
 parser_tests_SOURCES = main.cpp parser/ParserTests.cpp
 parser_tests_LDADD =  ../src/lexer/detail/to_hex_string.o \

@@ -40,7 +40,7 @@ public:
     {
     }
 
-    const TestData &
+    TestData &&
     parse()
     {
         while (true) {
@@ -79,7 +79,7 @@ public:
                     _HandleTextInOutputState();
                     break;
                 case State::DONE:
-                  return fTestData;
+                  return std::move(fTestData);
             }
         }
     }

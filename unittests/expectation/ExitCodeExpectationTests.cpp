@@ -55,7 +55,7 @@ TEST_CASE("Should not contain cause when expectation is satisfied")
     CHECK(validationReults.cause.has_value() == false);
 }
 
-TEST_CASE("Should not contain cause when expectation is satisfied")
+TEST_CASE("Should contain cause with expected exit code when expectation is not satisfied")
 {
     constexpr int expectedExitCode = 2;
     constexpr int processExitCode = 6;
@@ -67,7 +67,24 @@ TEST_CASE("Should not contain cause when expectation is satisfied")
 
     CHECK(validationReults.isSatisfied == false);
     CHECK(validationReults.cause.has_value() == true);
-    CHECK(*validationReults.cause == "Exit code doesn't match.\nExpected: 2\nGot: 6");
+    const auto cause = std::get<expectation::validation::ExitCodeCause>(*validationReults.cause);
+    CHECK(cause.fExpectedExitCode == expectedExitCode);
+}
+
+TEST_CASE("Should contain cause with process exit code when expectation is not satisfied")
+{
+    constexpr int expectedExitCode = 2;
+    constexpr int processExitCode = 6;
+
+    const ProcessResults sutResults {processExitCode, "some not important output"};
+    ExitCodeExpectation expectation(expectedExitCode);
+
+    auto validationReults = expectation.Validate(sutResults);
+
+    CHECK(validationReults.isSatisfied == false);
+    CHECK(validationReults.cause.has_value() == true);
+    const auto cause = std::get<expectation::validation::ExitCodeCause>(*validationReults.cause);
+    CHECK(cause.fExitCode == processExitCode);
 }
 
 }

@@ -6,7 +6,7 @@
  */
 
 #include "headers/expectation/FullOutputExpectation.hpp"
-#include "headers/expectation/detail/Context.hpp"
+#include "headers/expectation/validation/FullOutputCause.hpp"
 
 #include <algorithm>
 #include <string>
@@ -31,23 +31,17 @@ find_first_difference_position(const std::string_view &expectedOutput, const std
 validation::ValidationResult
 FullOutputExpectation::Validate(const ProcessResults &processResults)
 {
-    validation::ValidationResult result;
-
     if (fExpectedOutput == processResults.output) {
-        result.isSatisfied = true;
-        result.cause = std::nullopt;
+        return {true, std::nullopt};
     }
     else {
-        const auto differencePosition = find_first_difference_position(fExpectedOutput, processResults.output);
-        result.isSatisfied = false;
-        result.cause =
-            "Output doesn't match.\n"
-            "First difference at byte: " + std::to_string(differencePosition) + "\n"
-          + "Expected context:\n" + detail::context(fExpectedOutput, differencePosition, detail::PointerVisibility::INCLUDE_POINTER) + "\n"
-          + "Output context:\n" + detail::context(processResults.output, differencePosition, detail::PointerVisibility::INCLUDE_POINTER);
-    }
+        const auto differencePosition = find_first_difference_position(fExpectedOutput,
+                                                                       processResults.output);
 
-    return result;
+        return {false, expectation::validation::FullOutputCause{differencePosition,
+                                                                fExpectedOutput,
+                                                                processResults.output}};
+    }
 }
 
 }  // omtt::expectation
