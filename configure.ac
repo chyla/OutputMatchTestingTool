@@ -28,7 +28,7 @@ AX_BOOST_BASE([1.65], [], [AC_MSG_ERROR([cannot find Boost libraries])])
 AX_BOOST_PROGRAM_OPTIONS
 
 AX_PYTHON_MODULE([unittest], [
-    AC_MSG_WARN([required Robot Framework version not found])
+    AC_MSG_WARN([required unittest version not found])
     AC_SUBST([HAS_PYTHON_UNITTEST],[no])
 ])
 
