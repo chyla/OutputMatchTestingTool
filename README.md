@@ -103,7 +103,7 @@ Hello world.
 EXPECT IN OUTPUT
 Hello
 EXPECT IN OUTPUT
-world
+WORLD
 EXPECT EXIT CODE 0
 ```
 
@@ -112,10 +112,16 @@ The results:
 ```
 Testing: /bin/cat
 ====================
-Running test (1/1): examples/cat-will_match_part_of_output.omtt
-Verdict: PASS
+Running test (1/1): examples/cat-failing_scenario-mismatch_while_matching_part_of_output.omtt
+Verdict: FAIL
+--------------------
+=> Cause:
+Text not found in output.
+Given text context:
+W    O    R    L    D
+0x57 0x4f 0x52 0x4c 0x44
 ====================
-1 tests total, 1 passed, 0 failed
+1 tests total, 0 passed, 1 failed
 ```
 
 Multiple tests can be executed by passing its paths in command line:
