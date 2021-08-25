@@ -17,6 +17,12 @@
 #include <iterator>
 #include <string>
 
+#ifndef __W_EXITCODE
+int __W_EXITCODE(int ret, int sig)
+{
+	return ret << 8 | sig;
+}
+#endif
 
 namespace omtt
 {
