@@ -14,6 +14,7 @@
 #include <array>
 #include <cstring>
 #include <iostream>
+#include <limits>
 
 
 namespace omtt
