@@ -175,9 +175,7 @@ See more tests examples in the `examples` directory.
 
 ## Installing from the sources
 
-### Preparing the sources
-
-#### Prerequisites
+### Prerequisites
 
 To build the software you will need to have:
 
@@ -190,7 +188,7 @@ To build the software you will need to have:
 The only supported platform is Linux. To run the tool on Windows
 you can try to use Cygwin, but there is no guarantee it will work.
 
-#### Initialize the dependencies
+### Preparing the sources
 
 *This section applies only to the git cloned sources, not the release
 archive.*
