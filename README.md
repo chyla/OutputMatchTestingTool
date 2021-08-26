@@ -216,6 +216,16 @@ When the sources are prepared (like these with the release archive),
 use the standard commands for Autotools to build
 the project - `./configure`, `make`.
 
+#### Cygwin
+
+To build on Cygwin set the `CCFLAGS` and `CXXFLAGS` environment variables
+to the `-D_GNU_SOURCE` value, before executing `configure` script:
+
+```
+export CCFLAGS="$CCFLAGS -D_GNU_SOURCE"
+export CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE"
+```
+
 
 ### Executing the tests
 
