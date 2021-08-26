@@ -81,14 +81,6 @@ IgnoreSignalHandling(const int signum)
     system::unix::Signal(signum, SIG_IGN);
 }
 
-bool
-IsOperative(const struct pollfd &pfd)
-{
-    const bool isHup = pfd.revents & POLLHUP;
-    const bool isErr = pfd.revents & POLLERR;
-    return isHup == false && isErr == false;
-}
-
 int
 ExitCode(const int wstatus)
 {
@@ -175,10 +167,11 @@ RunProcess(const std::string &path,
         int processExitStatus;
         bool isProcessRunning = true;
         bool isToChildPipeWriteEndClosed = false;
-        bool lastTimeReadDataFromStdout = false;
-        bool isAllDataReadFromStdout = true;
+        bool systemBuffersMayStillHaveData = false;
 
         do {
+            systemBuffersMayStillHaveData = false;
+
             constexpr const int timeoutMs = 50;
             (void) system::unix::Poll(fds, sizeof(fds) / sizeof(fds[0]), timeoutMs);
 
@@ -186,16 +179,7 @@ RunProcess(const std::string &path,
                 const int readBytes = ReadToBuffer(fds[0].fd, buf);
                 if (readBytes > 0) {
                     results.output += buf.data();
-                    isAllDataReadFromStdout = false;
-                    lastTimeReadDataFromStdout = true;
-                }
-                else {
-                    if (lastTimeReadDataFromStdout) {
-                        lastTimeReadDataFromStdout = false;
-                    }
-                    else {
-                        isAllDataReadFromStdout = true;
-                    }
+                    systemBuffersMayStillHaveData = true;
                 }
             }
 
@@ -219,11 +203,9 @@ RunProcess(const std::string &path,
             if (isProcessRunning) {
                 const int pidOfProcessWithChangedStatus = system::unix::WaitPid(childrenPid, &processExitStatus, WNOHANG);
                 isProcessRunning = (pidOfProcessWithChangedStatus == 0);
+                systemBuffersMayStillHaveData = true;
             }
-        } while ((IsOperative(fds[0])
-                  || (!IsOperative(fds[0]) && IsAbleToRead(fds[0]) && !isAllDataReadFromStdout)
-                  || (IsOperative(fds[1]) && !IsAllDataWritten(wroteToChild, input))
-                  || isProcessRunning)
+        } while ((isProcessRunning || systemBuffersMayStillHaveData)
                  && signalReceived == 0);
 
         if (signalReceived) {
