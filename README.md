@@ -42,7 +42,7 @@ the tool like that to execute the test with the `cat` binary:
 omtt --sut /bin/cat cat-will_print_input_and_exit_with_zero.omtt
 ```
 
-The tool will print the summary containing the most basic informations
+The tool will print the summary containing the most basic information
 and the test verdict:
 
 ```
