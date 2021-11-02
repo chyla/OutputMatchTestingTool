@@ -28,7 +28,7 @@ namespace
         CHECK(data.expectations.size() == 1);
     }
 
-    void CheckHasTwoExceptations(const TestData &data)
+    void CheckHasTwoExpectations(const TestData &data)
     {
         CHECK(data.expectations.size() == 2);
     }
@@ -134,7 +134,7 @@ TEST_GROUP("Overall")
         const TestData &data = sut.parse();
 
         CHECK(data.input == "example input");
-        CheckHasTwoExceptations(data);
+        CheckHasTwoExpectations(data);
 
         constexpr int exitCodeExpectationPosition = 0;
         CheckExitCode(data, 4561, exitCodeExpectationPosition);
@@ -162,7 +162,7 @@ TEST_GROUP("Overall")
         const TestData &data = sut.parse();
 
         CHECK(data.input == "example input");
-        CheckHasTwoExceptations(data);
+        CheckHasTwoExpectations(data);
 
         constexpr int outputMatchPosition = 0;
         CheckOutput(data, "some output", outputMatchPosition);
