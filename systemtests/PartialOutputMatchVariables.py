@@ -1,4 +1,6 @@
-text_context_with_readable_special_characters = "Given text context:\nLF   VT   FF   CR   NP   LF   \n0x0a 0x0b 0x0c 0x0d 0x01 0x0a"
+text_context_with_readable_special_characters = (
+    "Given text context:\nLF   VT   FF   CR   NP   LF   \n0x0a 0x0b 0x0c 0x0d 0x01 0x0a"
+)
 
 first_context_text_partial_match_failed = "Text not found in output.\n\
 Given text context:\n\
