@@ -9,6 +9,7 @@ check_PROGRAMS = lexer_tests \
                  parser_tests \
                  run_process_tests \
                  validate_expectations_and_sut_results_tests \
+                 empty_output_expectation_tests \
                  full_output_expectation_tests \
                  partial_output_expectation_tests \
                  exit_code_expectation_tests
@@ -30,6 +31,9 @@ run_process_tests_LDADD = ../src/RunProcess.o
 
 validate_expectations_and_sut_results_tests_SOURCES = main.cpp ValidateExpectationsAndSutResultsTests.cpp
 validate_expectations_and_sut_results_tests_LDADD = ../src/ValidateExpectationsAndSutResults.o
+
+empty_output_expectation_tests_SOURCES = main.cpp \
+                                         expectation/EmptyOutputExpectationTests.cpp
 
 full_output_expectation_tests_SOURCES = main.cpp \
                                         expectation/FullOutputExpectationTests.cpp

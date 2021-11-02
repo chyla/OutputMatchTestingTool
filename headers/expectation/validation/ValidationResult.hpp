@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "headers/expectation/validation/EmptyOutputCause.hpp"
 #include "headers/expectation/validation/ExitCodeCause.hpp"
 #include "headers/expectation/validation/FullOutputCause.hpp"
 #include "headers/expectation/validation/PartialOutputCause.hpp"
@@ -21,7 +22,8 @@ namespace omtt::expectation::validation
 
 struct ValidationResult
 {
-    typedef std::variant<validation::ExitCodeCause,
+    typedef std::variant<validation::EmptyOutputCause,
+                         validation::ExitCodeCause,
                          validation::FullOutputCause,
                          validation::PartialOutputCause> Cause;
 

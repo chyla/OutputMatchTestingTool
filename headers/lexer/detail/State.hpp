@@ -12,9 +12,10 @@ namespace omtt::lexer::detail
 {
 
 enum class State {
-    READING_KEYWORDS,
-    READING_LINES_UP_TO_EXPECT,
-    READING_INTEGER
+    READ_KEYWORDS_AND_MOVE_TO_READING_LINES,
+    READ_KEYWORDS,
+    READ_LINES_UP_TO_EXPECT,
+    READ_INTEGER
 };
 
 }  // omtt::lexer::detail

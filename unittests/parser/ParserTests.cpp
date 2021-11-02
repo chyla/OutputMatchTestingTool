@@ -41,6 +41,13 @@ namespace
         CHECK(fullOutput->GetContent() == expectedOutput);
     }
 
+    void CheckEmptyOutput(const TestData &data, const int position = 0)
+    {
+        expectation::Expectation *expectation = data.expectations.at(position).get();
+        expectation::EmptyOutputExpectation *emptyOutput = dynamic_cast<expectation::EmptyOutputExpectation*>(expectation);
+        CHECK(emptyOutput != nullptr);
+    }
+
     void CheckPartialOutput(const TestData &data, const std::string &expectedOutput, const int position = 0)
     {
         expectation::Expectation *expectation = data.expectations.at(position).get();
@@ -189,6 +196,25 @@ TEST_GROUP("Overall")
         CHECK(data.input == "example input");
         CheckHasOneExpectation(data);
         CheckPartialOutput(data, "partial output");
+    }
+
+    UNIT_TEST("Should parse correct empty output match tokens flow")
+    {
+        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "INPUT"},
+                        lexer::Token{lexer::TokenKind::TEXT, "example input"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EXPECT"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EMPTY"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "OUTPUT"}
+        };
+        Parser<LexerFake> sut(lexer);
+
+        const TestData &data = sut.parse();
+
+        CHECK(data.input == "example input");
+        CheckHasOneExpectation(data);
+        CheckEmptyOutput(data);
     }
 
     UNIT_TEST("Should throw exception on additional EXPECT keyword at the end")
@@ -710,6 +736,54 @@ TEST_GROUP("'TEXT_IN_OUTPUT' state")
         Parser<LexerFake> sut(lexer);
 
         CHECK_THROWS_AS(sut.parse(), exception::UnexpectedKeywordException);
+    }
+}
+
+
+TEST_GROUP("'EMPTY_OUTPUT' state")
+{
+    UNIT_TEST("Should throw exception when lexer doesn't have more tokens")
+    {
+        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "INPUT"},
+                        lexer::Token{lexer::TokenKind::TEXT, "some text"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EXPECT"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EMPTY"}
+        };
+        Parser<LexerFake> sut(lexer);
+
+        CHECK_THROWS_AS(sut.parse(), exception::MissingKeywordException);
+    }
+
+    UNIT_TEST("Should throw exception when lexer returns token other than OUTPUT keyword")
+    {
+        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "INPUT"},
+                        lexer::Token{lexer::TokenKind::TEXT, "some text"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EXPECT"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EMPTY"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EMPTY"}
+        };
+        Parser<LexerFake> sut(lexer);
+
+        CHECK_THROWS_AS(sut.parse(), exception::WrongTokenException);
+    }
+
+    UNIT_TEST("Should throw exception when lexer returns 'OUTPUT' TEXT token")
+    {
+        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "INPUT"},
+                        lexer::Token{lexer::TokenKind::TEXT, "some text"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EXPECT"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EMPTY"},
+                        lexer::Token{lexer::TokenKind::TEXT, "OUTPUT"}
+        };
+        Parser<LexerFake> sut(lexer);
+
+        CHECK_THROWS_AS(sut.parse(), exception::WrongTokenException);
     }
 }
 

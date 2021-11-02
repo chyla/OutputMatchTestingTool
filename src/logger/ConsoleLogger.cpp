@@ -35,6 +35,16 @@ namespace
 struct CauseVisitor {
     CauseVisitor(std::ostream &stream) : stream(stream) {}
 
+    void operator()(expectation::validation::EmptyOutputCause cause) {
+        constexpr int differencePosition = 0;
+
+        stream << "Expected empty output.\n"
+                  "Output context:\n"
+                  + detail::context(cause.fOutput,
+                                    differencePosition,
+                                    detail::PointerVisibility::NO_POINTER);
+    }
+
     void operator()(expectation::validation::ExitCodeCause cause) {
         stream << "Exit code doesn't match.\n"
                   "Expected: " + std::to_string(cause.fExpectedExitCode) + "\n"

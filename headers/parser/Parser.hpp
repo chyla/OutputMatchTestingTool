@@ -11,6 +11,7 @@
 #include "headers/TestData.hpp"
 #include "headers/lexer/Token.hpp"
 
+#include "headers/expectation/EmptyOutputExpectation.hpp"
 #include "headers/expectation/FullOutputExpectation.hpp"
 #include "headers/expectation/PartialOutputExpectation.hpp"
 #include "headers/expectation/ExitCodeExpectation.hpp"
@@ -61,10 +62,13 @@ public:
                     _HandleExpectOrFinishState();
                     break;
                 case State::OUTPUT_OR_EXIT_OR_IN:
-                    _HandleOutputOrExitOrInState();
+                    _HandleEmptyOrOutputOrExitOrInState();
                     break;
                 case State::IN_OUTPUT:
                     _HandleInOutputState();
+                    break;
+                case State::EMPTY_OUTPUT:
+                    _HandleEmptyOutputState();
                     break;
                 case State::CODE:
                     _HandleCodeState();
@@ -93,6 +97,7 @@ private:
         EXPECT_OR_FINISH,
         OUTPUT_OR_EXIT_OR_IN,
         IN_OUTPUT,
+        EMPTY_OUTPUT,
         CODE,
         CODE_NUMBER,
         TEXT_OUTPUT,
@@ -146,11 +151,11 @@ private:
     }
 
     void
-    _HandleOutputOrExitOrInState()
+    _HandleEmptyOrOutputOrExitOrInState()
     {
         auto token = fLexer.FindNextToken();
 
-        _ThrowMissingKeywordWhenTokenNotPresent({"OUTPUT", "EXIT", "IN"}, token);
+        _ThrowMissingKeywordWhenTokenNotPresent({"EMPTY", "OUTPUT", "EXIT", "IN"}, token);
 
         if (token->kind == lexer::TokenKind::KEYWORD
             && token->value == "OUTPUT") {
@@ -164,8 +169,12 @@ private:
                  && token->value == "IN") {
             fCurrentState = State::IN_OUTPUT;
         }
+        else if (token->kind == lexer::TokenKind::KEYWORD
+                 && token->value == "EMPTY") {
+            fCurrentState = State::EMPTY_OUTPUT;
+        }
         else {
-            _ThrowWhenNotKeywordOrHasDifferrentName({"OUTPUT", "EXIT", "IN"}, *token);
+            _ThrowWhenNotKeywordOrHasDifferrentName({"EMPTY", "OUTPUT", "EXIT", "IN"}, *token);
         }
     }
 
@@ -173,6 +182,15 @@ private:
     _HandleInOutputState()
     {
         _ExpectKeywordAndSwitchToState("OUTPUT", State::TEXT_IN_OUTPUT);
+    }
+
+    void
+    _HandleEmptyOutputState()
+    {
+        _ExpectKeywordAndSwitchToState("OUTPUT", State::EXPECT_OR_FINISH);
+
+        auto expectation = std::make_unique<expectation::EmptyOutputExpectation>();
+        fTestData.expectations.emplace_back(std::move(expectation));
     }
 
     void

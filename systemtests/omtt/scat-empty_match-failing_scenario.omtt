@@ -1,0 +1,4 @@
+RUN
+WITH INPUT
+some input
+EXPECT EMPTY OUTPUT

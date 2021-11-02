@@ -98,7 +98,7 @@ Raise missing keyword error when EXPECT keyword occours in expected output
     ${result} =    Run SUT With Helper    scat    scat-error_scenario-expect_keyword_in_output.omtt
 
     Verdict Is Not Present    ${result}
-    Missing Keyword Message Is Present    ${result}    OUTPUT' or 'EXIT' or 'IN
+    Missing Keyword Message Is Present    ${result}    EMPTY' or 'OUTPUT' or 'EXIT' or 'IN
     Exit Status Points To Fatal Error    ${result}
 
 Output doesn't match message shouldn't be present when test PASS

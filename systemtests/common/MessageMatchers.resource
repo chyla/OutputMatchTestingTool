@@ -35,6 +35,14 @@ Output Doesn't Match Message Points To Byte
 
     Should Contain    ${result.stdout}    ${message}
 
+Expected Empty Output Message Is Present
+    [Arguments]    ${result}
+    Should Contain    ${result.stdout}    Expected empty output.
+
+Expected Empty Output Message Is Not Present
+    [Arguments]    ${result}
+    Should Not Contain    ${result.stdout}    Expected empty output.
+
 Missing Number Message Is Present
     [Arguments]    ${result}
     Should Contain    ${result.stderr}    Expected number, but got nothing.

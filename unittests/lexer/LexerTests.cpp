@@ -101,6 +101,13 @@ TEST_CASE("Should return keyword token with 'EXPECT' value")
     helper::test_one_token_with_buffer(buffer, expectedToken);
 }
 
+TEST_CASE("Should return keyword token with 'EMPTY' value")
+{
+    const std::string buffer = "EMPTY";
+    const Token expectedToken {TokenKind::KEYWORD, "EMPTY"};
+    helper::test_one_token_with_buffer(buffer, expectedToken);
+}
+
 TEST_CASE("Should return keyword token with 'OUTPUT' value")
 {
     const std::string buffer = "OUTPUT";
@@ -476,6 +483,365 @@ TEST_CASE("Should read 'IN' keyword when separated with new lines")
     helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "IN"});
     helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "OUTPUT"});
     helper::check_token_equality(fourthToken, {TokenKind::TEXT, ""});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read 'EMPTY' keyword when separated with new lines")
+{
+    const std::string buffer = "EXPECT\nEMPTY\nOUTPUT";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read text after 'EMPTY OUTPUT' as TEXT tokens")
+{
+    const std::string buffer = "EXPECT EMPTY OUTPUT\nunexpected text";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+    auto sixthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::TEXT, "unexpected"});
+    helper::check_token_equality(sixthToken, {TokenKind::TEXT, "text"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read EXPECT keyword after 'EMPTY OUTPUT'")
+{
+    const std::string buffer = "EXPECT EMPTY OUTPUT\nEXPECT";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read RUN keyword after 'EMPTY OUTPUT'")
+{
+    const std::string buffer = "EXPECT EMPTY OUTPUT\nRUN";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "RUN"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read WITH keyword after 'EMPTY OUTPUT'")
+{
+    const std::string buffer = "EXPECT EMPTY OUTPUT\nWITH";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "WITH"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read INPUT keyword after 'EMPTY OUTPUT'")
+{
+    const std::string buffer = "EXPECT EMPTY OUTPUT\nINPUT";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "INPUT"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read OUTPUT keyword after 'EMPTY OUTPUT'")
+{
+    const std::string buffer = "EXPECT EMPTY OUTPUT\nOUTPUT";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read EXIT keyword after 'EMPTY OUTPUT'")
+{
+    const std::string buffer = "EXPECT EMPTY OUTPUT\nEXIT";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "EXIT"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read CODE keyword after 'EMPTY OUTPUT'")
+{
+    const std::string buffer = "EXPECT EMPTY OUTPUT\nCODE";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "CODE"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read IN keyword after 'EMPTY OUTPUT'")
+{
+    const std::string buffer = "EXPECT EMPTY OUTPUT\nIN";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "IN"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read EMPTY keyword after 'EMPTY OUTPUT'")
+{
+    const std::string buffer = "EXPECT EMPTY OUTPUT\nEMPTY";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read text after 'EMPTY INPUT' as TEXT tokens")
+{
+    const std::string buffer = "EXPECT EMPTY INPUT\nunexpected text";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+    auto sixthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "INPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::TEXT, "unexpected"});
+    helper::check_token_equality(sixthToken, {TokenKind::TEXT, "text"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read EXPECT keyword after 'EMPTY INPUT'")
+{
+    const std::string buffer = "EXPECT EMPTY INPUT\nEXPECT";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "INPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read RUN keyword after 'EMPTY INPUT'")
+{
+    const std::string buffer = "EXPECT EMPTY INPUT\nRUN";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "INPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "RUN"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read WITH keyword after 'EMPTY INPUT'")
+{
+    const std::string buffer = "EXPECT EMPTY INPUT\nWITH";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "INPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "WITH"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read INPUT keyword after 'EMPTY INPUT'")
+{
+    const std::string buffer = "EXPECT EMPTY INPUT\nINPUT";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "INPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "INPUT"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read OUTPUT keyword after 'EMPTY INPUT'")
+{
+    const std::string buffer = "EXPECT EMPTY INPUT\nOUTPUT";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "INPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read EXIT keyword after 'EMPTY INPUT'")
+{
+    const std::string buffer = "EXPECT EMPTY INPUT\nEXIT";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "INPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "EXIT"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read CODE keyword after 'EMPTY INPUT'")
+{
+    const std::string buffer = "EXPECT EMPTY INPUT\nCODE";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "INPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "CODE"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read IN keyword after 'EMPTY INPUT'")
+{
+    const std::string buffer = "EXPECT EMPTY INPUT\nIN";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "INPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "IN"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read EMPTY keyword after 'EMPTY INPUT'")
+{
+    const std::string buffer = "EXPECT EMPTY INPUT\nEMPTY";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "INPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "EMPTY"});
     helper::check_has_no_more_tokens(sut);
 }
 

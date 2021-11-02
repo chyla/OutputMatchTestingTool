@@ -65,20 +65,24 @@ Lexer::Lexer(const std::string &inputBuffer)
     fInputBuffer(inputBuffer)
 {
     fCurrentPosition = 0;
-    fCurrentState = State::READING_KEYWORDS;
+    fCurrentState = State::READ_KEYWORDS_AND_MOVE_TO_READING_LINES;
 }
 
 std::optional<const Token>
 Lexer::FindNextToken()
 {
     switch (fCurrentState) {
-        case State::READING_KEYWORDS:
+        case State::READ_KEYWORDS_AND_MOVE_TO_READING_LINES:
+            return _HandleReadingKeywordsState(
+                Lexer::ReadingKeywordsStateOptions::MOVE_TO_READING_LINES_STATE_AFTER_INPUT_OUTPUT);
+
+        case State::READ_KEYWORDS:
             return _HandleReadingKeywordsState();
 
-        case State::READING_LINES_UP_TO_EXPECT:
+        case State::READ_LINES_UP_TO_EXPECT:
             return _HandleReadingLinesUpToExpectState();
 
-        case State::READING_INTEGER:
+        case State::READ_INTEGER:
             return _HandleReadingInteger();
     };
 
@@ -86,17 +90,18 @@ Lexer::FindNextToken()
 }
 
 std::optional<const Token>
-Lexer::_HandleReadingKeywordsState()
+Lexer::_HandleReadingKeywordsState(Lexer::ReadingKeywordsStateOptions options)
 {
     const std::string_view word = _ReadNextWord();
 
-    if (word == "INPUT" || word == "OUTPUT") {
-        _SwitchStateTo(State::READING_LINES_UP_TO_EXPECT);
+    if (options == Lexer::ReadingKeywordsStateOptions::MOVE_TO_READING_LINES_STATE_AFTER_INPUT_OUTPUT
+        && (word == "INPUT" || word == "OUTPUT")) {
+        _SwitchStateTo(State::READ_LINES_UP_TO_EXPECT);
         _ConsumeWhiteCharactersWithoutNewLine();
         _ConsumeNewLineCharacter();
     }
     if (word == "CODE") {
-        _SwitchStateTo(State::READING_INTEGER);
+        _SwitchStateTo(State::READ_INTEGER);
     }
 
     if (word == "RUN"
@@ -107,6 +112,10 @@ Lexer::_HandleReadingKeywordsState()
         || word == "EXIT"
         || word == "CODE"
         || word == "IN") {
+        return Token{TokenKind::KEYWORD, word};
+    }
+    else if (word == "EMPTY") {
+        _SwitchStateTo(State::READ_KEYWORDS);
         return Token{TokenKind::KEYWORD, word};
     }
     else if (!word.empty()) {
@@ -131,7 +140,7 @@ Lexer::_HandleReadingLinesUpToExpectState()
         endOfLines = beginOfLines;
     }
 
-    _SwitchStateTo(State::READING_KEYWORDS);
+    _SwitchStateTo(State::READ_KEYWORDS_AND_MOVE_TO_READING_LINES);
 
     return _ConsumeAndGetTokenWithText(beginOfLines, endOfLines);
 }
@@ -144,7 +153,7 @@ Lexer::_HandleReadingInteger()
     if (word != "") {
         throw_when_word_is_not_a_number(word, fCurrentPosition - word.size());
 
-        _SwitchStateTo(State::READING_KEYWORDS);
+        _SwitchStateTo(State::READ_KEYWORDS_AND_MOVE_TO_READING_LINES);
 
         return Token{TokenKind::INTEGER,
                      word};

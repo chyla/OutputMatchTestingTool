@@ -27,8 +27,13 @@ public:
 private:
     using PositionInBuffer = std::string::size_type;
 
+    enum class ReadingKeywordsStateOptions {
+        NONE,
+        MOVE_TO_READING_LINES_STATE_AFTER_INPUT_OUTPUT
+    };
+
 private:
-             std::optional<const Token>   _HandleReadingKeywordsState();
+             std::optional<const Token>   _HandleReadingKeywordsState(Lexer::ReadingKeywordsStateOptions = Lexer::ReadingKeywordsStateOptions::NONE);
              std::optional<const Token>   _HandleReadingLinesUpToExpectState();
              std::optional<const Token>   _HandleReadingLinesUpToEofState();
              std::optional<const Token>   _HandleReadingInteger();
