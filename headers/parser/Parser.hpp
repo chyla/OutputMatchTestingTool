@@ -52,8 +52,11 @@ public:
                 case State::WITH:
                     _HandleWithState();
                     break;
-                case State::INPUT:
-                    _HandleInputState();
+                case State::EMPTY_OR_INPUT:
+                    _HandleEmptyOrInputState();
+                    break;
+                case State::EMPTY_INPUT:
+                    _HandleEmptyInputState();
                     break;
                 case State::TEXT_INPUT:
                     _HandleTextInputState();
@@ -92,7 +95,8 @@ private:
       enum class State {
         RUN,
         WITH,
-        INPUT,
+        EMPTY_OR_INPUT,
+        EMPTY_INPUT,
         TEXT_INPUT,
         EXPECT_OR_FINISH,
         OUTPUT_OR_EXIT_OR_IN,
@@ -115,13 +119,33 @@ private:
     void
     _HandleWithState()
     {
-        _ExpectKeywordAndSwitchToState("WITH", State::INPUT);
+        _ExpectKeywordAndSwitchToState("WITH", State::EMPTY_OR_INPUT);
     }
 
     void
-    _HandleInputState()
+    _HandleEmptyOrInputState()
     {
-        _ExpectKeywordAndSwitchToState("INPUT", State::TEXT_INPUT);
+        auto token = fLexer.FindNextToken();
+
+        _ThrowMissingKeywordWhenTokenNotPresent({"EMPTY", "INPUT"}, token);
+
+        if (token->kind == lexer::TokenKind::KEYWORD
+                 && token->value == "INPUT") {
+            fCurrentState = State::TEXT_INPUT;
+        }
+        else if (token->kind == lexer::TokenKind::KEYWORD
+                 && token->value == "EMPTY") {
+            fCurrentState = State::EMPTY_INPUT;
+        }
+        else {
+            _ThrowWhenNotKeywordOrHasDifferrentName({"EMPTY", "INPUT"}, *token);
+        }
+    }
+
+    void
+    _HandleEmptyInputState()
+    {
+        _ExpectKeywordAndSwitchToState("INPUT", State::EXPECT_OR_FINISH);
     }
 
     void

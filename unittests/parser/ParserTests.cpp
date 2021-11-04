@@ -217,6 +217,37 @@ TEST_GROUP("Overall")
         CheckEmptyOutput(data);
     }
 
+    UNIT_TEST("Should parse correct empty input match tokens flow")
+    {
+        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EMPTY"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "INPUT"}
+        };
+        Parser<LexerFake> sut(lexer);
+
+        const TestData &data = sut.parse();
+
+        CHECK(data.input == "");
+    }
+
+    UNIT_TEST("Should parse correct empty input with empty output match tokens flow")
+    {
+        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EMPTY"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "INPUT"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EXPECT"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EMPTY"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "OUTPUT"}
+        };
+        Parser<LexerFake> sut(lexer);
+
+        const TestData &data = sut.parse();
+
+        CHECK(data.input == "");
+    }
+
     UNIT_TEST("Should throw exception on additional EXPECT keyword at the end")
     {
         LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
@@ -330,7 +361,7 @@ TEST_GROUP("'WITH' state")
 }
 
 
-TEST_GROUP("'INPUT' state")
+TEST_GROUP("'EMPTY_OR_INPUT' state")
 {
     UNIT_TEST("Should throw exception when lexer doesn't have more tokens")
     {
@@ -342,7 +373,7 @@ TEST_GROUP("'INPUT' state")
         CHECK_THROWS_AS(sut.parse(), exception::MissingKeywordException);
     }
 
-    UNIT_TEST("Should throw exception when lexer returns token other than 'INPUT' keyword")
+    UNIT_TEST("Should throw exception when lexer returns token other than 'INPUT' or 'EMPTY' keyword")
     {
         LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
                         lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
@@ -363,8 +394,56 @@ TEST_GROUP("'INPUT' state")
 
         CHECK_THROWS_AS(sut.parse(), exception::WrongTokenException);
     }
+
+    UNIT_TEST("Should throw exception when lexer returns 'EMPTY' text token")
+    {
+        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
+                        lexer::Token{lexer::TokenKind::TEXT, "EMPTY"}
+        };
+        Parser<LexerFake> sut(lexer);
+
+        CHECK_THROWS_AS(sut.parse(), exception::WrongTokenException);
+    }
 }
 
+TEST_GROUP("'EMPTY_INPUT' state")
+{
+    UNIT_TEST("Should throw exception when lexer doesn't have more tokens")
+    {
+        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EMPTY"}
+        };
+        Parser<LexerFake> sut(lexer);
+
+        CHECK_THROWS_AS(sut.parse(), exception::MissingKeywordException);
+    }
+
+    UNIT_TEST("Should throw exception when lexer returns token other than 'INPUT' keyword")
+    {
+        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EMPTY"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EMPTY"}
+        };
+        Parser<LexerFake> sut(lexer);
+
+        CHECK_THROWS_AS(sut.parse(), exception::WrongTokenException);
+    }
+
+    UNIT_TEST("Should throw exception when lexer returns 'INPUT' text token")
+    {
+        LexerFake lexer{lexer::Token{lexer::TokenKind::KEYWORD, "RUN"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "WITH"},
+                        lexer::Token{lexer::TokenKind::KEYWORD, "EMPTY"},
+                        lexer::Token{lexer::TokenKind::TEXT, "INPUT"}
+        };
+        Parser<LexerFake> sut(lexer);
+
+        CHECK_THROWS_AS(sut.parse(), exception::WrongTokenException);
+    }
+}
 
 TEST_GROUP("'TEXT_INPUT' state")
 {
