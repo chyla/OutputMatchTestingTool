@@ -21,7 +21,7 @@ am__tar='$${TAR-tar} -c -h --format pax -f - "$$tardir"' am__untar='$${TAR-tar} 
 AC_PROG_CXX
 AX_CXX_COMPILE_STDCXX_17([noext], [mandatory])
 AM_PATH_PYTHON([3.6.0], [], [AC_MSG_WARN([required Python version not found])])
-AX_PROG_ROBOT([3.1.0], [], [AC_MSG_WARN([required Robot Framework version not found])])
+AX_PROG_ROBOT([3.1], [], [AC_MSG_WARN([required Robot Framework version not found])])
 
 # Checks for libraries.
 AX_BOOST_BASE([1.65], [], [AC_MSG_ERROR([cannot find Boost libraries])])
