@@ -152,7 +152,7 @@ jobs:
       run: source venv/bin/activate && make systemtests
 
 
-  systemtests_-_GCC_without_optimisations_and_AddressSanitizer_on_lowest_supported_Robot_Framework_version:
+  systemtests_-_GCC_without_optimisations_and_AddressSanitizer_on_lowest_supported_Robot_Framework:
     runs-on: ubuntu-20.04
 
     steps:
