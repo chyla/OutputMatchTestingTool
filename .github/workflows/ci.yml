@@ -152,6 +152,32 @@ jobs:
       run: source venv/bin/activate && make systemtests
 
 
+  systemtests_-_GCC_without_optimisations_and_AddressSanitizer_on_lowest_supported_Robot_Framework_version:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: install build dependencies
+      run: sudo apt-get install -y automake autoconf libboost-all-dev python3-venv
+    - name: autoreconf
+      run: autoreconf --install
+    - name: prepare python virtual environment
+      run: |
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install -r systemtests/requirements.txt
+        pip install robotframework==3.1.0
+    - name: configure
+      run: source venv/bin/activate && ./configure
+      env:
+        CXXFLAGS: "-Wall -pedantic -Werror -O0 -fsanitize=address"
+        LDFLAGS: "-fsanitize=address"
+    - name: make systemtests
+      run: source venv/bin/activate && make systemtests
+
+
   systemtests_-_GCC_with_optimisations_on_level_2_and_AddressSanitizer:
     runs-on: ubuntu-20.04
 
