@@ -2,13 +2,11 @@
 
 Testing tool for checking programs console output.
 
-
 ## Overview
 
 The tool allows you to check the program correctness. It will run
 the SUT (System Under Test) program and match the standard output
 and exit code to assumptions given in test file.
-
 
 ## Getting Started
 
@@ -25,7 +23,7 @@ input is printed on the standard output, we will use this.
 
 Here is the first test file example for the `cat` program:
 
-```
+```text
 RUN
 WITH INPUT
 Hello world!
@@ -38,14 +36,14 @@ I hope the test file is self-documenting and everything is obvious. Save
 the test to `cat-will_print_input_and_exit_with_zero.omtt` file, then run
 the tool like that to execute the test with the `cat` binary:
 
-```
+```text
 omtt --sut /bin/cat cat-will_print_input_and_exit_with_zero.omtt
 ```
 
 The tool will print the summary containing the most basic information
 and the test verdict:
 
-```
+```text
 Testing: /bin/cat
 ====================
 Running test (1/1): cat-will_print_input_and_exit_with_zero.omtt
@@ -57,7 +55,7 @@ Verdict: PASS
 You will see more info when the test fails. See this test example
 for the `cat` program:
 
-```
+```text
 RUN
 WITH INPUT
 Some text.
@@ -68,7 +66,7 @@ Some other text.
 
 Here are the results:
 
-```
+```text
 Testing: /bin/cat
 ====================
 Running test (1/1): examples/cat-failing_scenario-will_exit_with_non_zero_exit_status_and_some_output_when_some_other_input_is_given.omtt
@@ -96,7 +94,7 @@ S    o    m    e    SPC  t    e    x    t    .
 
 It's possible to search for only part of output, it won't give you detailed description about the mismatch like in full output match. Here's example:
 
-```
+```text
 RUN
 WITH INPUT
 Hello world.
@@ -109,7 +107,7 @@ EXPECT EXIT CODE 0
 
 The results:
 
-```
+```text
 Testing: /bin/cat
 ====================
 Running test (1/1): examples/cat-failing_scenario-mismatch_while_matching_part_of_output.omtt
@@ -126,13 +124,13 @@ W    O    R    L    D
 
 Multiple tests can be executed by passing its paths in command line:
 
-```
+```text
 omtt --sut /bin/cat examples/cat-will_match_part_of_output.omtt examples/cat-will_print_input_and_exit_with_zero.omtt
 ```
 
 Tests will be executed in order they appeared in command line:
 
-```
+```text
 Testing: /bin/cat
 ====================
 Running test (1/2): examples/cat-will_match_part_of_output.omtt
@@ -146,13 +144,13 @@ Verdict: PASS
 
 With a little help of shell you can run tests by name pattern:
 
-```
+```text
 omtt --sut /bin/cat examples/cat-will*.omtt
 ```
 
 Results:
 
-```
+```text
 Testing: /bin/cat
 ====================
 Running test (1/4): examples/cat-will-exit-with-zero.omtt
@@ -171,7 +169,6 @@ Verdict: PASS
 ```
 
 See more tests examples in the `examples` directory.
-
 
 ## Installing from the sources
 
@@ -196,17 +193,16 @@ archive.*
 After cloning the git repository, please init and fetch all git
 submodules data with the commands:
 
-```
-$ git submodule init
-$ git submodule update
+```bash
+git submodule init
+git submodule update
 ```
 
 Please also initialize the Autotools:
 
+```bash
+autoreconf --install
 ```
-$ autoreconf --install
-```
-
 
 ### Building
 
@@ -219,11 +215,10 @@ the project - `./configure`, `make`.
 To build on Cygwin set the `CCFLAGS` and `CXXFLAGS` environment variables
 to the `-D_GNU_SOURCE` value, before executing `configure` script:
 
-```
+```bash
 export CCFLAGS="$CCFLAGS -D_GNU_SOURCE"
 export CXXFLAGS="$CXXFLAGS -D_GNU_SOURCE"
 ```
-
 
 ### Executing the tests
 
@@ -232,28 +227,26 @@ checks small parts of code, system tests checks the whole program.
 
 To execute the unit tests run the following command:
 
-```
+```bash
 make unittests
 ```
 
 To execute the system tests  run the following command:
 
-```
+```bash
 make systemtests
 ```
 
 To execute all tests run:
 
-```
+```bash
 make check
 ```
-
 
 ### Installing
 
 When all the tests pass, use the `make install` command
 to install the project.
-
 
 ## Versioning
 
@@ -278,12 +271,10 @@ The specification says:
 
 Read the [VERSIONING.md](VERSIONING.md) file for details.
 
-
 ## License
 
 This project is licensed under the BSD 3-Clause License - see
 the [LICENSE](LICENSE) file for details.
-
 
 ## Authors
 
