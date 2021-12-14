@@ -82,11 +82,11 @@ Got: 0
 => Cause:
 Output doesn't match.
 First difference at byte: 5
-Expected context:
+Expected (context):
 S    o    m    e    SPC  o    t    h    e    r    SPC  t
                          ^
 0x53 0x6f 0x6d 0x65 0x20 0x6f 0x74 0x68 0x65 0x72 0x20 0x74
-Output context:
+Got (context):
 S    o    m    e    SPC  t    e    x    t    .
                          ^
 0x53 0x6f 0x6d 0x65 0x20 0x74 0x65 0x78 0x74 0x2e
@@ -117,7 +117,7 @@ Verdict: FAIL
 --------------------
 => Cause:
 Text not found in output.
-Given text context:
+Expected (context):
 W    O    R    L    D
 0x57 0x4f 0x52 0x4c 0x44
 ====================

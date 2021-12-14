@@ -90,9 +90,9 @@ CHECK_CONTAIN_CONTEXT_WITH_CUSTOM_CHAR(const std::string &output,
                                        const std::string &char_text,
                                        const std::string &char_code)
 {
-    CHECK(contain(output, "Expected context:\n" + char_text + "  \n\
+    CHECK(contain(output, "Expected (context):\n" + char_text + "  \n\
      \n" + char_code + " \n\
-Output context:\n" + char_text + "  a    \n\
+Got (context):\n" + char_text + "  a    \n\
      ^    \n" + char_code + " 0x61"));
 }
 
@@ -131,11 +131,11 @@ TEST_GROUP("Full Output Cause logging")
         const auto console_log = ExecuteSut(testSummary);
 
         CHECK(contain(console_log, "\
-Expected context:\n\
+Expected (context):\n\
 a    \n\
 ^    \n\
 0x61 \n\
-Output context:\n\
+Got (context):\n\
 \n\
 \n\
 "));
@@ -151,11 +151,11 @@ Output context:\n\
         const auto console_log = ExecuteSut(testSummary);
 
         CHECK(contain(console_log, "\
-Expected context:\n\
+Expected (context):\n\
 \n\
 \n\
 \n\
-Output context:\n\
+Got (context):\n\
 a    \n\
 ^    \n\
 0x61"));
@@ -258,11 +258,11 @@ a    \n\
         const auto console_log = ExecuteSut(testSummary);
 
         CHECK(contain(console_log, "\
-Expected context:\n\
+Expected (context):\n\
 s    o    m    e    SPC  o    u    \n\
 ^                                  \n\
 0x73 0x6f 0x6d 0x65 0x20 0x6f 0x75 \n\
-Output context:\n\
+Got (context):\n\
 S    o    m    e    SPC  O    u    \n\
 ^                                  \n\
 0x53 0x6f 0x6d 0x65 0x20 0x4f 0x75"));
@@ -278,11 +278,11 @@ S    o    m    e    SPC  O    u    \n\
         const auto console_log = ExecuteSut(testSummary);
 
         CHECK(contain(console_log, "\
-Expected context:\n\
+Expected (context):\n\
 s    o    m    e    \n\
      ^              \n\
 0x73 0x6f 0x6d 0x65 \n\
-Output context:\n\
+Got (context):\n\
 s    O    m    e    \n\
      ^              \n\
 0x73 0x4f 0x6d 0x65"));
@@ -298,11 +298,11 @@ s    O    m    e    \n\
         const auto console_log = ExecuteSut(testSummary);
 
         CHECK(contain(console_log, "\
-Expected context:\n\
+Expected (context):\n\
 s    o    m    e    SPC  T    \n\
                          ^    \n\
 0x73 0x6f 0x6d 0x65 0x20 0x54 \n\
-Output context:\n\
+Got (context):\n\
 s    o    m    e    SPC  t    \n\
                          ^    \n\
 0x73 0x6f 0x6d 0x65 0x20 0x74"));
@@ -318,11 +318,11 @@ s    o    m    e    SPC  t    \n\
         const auto console_log = ExecuteSut(testSummary);
 
         CHECK(contain(console_log, "\
-Expected context:\n\
+Expected (context):\n\
 SPC  v    e    r    r    y    SPC  l    o    n    g    SPC  \n\
                               ^                             \n\
 0x20 0x76 0x65 0x72 0x72 0x79 0x20 0x6c 0x6f 0x6e 0x67 0x20 \n\
-Output context:\n\
+Got (context):\n\
 SPC  v    e    r    r    y    \n\
                               \n\
 0x20 0x76 0x65 0x72 0x72 0x79"));
@@ -338,11 +338,11 @@ SPC  v    e    r    r    y    \n\
         const auto console_log = ExecuteSut(testSummary);
 
         CHECK(contain(console_log, "\
-Expected context:\n\
+Expected (context):\n\
 SPC  v    e    r    r    y    SPC  l    o    n    g    SPC  t    \n\
                               ^                                  \n\
 0x20 0x76 0x65 0x72 0x72 0x79 0x20 0x6c 0x6f 0x6e 0x67 0x20 0x74 \n\
-Output context:\n\
+Got (context):\n\
 SPC  v    e    r    r    y    \n\
                               \n\
 0x20 0x76 0x65 0x72 0x72 0x79"));
@@ -358,11 +358,11 @@ SPC  v    e    r    r    y    \n\
         const auto console_log = ExecuteSut(testSummary);
 
         CHECK(contain(console_log, "\
-Expected context:\n\
+Expected (context):\n\
 SPC  v    e    r    r    y    \n\
                               \n\
 0x20 0x76 0x65 0x72 0x72 0x79 \n\
-Output context:\n\
+Got (context):\n\
 SPC  v    e    r    r    y    SPC  l    o    n    g    SPC  t    \n\
                               ^                                  \n\
 0x20 0x76 0x65 0x72 0x72 0x79 0x20 0x6c 0x6f 0x6e 0x67 0x20 0x74"));
@@ -389,7 +389,7 @@ CHECK_CONTAIN_CONTEXT_WITH_CUSTOM_CHAR(const std::string &console_log,
                                        const std::string &char_text,
                                        const std::string &char_code)
 {
-    CHECK(contain(console_log, "Given text context:\n"
+    CHECK(contain(console_log, "Expected (context):\n"
                                + char_text + "  a    \n"
                                + char_code + " 0x61"));
 }
@@ -417,7 +417,7 @@ TEST_GROUP("Partial Output Cause logging")
         const auto console_log = ExecuteSut(testSummary);
 
         CHECK(contain(console_log, "\
-Given text context:\n\
+Expected (context):\n\
 s    o    m    e    SPC  l    o    \n\
 0x73 0x6f 0x6d 0x65 0x20 0x6c 0x6f"));
     }
@@ -430,7 +430,7 @@ s    o    m    e    SPC  l    o    \n\
         const auto console_log = ExecuteSut(testSummary);
 
         CHECK(contain(console_log, "\
-Given text context:\n\
+Expected (context):\n\
 S    o    m    e    SPC  \n\
 0x53 0x6f 0x6d 0x65 0x20"));
     }
@@ -443,7 +443,7 @@ S    o    m    e    SPC  \n\
         const auto console_log = ExecuteSut(testSummary);
 
         CHECK(contain(console_log, "\
-Given text context:\n\
+Expected (context):\n\
 S    \n\
 0x53"));
     }

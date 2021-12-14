@@ -39,7 +39,7 @@ struct CauseVisitor {
         constexpr int differencePosition = 0;
 
         stream << "Expected empty output.\n"
-                  "Output context:\n"
+                  "Got (context):\n"
                   + detail::context(cause.fOutput,
                                     differencePosition,
                                     detail::PointerVisibility::NO_POINTER);
@@ -54,10 +54,10 @@ struct CauseVisitor {
     void operator()(expectation::validation::FullOutputCause cause) {
         stream << "Output doesn't match.\n"
                   "First difference at byte: " + std::to_string(cause.fDifferencePosition) + "\n"
-                  + "Expected context:\n" + detail::context(cause.fExpectedOutput,
+                  + "Expected (context):\n" + detail::context(cause.fExpectedOutput,
                                                             cause.fDifferencePosition,
                                                             detail::PointerVisibility::INCLUDE_POINTER) + "\n"
-                  + "Output context:\n" + detail::context(cause.fOutput,
+                  + "Got (context):\n" + detail::context(cause.fOutput,
                                                           cause.fDifferencePosition,
                                                           detail::PointerVisibility::INCLUDE_POINTER);
     }
@@ -66,7 +66,7 @@ struct CauseVisitor {
         constexpr int differencePosition = 0;
 
         stream << "Text not found in output.\n"
-                  "Given text context:\n"
+                  "Expected (context):\n"
                   + detail::context(cause.fExpectedPartialOutput,
                                     differencePosition,
                                     detail::PointerVisibility::NO_POINTER);
