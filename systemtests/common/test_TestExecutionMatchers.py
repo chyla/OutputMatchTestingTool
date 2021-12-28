@@ -15,7 +15,7 @@ PASS = "PASS"
 FAIL = "FAIL"
 
 
-def create_result(first_test_result, second_test_result):
+def create_omtt_result(first_test_result, second_test_result):
     result = unittest.mock.Mock()
     result.stdout = f"""
 Testing: /bin/cat
@@ -31,14 +31,14 @@ Verdict: {second_test_result}
 
 class TestsWereExecutedInOrderTestSuite(unittest.TestCase):
     def test_does_nothing_when_order_match(self):
-        result = create_result(PASS, PASS)
+        result = create_omtt_result(PASS, PASS)
 
         TestExecutionMatchers.tests_were_executed_in_order(
             result, [first_test_name, second_test_name]
         )
 
     def test_raises_exception_when_order_is_wrong_on_first_position(self):
-        result = create_result(PASS, PASS)
+        result = create_omtt_result(PASS, PASS)
 
         with self.assertRaises(Exception) as cm:
             TestExecutionMatchers.tests_were_executed_in_order(
@@ -51,7 +51,7 @@ class TestsWereExecutedInOrderTestSuite(unittest.TestCase):
         )
 
     def test_raises_exception_when_order_is_wrong_on_later_position(self):
-        result = create_result(PASS, PASS)
+        result = create_omtt_result(PASS, PASS)
 
         with self.assertRaises(Exception) as cm:
             TestExecutionMatchers.tests_were_executed_in_order(
@@ -64,7 +64,7 @@ class TestsWereExecutedInOrderTestSuite(unittest.TestCase):
         )
 
     def test_raises_exception_when_expected_order_list_is_longer_than_output(self):
-        result = create_result(PASS, PASS)
+        result = create_omtt_result(PASS, PASS)
 
         with self.assertRaises(Exception) as cm:
             TestExecutionMatchers.tests_were_executed_in_order(
@@ -74,7 +74,7 @@ class TestsWereExecutedInOrderTestSuite(unittest.TestCase):
         self.assertIn("Can't check order, unequal lengths.", str(cm.exception))
 
     def test_raises_exception_when_expected_order_list_is_shorter_than_output(self):
-        result = create_result(PASS, PASS)
+        result = create_omtt_result(PASS, PASS)
 
         with self.assertRaises(Exception) as cm:
             TestExecutionMatchers.tests_were_executed_in_order(
@@ -84,33 +84,33 @@ class TestsWereExecutedInOrderTestSuite(unittest.TestCase):
         self.assertIn("Can't check order, unequal lengths.", str(cm.exception))
 
 
-class TestsWasExecutedWithSpecifiedNumber(unittest.TestCase):
+class TestsWasExecutedWithSpecifiedOrder(unittest.TestCase):
     def test_does_nothing_when_number_match(self):
-        result = create_result(PASS, PASS)
+        result = create_omtt_result(PASS, PASS)
 
-        TestExecutionMatchers.test_was_executed_with_specified_number(
+        TestExecutionMatchers.test_was_executed_with_specified_order(
             result, number=2, of=2, test_file_name=second_test_name
         )
 
-    def test_raises_exception_when_number_is_wrong(self):
-        result = create_result(PASS, PASS)
+    def test_raises_exception_when_order_is_wrong(self):
+        result = create_omtt_result(PASS, PASS)
 
         with self.assertRaises(Exception) as cm:
-            TestExecutionMatchers.test_was_executed_with_specified_number(
+            TestExecutionMatchers.test_was_executed_with_specified_order(
                 result, number=1, of=2, test_file_name=second_test_name
             )
 
         self.assertIn(
-            f"Wrong (or missing) number (1/2) in line: 'Running test (2/2): examples/{second_test_name}'",
+            f"Wrong (or missing) order (1/2) in line: 'Running test (2/2): examples/{second_test_name}'",
             str(cm.exception),
         )
 
     def test_raises_exception_when_line_with_test_not_found(self):
-        result = create_result(PASS, PASS)
+        result = create_omtt_result(PASS, PASS)
         not_existing_test = "not_existing_test.omtt"
 
         with self.assertRaises(Exception) as cm:
-            TestExecutionMatchers.test_was_executed_with_specified_number(
+            TestExecutionMatchers.test_was_executed_with_specified_order(
                 result, number=1, of=2, test_file_name=not_existing_test
             )
 
@@ -121,24 +121,24 @@ class TestsWasExecutedWithSpecifiedNumber(unittest.TestCase):
 
 class TestWasExecutedWithPassTestSuite(unittest.TestCase):
     def test_assert_exception_is_not_thrown_when_test_pass(self):
-        result = create_result(PASS, PASS)
+        result = create_omtt_result(PASS, PASS)
 
         TestExecutionMatchers.test_was_executed_with_pass(result, first_test_name)
 
     def test_assert_exception_is_thrown_when_first_test_fail(self):
-        result = create_result(FAIL, PASS)
+        result = create_omtt_result(FAIL, PASS)
 
         with self.assertRaises(AssertionError):
             TestExecutionMatchers.test_was_executed_with_pass(result, first_test_name)
 
     def test_assert_exception_is_thrown_when_second_test_fail(self):
-        result = create_result(PASS, FAIL)
+        result = create_omtt_result(PASS, FAIL)
 
         with self.assertRaises(AssertionError):
             TestExecutionMatchers.test_was_executed_with_pass(result, second_test_name)
 
     def test_exception_is_thrown_when_test_name_is_not_found_in_output(self):
-        result = create_result(PASS, PASS)
+        result = create_omtt_result(PASS, PASS)
         non_existing_test_name = "some_test.omtt"
 
         with self.assertRaises(Exception) as cm:
@@ -189,24 +189,24 @@ Running test (2/2): examples/{second_test_name}
 
 class TestWasExecutedWithFailTestSuite(unittest.TestCase):
     def test_assert_exception_is_not_thrown_when_test_fail(self):
-        result = create_result(FAIL, FAIL)
+        result = create_omtt_result(FAIL, FAIL)
 
         TestExecutionMatchers.test_was_executed_with_fail(result, first_test_name)
 
     def test_assert_exception_is_thrown_when_first_test_pass(self):
-        result = create_result(PASS, FAIL)
+        result = create_omtt_result(PASS, FAIL)
 
         with self.assertRaises(AssertionError):
             TestExecutionMatchers.test_was_executed_with_fail(result, first_test_name)
 
     def test_assert_exception_is_thrown_when_second_test_pass(self):
-        result = create_result(FAIL, PASS)
+        result = create_omtt_result(FAIL, PASS)
 
         with self.assertRaises(AssertionError):
             TestExecutionMatchers.test_was_executed_with_fail(result, second_test_name)
 
     def test_exception_is_thrown_when_test_name_is_not_found_in_output(self):
-        result = create_result(FAIL, FAIL)
+        result = create_omtt_result(FAIL, FAIL)
         non_existing_test_name = "some_test.omtt"
 
         with self.assertRaises(Exception) as cm:

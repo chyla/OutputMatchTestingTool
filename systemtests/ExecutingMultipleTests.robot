@@ -63,9 +63,9 @@ Tests are executed in command line order
 Tests are enumerated in ascending order
     ${result} =    Run SUT With Helper    scat    scat-failing_scenario_when_will_expect_text_on_empty_output.omtt    scat-return_input_without_checking_output.omtt    scat-failing_scenario-output_is_shorten_than_expected_output.omtt
 
-    Test Was Executed With Specified Number    ${result}    number=1    of=3    test_file_name=scat-failing_scenario_when_will_expect_text_on_empty_output.omtt
-    Test Was Executed With Specified Number    ${result}    number=2    of=3    test_file_name=scat-return_input_without_checking_output.omtt
-    Test Was Executed With Specified Number    ${result}    number=3    of=3    test_file_name=scat-failing_scenario-output_is_shorten_than_expected_output.omtt
+    Test Was Executed With Specified Order    ${result}    number=1    of=3    test_file_name=scat-failing_scenario_when_will_expect_text_on_empty_output.omtt
+    Test Was Executed With Specified Order    ${result}    number=2    of=3    test_file_name=scat-return_input_without_checking_output.omtt
+    Test Was Executed With Specified Order    ${result}    number=3    of=3    test_file_name=scat-failing_scenario-output_is_shorten_than_expected_output.omtt
 
 
 *** Keywords ***

@@ -17,7 +17,7 @@ def tests_were_executed_in_order(result, order):
             raise Exception(f"Wrong order, expected: '{test}'; got line with: '{line}'")
 
 
-def test_was_executed_with_specified_number(result, number, of, test_file_name):
+def test_was_executed_with_specified_order(result, number, of, test_file_name):
     lines_with_tests_names = __extract_lines_with_tests_names(result)
 
     for line in lines_with_tests_names:
@@ -26,7 +26,7 @@ def test_was_executed_with_specified_number(result, number, of, test_file_name):
                 return
             else:
                 raise Exception(
-                    f"Wrong (or missing) number ({number}/{of}) in line: '{line}'"
+                    f"Wrong (or missing) order ({number}/{of}) in line: '{line}'"
                 )
 
     raise Exception(f"Line with test not found: {test_file_name}")
