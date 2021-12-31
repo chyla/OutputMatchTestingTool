@@ -845,4 +845,23 @@ TEST_CASE("Should read EMPTY keyword after 'EMPTY INPUT'")
     helper::check_has_no_more_tokens(sut);
 }
 
+TEST_CASE("Should read multi words text after 'EMPTY INPUT' in 'EXPECT OUTPUT'")
+{
+    const std::string buffer = "EMPTY INPUT\nEXPECT OUTPUT\nSome text.";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+    auto fifthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "INPUT"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_token_equality(fifthToken, {TokenKind::TEXT, "Some text."});
+    helper::check_has_no_more_tokens(sut);
+}
+
 }  // omtt::lexer

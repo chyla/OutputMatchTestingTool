@@ -103,6 +103,9 @@ Lexer::_HandleReadingKeywordsState(Lexer::ReadingKeywordsStateOptions options)
     if (word == "CODE") {
         _SwitchStateTo(State::READ_INTEGER);
     }
+    if (word == "EXPECT") {
+        _SwitchStateTo(State::READ_KEYWORDS_AND_MOVE_TO_READING_LINES);
+    }
 
     if (word == "RUN"
         || word == "WITH"
