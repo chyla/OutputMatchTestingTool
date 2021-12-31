@@ -1,0 +1,7 @@
+/*************
+ * comment   *
+ *************/
+
+RUN
+WITH EMPTY INPUT
+EXPECT EXIT CODE 0

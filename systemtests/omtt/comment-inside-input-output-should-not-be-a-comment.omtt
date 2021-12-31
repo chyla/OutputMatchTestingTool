@@ -1,0 +1,6 @@
+RUN
+WITH INPUT
+/* comment text */
+EXPECT OUTPUT
+/* comment text */
+EXPECT EXIT CODE 0

@@ -25,6 +25,19 @@ using detail::State;
 namespace
 {
 
+bool
+starts_with(const std::string_view &text, const std::string &value)
+{
+    return text.substr(0, value.length()) == value;
+}
+
+bool
+ends_with(const std::string_view &text, const std::string &value)
+{
+    return text.length() >= value.length()
+           && text.compare(text.length() - value.length(), value.length(), value) == 0;
+}
+
 const lexer::exception::UnexpectedCharacterException
 prepare_unexpected_character_exception(const char character,
                                        const std::string_view::size_type position)
@@ -65,6 +78,7 @@ Lexer::Lexer(const std::string &inputBuffer)
     fInputBuffer(inputBuffer)
 {
     fCurrentPosition = 0;
+    fLastState = State::READ_KEYWORDS_AND_MOVE_TO_READING_LINES;
     fCurrentState = State::READ_KEYWORDS_AND_MOVE_TO_READING_LINES;
 }
 
@@ -84,9 +98,29 @@ Lexer::FindNextToken()
 
         case State::READ_INTEGER:
             return _HandleReadingInteger();
+
+        case State::READ_COMMENT:
+            return _HandleReadingComment();
     };
 
     throw exception::InvalidStateHandlingException(fCurrentState);
+}
+
+std::optional<const Token>
+Lexer::_HandleReadingComment()
+{
+    const std::string_view word = _ReadNextWord();
+
+    if (ends_with(word, "*/")) {
+        _SwitchStateTo(fLastState);
+    }
+
+    if (!word.empty()) {
+        return Token{TokenKind::COMMENT, word};
+    }
+    else {
+        return std::nullopt;
+    }
 }
 
 std::optional<const Token>
@@ -121,6 +155,10 @@ Lexer::_HandleReadingKeywordsState(Lexer::ReadingKeywordsStateOptions options)
         _SwitchStateTo(State::READ_KEYWORDS);
         return Token{TokenKind::KEYWORD, word};
     }
+    else if (starts_with(word, "/*")) {
+        _SwitchStateTo(State::READ_COMMENT);
+        return Token{TokenKind::COMMENT, word};
+    }
     else if (!word.empty()) {
         return Token{TokenKind::TEXT, word};
     }
@@ -153,13 +191,16 @@ Lexer::_HandleReadingInteger()
 {
     const auto word = _ReadNextWord();
 
-    if (word != "") {
+    if (starts_with(word, "/*")) {
+        _SwitchStateTo(State::READ_COMMENT);
+        return Token{TokenKind::COMMENT, word};
+    }
+    else if (word != "") {
         throw_when_word_is_not_a_number(word, fCurrentPosition - word.size());
 
         _SwitchStateTo(State::READ_KEYWORDS_AND_MOVE_TO_READING_LINES);
 
-        return Token{TokenKind::INTEGER,
-                     word};
+        return Token{TokenKind::INTEGER, word};
     }
     else {
         return std::nullopt;
@@ -169,6 +210,7 @@ Lexer::_HandleReadingInteger()
 void
 Lexer::_SwitchStateTo(const State newState)
 {
+    fLastState = fCurrentState;
     fCurrentState = newState;
 }
 

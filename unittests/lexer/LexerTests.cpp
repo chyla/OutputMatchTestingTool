@@ -70,6 +70,72 @@ TEST_CASE("Should return empty optional on empty input")
     helper::check_has_no_more_tokens(sut);
 }
 
+TEST_CASE("Should return comment token with '/*' value")
+{
+    const std::string buffer = "/*";
+    const Token expectedToken {TokenKind::COMMENT, "/*"};
+    helper::test_one_token_with_buffer(buffer, expectedToken);
+}
+
+TEST_CASE("Should return comment token begins with '/*something' value")
+{
+    const std::string buffer = "/*something";
+    const Token expectedToken {TokenKind::COMMENT, "/*something"};
+    helper::test_one_token_with_buffer(buffer, expectedToken);
+}
+
+TEST_CASE("Should return comment token ends with 'something*/' value")
+{
+    const std::string buffer = "/* something*/";
+
+    const Token expectedFirstToken {TokenKind::COMMENT, "/*"};
+    const Token expectedSecondToken {TokenKind::COMMENT, "something*/"};
+
+    helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
+}
+
+TEST_CASE("Should return comment tokens '/*' '*/' value")
+{
+    const std::string buffer = "/* */";
+
+    const Token expectedFirstToken {TokenKind::COMMENT, "/*"};
+    const Token expectedSecondToken {TokenKind::COMMENT, "*/"};
+
+    helper::test_two_tokens_with_buffer(buffer, expectedFirstToken, expectedSecondToken);
+}
+
+TEST_CASE("Should return multiple comment tokens up to '*/' value")
+{
+    const std::string buffer = "/* some words */";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(secondToken, {TokenKind::COMMENT, "some"});
+    helper::check_token_equality(thirdToken, {TokenKind::COMMENT, "words"});
+    helper::check_token_equality(fourthToken, {TokenKind::COMMENT, "*/"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should return 'RUN' keyword after comment")
+{
+    const std::string buffer = "/* */ RUN";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(secondToken, {TokenKind::COMMENT, "*/"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "RUN"});
+    helper::check_has_no_more_tokens(sut);
+}
+
 TEST_CASE("Should return keyword token with 'RUN' value")
 {
     const std::string buffer = "RUN";
@@ -77,11 +143,56 @@ TEST_CASE("Should return keyword token with 'RUN' value")
     helper::test_one_token_with_buffer(buffer, expectedToken);
 }
 
+TEST_CASE("Should return comment after 'RUN' keyword")
+{
+    const std::string buffer = "RUN /* */";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "RUN"});
+    helper::check_token_equality(secondToken, {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(thirdToken, {TokenKind::COMMENT, "*/"});
+    helper::check_has_no_more_tokens(sut);
+}
+
 TEST_CASE("Should return keyword token with 'WITH' value")
 {
     const std::string buffer = "WITH";
     const Token expectedToken {TokenKind::KEYWORD, "WITH"};
     helper::test_one_token_with_buffer(buffer, expectedToken);
+}
+
+TEST_CASE("Should return comment before 'WITH' keyword")
+{
+    const std::string buffer = "/* */ WITH";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(secondToken, {TokenKind::COMMENT, "*/"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "WITH"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should return comment after 'WITH' keyword")
+{
+    const std::string buffer = "WITH /* */";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "WITH"});
+    helper::check_token_equality(secondToken, {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(thirdToken, {TokenKind::COMMENT, "*/"});
+    helper::check_has_no_more_tokens(sut);
 }
 
 TEST_CASE("Should return keyword token with 'INPUT' value")
@@ -94,6 +205,23 @@ TEST_CASE("Should return keyword token with 'INPUT' value")
     helper::check_token_equality(token, {TokenKind::KEYWORD, "INPUT"});
 }
 
+TEST_CASE("Should return comment before 'INPUT' keyword")
+{
+    const std::string buffer = "/* */ INPUT";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(secondToken, {TokenKind::COMMENT, "*/"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "INPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::TEXT, ""});
+    helper::check_has_no_more_tokens(sut);
+}
+
 TEST_CASE("Should return keyword token with 'EXPECT' value")
 {
     const std::string buffer = "EXPECT";
@@ -101,11 +229,71 @@ TEST_CASE("Should return keyword token with 'EXPECT' value")
     helper::test_one_token_with_buffer(buffer, expectedToken);
 }
 
+TEST_CASE("Should return comment before 'EXPECT' keyword")
+{
+    const std::string buffer = "/* */ EXPECT";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(secondToken, {TokenKind::COMMENT, "*/"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should return comment after 'EXPECT' keyword")
+{
+    const std::string buffer = "EXPECT /* */";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(secondToken, {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(thirdToken, {TokenKind::COMMENT, "*/"});
+    helper::check_has_no_more_tokens(sut);
+}
+
 TEST_CASE("Should return keyword token with 'EMPTY' value")
 {
     const std::string buffer = "EMPTY";
     const Token expectedToken {TokenKind::KEYWORD, "EMPTY"};
     helper::test_one_token_with_buffer(buffer, expectedToken);
+}
+
+TEST_CASE("Should return comment before 'EMPTY' keyword")
+{
+    const std::string buffer = "/* */ EMPTY";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(secondToken, {TokenKind::COMMENT, "*/"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should return comment after 'EMPTY' keyword")
+{
+    const std::string buffer = "EMPTY /* */";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(secondToken, {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(thirdToken, {TokenKind::COMMENT, "*/"});
+    helper::check_has_no_more_tokens(sut);
 }
 
 TEST_CASE("Should return keyword token with 'OUTPUT' value")
@@ -118,6 +306,23 @@ TEST_CASE("Should return keyword token with 'OUTPUT' value")
     helper::check_token_equality(token, {TokenKind::KEYWORD, "OUTPUT"});
 }
 
+TEST_CASE("Should return comment before 'OUTPUT' keyword")
+{
+    const std::string buffer = "/* */ OUTPUT";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(secondToken, {TokenKind::COMMENT, "*/"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_token_equality(fourthToken, {TokenKind::TEXT, ""});
+    helper::check_has_no_more_tokens(sut);
+}
+
 TEST_CASE("Should return keyword token with 'EXIT' value")
 {
     const std::string buffer = "EXIT";
@@ -125,11 +330,71 @@ TEST_CASE("Should return keyword token with 'EXIT' value")
     helper::test_one_token_with_buffer(buffer, expectedToken);
 }
 
+TEST_CASE("Should return comment before 'EXIT' keyword")
+{
+    const std::string buffer = "/* */ EXIT";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(secondToken, {TokenKind::COMMENT, "*/"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "EXIT"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should return comment after 'EXIT' keyword")
+{
+    const std::string buffer = "EXIT /* */";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EXIT"});
+    helper::check_token_equality(secondToken, {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(thirdToken, {TokenKind::COMMENT, "*/"});
+    helper::check_has_no_more_tokens(sut);
+}
+
 TEST_CASE("Should return keyword token with 'IN' value")
 {
     const std::string buffer = "IN";
     const Token expectedToken {TokenKind::KEYWORD, "IN"};
     helper::test_one_token_with_buffer(buffer, expectedToken);
+}
+
+TEST_CASE("Should return comment before 'IN' keyword")
+{
+    const std::string buffer = "/* */ IN";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(secondToken, {TokenKind::COMMENT, "*/"});
+    helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "IN"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should return comment after 'IN' keyword")
+{
+    const std::string buffer = "IN /* */";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "IN"});
+    helper::check_token_equality(secondToken, {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(thirdToken, {TokenKind::COMMENT, "*/"});
+    helper::check_has_no_more_tokens(sut);
 }
 
 TEST_CASE("Should return keyword token with 'IN' value even when there are spaces at the begining of the input")
@@ -360,6 +625,23 @@ TEST_CASE("After the 'CODE' keyword should throw exception when number has chara
     CHECK_THROWS_AS(sut.FindNextToken(), exception::UnexpectedCharacterException);
 }
 
+TEST_CASE("Should return integer after 'CODE' with comment keyword")
+{
+    const std::string buffer = "CODE /* */ 5";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "CODE"});
+    helper::check_token_equality(secondToken, {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(thirdToken, {TokenKind::COMMENT, "*/"});
+    helper::check_token_equality(fourthToken, {TokenKind::INTEGER, "5"});
+    helper::check_has_no_more_tokens(sut);
+}
+
 TEST_CASE("After the 'CODE' keyword should return integer and parse next keyword")
 {
     const std::string buffer = "CODE 3152 EXPECT";
@@ -517,6 +799,23 @@ TEST_CASE("Should read text after 'EMPTY OUTPUT' as TEXT tokens")
     helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "OUTPUT"});
     helper::check_token_equality(fourthToken, {TokenKind::TEXT, "unexpected"});
     helper::check_token_equality(sixthToken, {TokenKind::TEXT, "text"});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should return comment after 'EMPTY OUTPUT' keywords")
+{
+    const std::string buffer = "EMPTY OUTPUT /* */";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_token_equality(thirdToken, {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(fourthToken, {TokenKind::COMMENT, "*/"});
     helper::check_has_no_more_tokens(sut);
 }
 
@@ -692,6 +991,23 @@ TEST_CASE("Should read text after 'EMPTY INPUT' as TEXT tokens")
     helper::check_has_no_more_tokens(sut);
 }
 
+TEST_CASE("Should return comment after 'EMPTY INPUT' keywords")
+{
+    const std::string buffer = "EMPTY INPUT /* */";
+    Lexer sut(buffer);
+
+    auto token = sut.FindNextToken();
+    auto secondToken = sut.FindNextToken();
+    auto thirdToken = sut.FindNextToken();
+    auto fourthToken = sut.FindNextToken();
+
+    helper::check_token_equality(token, {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(secondToken, {TokenKind::KEYWORD, "INPUT"});
+    helper::check_token_equality(thirdToken, {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(fourthToken, {TokenKind::COMMENT, "*/"});
+    helper::check_has_no_more_tokens(sut);
+}
+
 TEST_CASE("Should read EXPECT keyword after 'EMPTY INPUT'")
 {
     const std::string buffer = "EXPECT EMPTY INPUT\nEXPECT";
@@ -861,6 +1177,36 @@ TEST_CASE("Should read multi words text after 'EMPTY INPUT' in 'EXPECT OUTPUT'")
     helper::check_token_equality(thirdToken, {TokenKind::KEYWORD, "EXPECT"});
     helper::check_token_equality(fourthToken, {TokenKind::KEYWORD, "OUTPUT"});
     helper::check_token_equality(fifthToken, {TokenKind::TEXT, "Some text."});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read multi words text after comment, 'EMPTY INPUT' in 'EXPECT OUTPUT")
+{
+    const std::string buffer = "EMPTY INPUT /* */ EXPECT OUTPUT\nSome text.";
+    Lexer sut(buffer);
+
+    helper::check_token_equality(sut.FindNextToken(), {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(sut.FindNextToken(), {TokenKind::KEYWORD, "INPUT"});
+    helper::check_token_equality(sut.FindNextToken(), {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(sut.FindNextToken(), {TokenKind::COMMENT, "*/"});
+    helper::check_token_equality(sut.FindNextToken(), {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(sut.FindNextToken(), {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_token_equality(sut.FindNextToken(), {TokenKind::TEXT, "Some text."});
+    helper::check_has_no_more_tokens(sut);
+}
+
+TEST_CASE("Should read keyword after EMPTY with comment")
+{
+    const std::string buffer = "EMPTY /* */ INPUT EXPECT OUTPUT\nSome text.";
+    Lexer sut(buffer);
+
+    helper::check_token_equality(sut.FindNextToken(), {TokenKind::KEYWORD, "EMPTY"});
+    helper::check_token_equality(sut.FindNextToken(), {TokenKind::COMMENT, "/*"});
+    helper::check_token_equality(sut.FindNextToken(), {TokenKind::COMMENT, "*/"});
+    helper::check_token_equality(sut.FindNextToken(), {TokenKind::KEYWORD, "INPUT"});
+    helper::check_token_equality(sut.FindNextToken(), {TokenKind::KEYWORD, "EXPECT"});
+    helper::check_token_equality(sut.FindNextToken(), {TokenKind::KEYWORD, "OUTPUT"});
+    helper::check_token_equality(sut.FindNextToken(), {TokenKind::TEXT, "Some text."});
     helper::check_has_no_more_tokens(sut);
 }
 

@@ -1,6 +1,10 @@
+/*
+ * This test will check cat prints given input and exits with zero.
+ */
+
 RUN
 WITH INPUT
 Hello world!
-EXPECT EXIT CODE 0
 EXPECT OUTPUT
 Hello world!
+EXPECT EXIT CODE 0

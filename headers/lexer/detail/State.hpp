@@ -15,7 +15,8 @@ enum class State {
     READ_KEYWORDS_AND_MOVE_TO_READING_LINES,
     READ_KEYWORDS,
     READ_LINES_UP_TO_EXPECT,
-    READ_INTEGER
+    READ_INTEGER,
+    READ_COMMENT
 };
 
 }  // omtt::lexer::detail

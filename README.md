@@ -52,7 +52,7 @@ Verdict: PASS
 1 tests total, 1 passed, 0 failed
 ```
 
-You will see more info when the test fails. See this test example
+You will see more info when the test fail. See this test example
 for the `cat` program:
 
 ```text
@@ -120,6 +120,22 @@ W    O    R    L    D
 0x57 0x4f 0x52 0x4c 0x44
 ====================
 1 tests total, 0 passed, 1 failed
+```
+
+Comments begins with `/*` and ends with `*/`, are allowed only on top
+of the test (see the `cat-will_print_input_and_exit_with_zero.omtt` example):
+
+```text
+/*
+ * This test will check cat prints given input and exits with zero.
+ */
+
+RUN
+WITH INPUT
+Hello world!
+EXPECT OUTPUT
+Hello world!
+EXPECT EXIT CODE 0
 ```
 
 Multiple tests can be executed by passing its paths in command line:

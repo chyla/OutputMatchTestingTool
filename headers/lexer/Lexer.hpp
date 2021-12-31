@@ -33,6 +33,7 @@ private:
     };
 
 private:
+             std::optional<const Token>   _HandleReadingComment();
              std::optional<const Token>   _HandleReadingKeywordsState(Lexer::ReadingKeywordsStateOptions = Lexer::ReadingKeywordsStateOptions::NONE);
              std::optional<const Token>   _HandleReadingLinesUpToExpectState();
              std::optional<const Token>   _HandleReadingLinesUpToEofState();
@@ -50,6 +51,7 @@ private:
 private:
     const    std::string &                fInputBuffer;
              std::string::size_type       fCurrentPosition;
+             detail::State                fLastState;
              detail::State                fCurrentState;
 };
 

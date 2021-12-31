@@ -113,7 +113,7 @@ private:
     void
     _HandleRunState()
     {
-        _ExpectKeywordAndSwitchToState("RUN", State::WITH);
+        _IgnoreCommentExpectKeywordAndSwitchToState("RUN", State::WITH);
     }
 
     void
@@ -305,6 +305,30 @@ private:
         _ThrowWhenNotKeywordOrHasDifferrentName({expectedKeywordName}, *token);
 
         fCurrentState = state;
+    }
+
+    void
+    _IgnoreCommentExpectKeywordAndSwitchToState(const std::string &expectedKeywordName, const State state)
+    {
+        auto token = _GetNextNonCommentToken();
+
+        _ThrowMissingKeywordWhenTokenNotPresent({expectedKeywordName}, token);
+        _ThrowWhenNotKeywordOrHasDifferrentName({expectedKeywordName}, *token);
+
+        fCurrentState = state;
+    }
+
+    std::optional<const omtt::lexer::Token>
+    _GetNextNonCommentToken()
+    {
+        while (true) {
+            auto token = fLexer.FindNextToken();
+
+            if (!token.has_value()
+                || (token.has_value() && token->kind != omtt::lexer::TokenKind::COMMENT)) {
+                    return token;
+            }
+        }
     }
 
     static void
