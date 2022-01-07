@@ -21,6 +21,8 @@ Here is what the manual says about it: *concatenate files and print
 on the standard output*. When the input file is not given the standard
 input is printed on the standard output, we will use this.
 
+### Full output match
+
 Here is the first test file example for the `cat` program:
 
 ```text
@@ -92,6 +94,8 @@ S    o    m    e    SPC  t    e    x    t    .
 1 tests total, 0 passed, 1 failed
 ```
 
+### Partial output match
+
 It's possible to search for only part of output, it won't give you detailed description about the mismatch like in full output match. Here's example:
 
 ```text
@@ -122,6 +126,8 @@ W    O    R    L    D
 1 tests total, 0 passed, 1 failed
 ```
 
+### Comments
+
 Comments begins with `/*` and ends with `*/`, are allowed only on top
 of the test (see the `cat-will_print_input_and_exit_with_zero.omtt` example):
 
@@ -137,6 +143,8 @@ EXPECT OUTPUT
 Hello world!
 EXPECT EXIT CODE 0
 ```
+
+### Running multiple tests
 
 Multiple tests can be executed by passing its paths in command line:
 
@@ -183,6 +191,8 @@ Verdict: PASS
 ====================
 4 tests total, 4 passed, 0 failed
 ```
+
+### Examples
 
 See more tests examples in the `examples` directory.
 
