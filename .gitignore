@@ -71,5 +71,6 @@ Makefile
 /systemtests/apps/crash_null_ptr_dereference
 /systemtests/apps/sleep3
 /systemtests/apps/close_input_and_print_some_output
+/systemtests/apps/scaterr
 # tests output
 /systemtests/output/

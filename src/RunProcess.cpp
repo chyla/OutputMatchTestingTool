@@ -145,6 +145,7 @@ RunProcess(const std::string &path,
     const auto toParentPipe = system::unix::MakePipe();
     const auto toChildPipe = system::unix::MakePipe();
     const auto toParentInternalErrorsPipe = system::unix::MakePipe(system::unix::PipeOptions::CLOSE_ON_EXEC);
+    const auto toParentErrorsPipe = system::unix::MakePipe();
 
     const auto childrenPid = system::unix::Fork();
 
@@ -152,13 +153,15 @@ RunProcess(const std::string &path,
         system::unix::Close(toParentPipe.writeEnd);
         system::unix::Close(toChildPipe.readEnd);
         system::unix::Close(toParentInternalErrorsPipe.writeEnd);
+        system::unix::Close(toParentErrorsPipe.writeEnd);
 
         changeToNonBlocking(toChildPipe.writeEnd);
 
         struct pollfd fds[] = {
             {toParentPipe.readEnd, POLLIN, 0},
             {toChildPipe.writeEnd, POLLOUT, 0},
-            {toParentInternalErrorsPipe.readEnd, POLLIN, 0}
+            {toParentInternalErrorsPipe.readEnd, POLLIN, 0},
+            {toParentErrorsPipe.readEnd, POLLIN, 0}
         };
 
         std::string_view::size_type wroteToChild = 0;
@@ -179,6 +182,14 @@ RunProcess(const std::string &path,
                 const int readBytes = ReadToBuffer(fds[0].fd, buf);
                 if (readBytes > 0) {
                     results.output += buf.data();
+                    systemBuffersMayStillHaveData = true;
+                }
+            }
+
+            if (IsAbleToRead(fds[3])) {
+                const int readBytes = ReadToBuffer(fds[3].fd, buf);
+                if (readBytes > 0) {
+                    results.errors += buf.data();
                     systemBuffersMayStillHaveData = true;
                 }
             }
@@ -219,6 +230,7 @@ RunProcess(const std::string &path,
 
         system::unix::Close(toParentPipe.readEnd);
         system::unix::Close(toParentInternalErrorsPipe.readEnd);
+        system::unix::Close(toParentErrorsPipe.readEnd);
 
         results.exitCode = ExitCode(processExitStatus);
 
@@ -231,9 +243,11 @@ RunProcess(const std::string &path,
             system::unix::Close(toParentPipe.readEnd);
             system::unix::Close(toChildPipe.writeEnd);
             system::unix::Close(toParentInternalErrorsPipe.readEnd);
+            system::unix::Close(toParentErrorsPipe.readEnd);
 
             RedirectPipe(toChildPipe.readEnd, static_cast<int>(system::unix::FdId::STDIN));
             RedirectPipe(toParentPipe.writeEnd, static_cast<int>(system::unix::FdId::STDOUT));
+            RedirectPipe(toParentErrorsPipe.writeEnd, static_cast<int>(system::unix::FdId::STDERR));
 
             system::unix::Exec(path, options);
         }

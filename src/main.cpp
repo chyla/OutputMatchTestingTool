@@ -196,7 +196,7 @@ RunAllTests(std::optional<omtt::Path> interpreter,
 
         const omtt::TestExecutionSummary summary = omtt::ValidateExpectationsAndSutResults(testData, processResults);
 
-        logger->EndTestExecution(summary);
+        logger->EndTestExecution(processResults, summary);
 
         if (summary.verdict != omtt::Verdict::PASS) {
             ++numberOfTestsFailed;

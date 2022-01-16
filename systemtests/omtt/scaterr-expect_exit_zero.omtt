@@ -1,0 +1,4 @@
+RUN
+WITH INPUT
+example error message
+EXPECT EXIT CODE 0

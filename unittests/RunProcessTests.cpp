@@ -577,6 +577,431 @@ TEST_GROUP("Read Child Process Output")
 }
 
 
+TEST_GROUP("Read Child Process Errors")
+{
+    system::unix::ResetGlobalFake();
+
+    systemFake.MakePipeAction = [](const system::unix::PipeOptions option) -> system::unix::Pipe { return {0, 0}; };
+    systemFake.ForkAction = []() { return anyChildProcessId; };
+    systemFake.CloseAction = [](int) {};
+    systemFake.WriteAction = [](int, const void *, size_t, system::unix::WriteOptions) -> ssize_t { return 0; };
+    systemFake.WaitPidAction = [run = 0](int pid, int *wstatus, int options) mutable {
+                                    run++;
+                                    if (run == 10) {
+                                        return 1;
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                               };
+    systemFake.SigAction = [](int, const struct sigaction*, struct sigaction*) {};
+    systemFake.Signal = [](int, sighandler_t){};
+    systemFake.FcntlAction = [](int, int, int) { return 0; };
+
+    UNIT_TEST("Should return process errors when errors output is short")
+    {
+        const std::string expectedProcessErrors = "ShortErrors";
+
+        systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                    ++run;
+                                    if (run == 1) {
+                                        fds[3].revents = POLLIN;
+                                    }
+                                    else {
+                                        fds[3].revents = POLLHUP;
+                                    }
+                                    fds[0].revents = POLLHUP;
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
+        systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t count) mutable -> ssize_t {
+                                    ++run;
+                                    auto dest = static_cast<char*>(buf);
+                                    if (run == 1) {
+                                        std::copy(expectedProcessErrors.begin(), expectedProcessErrors.end(), dest);
+                                        return expectedProcessErrors.length();
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                };
+
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
+
+        CHECK(results.errors == expectedProcessErrors);
+    }
+
+    UNIT_TEST("Should return process errors when errors output is long and requires multiple read calls, but sometimes read returns nothing")
+    {
+        const std::string expedtedProcessErrorsPart1 = "L";
+        const std::string expedtedProcessErrorsPart2 = "ongProcess";
+        const std::string expedtedProcessErrorsPart3 = "Errors";
+        const std::string expectedProcessErrors = expedtedProcessErrorsPart1
+                                                  + expedtedProcessErrorsPart2
+                                                  + expedtedProcessErrorsPart3;
+
+        systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                    ++run;
+                                    if (run == 1) {
+                                        fds[3].revents = POLLIN;
+                                    }
+                                    else if (run == 2) {
+                                        fds[3].revents = POLLIN;
+                                    }
+                                    else if (run == 3) {
+                                        fds[3].revents = POLLIN;
+                                    }
+                                    else if (run == 4) {
+                                        fds[3].revents = POLLIN;
+                                    }
+                                    else if (run == 5) {
+                                        fds[3].revents = POLLIN;
+                                    }
+                                    else if (run == 6) {
+                                        fds[3].revents = POLLIN;
+                                    }
+                                    else {
+                                        fds[3].revents = POLLHUP | POLLIN;
+                                    }
+                                    fds[0].revents = POLLHUP;
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
+        systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t count) mutable -> ssize_t {
+                                    ++run;
+                                    auto dest = static_cast<char*>(buf);
+                                    if (run == 1) {
+                                        std::copy(expedtedProcessErrorsPart1.begin(), expedtedProcessErrorsPart1.end(), dest);
+                                        return expedtedProcessErrorsPart1.length();
+                                    }
+                                    else if (run == 2) {
+                                        return 0;
+                                    }
+                                    else if (run == 3) {
+                                        return 0;
+                                    }
+                                    else if (run == 4) {
+                                        std::copy(expedtedProcessErrorsPart2.begin(), expedtedProcessErrorsPart2.end(), dest);
+                                        return expedtedProcessErrorsPart2.length();
+                                    }
+                                    else if (run == 5) {
+                                        return 0;
+                                    }
+                                    else if (run == 6) {
+                                        std::copy(expedtedProcessErrorsPart3.begin(), expedtedProcessErrorsPart3.end(), dest);
+                                        return expedtedProcessErrorsPart3.length();
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                };
+
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
+
+        CHECK(results.errors == expectedProcessErrors);
+    }
+
+    UNIT_TEST("Should return process errors when errors output is long and requires multiple read calls, but there is not always POLLIN set")
+    {
+        const std::string expedtedProcessErrorsPart1 = "L";
+        const std::string expedtedProcessErrorsPart2 = "ongProcess";
+        const std::string expedtedProcessErrorsPart3 = "Output";
+        const std::string expectedProcessErrors = expedtedProcessErrorsPart1
+                                                  + expedtedProcessErrorsPart2
+                                                  + expedtedProcessErrorsPart3;
+
+        systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                    ++run;
+                                    if (run == 1) {
+                                        fds[3].revents = POLLIN;
+                                    }
+                                    else if (run == 2) {
+                                        fds[3].revents = 0;
+                                    }
+                                    else if (run == 3) {
+                                        fds[3].revents = POLLIN;
+                                    }
+                                    else if (run == 4) {
+                                        fds[3].revents = POLLIN;
+                                    }
+                                    else if (run == 5) {
+                                        fds[3].revents = 0;
+                                    }
+                                    else if (run == 6) {
+                                        fds[3].revents = 0;
+                                    }
+                                    else {
+                                        fds[3].revents = POLLHUP;
+                                    }
+                                    fds[0].revents = POLLHUP;
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
+        systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t count) mutable -> ssize_t {
+                                    ++run;
+                                    auto dest = static_cast<char*>(buf);
+                                    if (run == 1) {
+                                        std::copy(expedtedProcessErrorsPart1.begin(), expedtedProcessErrorsPart1.end(), dest);
+                                        return expedtedProcessErrorsPart1.length();
+                                    }
+                                    else if (run == 2) {
+                                        std::copy(expedtedProcessErrorsPart2.begin(), expedtedProcessErrorsPart2.end(), dest);
+                                        return expedtedProcessErrorsPart2.length();
+                                    }
+                                    else if (run == 3) {
+                                        std::copy(expedtedProcessErrorsPart3.begin(), expedtedProcessErrorsPart3.end(), dest);
+                                        return expedtedProcessErrorsPart3.length();
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                };
+
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
+
+        CHECK(results.errors == expectedProcessErrors);
+    }
+
+    UNIT_TEST("Should return process errors when errors output is long and requires multiple read calls")
+    {
+        const std::string expedtedProcessErrorsPart1 = "L";
+        const std::string expedtedProcessErrorsPart2 = "ongProcess";
+        const std::string expedtedProcessErrorsPart3 = "Output";
+        const std::string expectedProcessErrors = expedtedProcessErrorsPart1
+                                                  + expedtedProcessErrorsPart2
+                                                  + expedtedProcessErrorsPart3;
+
+        systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                    ++run;
+                                    if (run <= 3) {
+                                        fds[3].revents = POLLIN;
+                                    }
+                                    else {
+                                        fds[3].revents = POLLHUP;
+                                    }
+                                    fds[0].revents = POLLHUP;
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
+        systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t count) mutable -> ssize_t {
+                                    ++run;
+                                    auto dest = static_cast<char*>(buf);
+                                    if (run == 1) {
+                                        std::copy(expedtedProcessErrorsPart1.begin(), expedtedProcessErrorsPart1.end(), dest);
+                                        return expedtedProcessErrorsPart1.length();
+                                    }
+                                    else if (run == 2) {
+                                        std::copy(expedtedProcessErrorsPart2.begin(), expedtedProcessErrorsPart2.end(), dest);
+                                        return expedtedProcessErrorsPart2.length();
+                                    }
+                                    else if (run == 3) {
+                                        std::copy(expedtedProcessErrorsPart3.begin(), expedtedProcessErrorsPart3.end(), dest);
+                                        return expedtedProcessErrorsPart3.length();
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                };
+
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
+
+        CHECK(results.errors == expectedProcessErrors);
+    }
+
+    UNIT_TEST("Should return process errors when children closed stderr and exited but there are still some data to read from the system buffer, POLLIN is NOT SET when there is no more data (Linux)")
+    {
+        const std::string expedtedProcessErrorsPart1 = "Long";
+        const std::string expedtedProcessErrorsPart2 = "Proc";
+        const std::string expedtedProcessErrorsPart3 = "essOutput";
+        const std::string expectedProcessErrors = expedtedProcessErrorsPart1
+                                                  + expedtedProcessErrorsPart2
+                                                  + expedtedProcessErrorsPart3;
+
+        systemFake.WaitPidAction = [](int pid, int *wstatus, int options) {
+                                    return 1;
+                                };
+        systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                    ++run;
+                                    if (run <= 3) {
+                                        fds[3].revents = POLLHUP | POLLIN;
+                                    }
+                                    else {
+                                        fds[3].revents = POLLHUP;
+                                    }
+                                    fds[0].revents = POLLHUP;
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    return 0;
+                                };
+        systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t count) mutable -> ssize_t {
+                                    ++run;
+                                    auto dest = static_cast<char*>(buf);
+                                    if (run == 1) {
+                                        std::copy(expedtedProcessErrorsPart1.begin(), expedtedProcessErrorsPart1.end(), dest);
+                                        return expedtedProcessErrorsPart1.length();
+                                    }
+                                    else if (run == 2) {
+                                        std::copy(expedtedProcessErrorsPart2.begin(), expedtedProcessErrorsPart2.end(), dest);
+                                        return expedtedProcessErrorsPart2.length();
+                                    }
+                                    else if (run == 3) {
+                                        std::copy(expedtedProcessErrorsPart3.begin(), expedtedProcessErrorsPart3.end(), dest);
+                                        return expedtedProcessErrorsPart3.length();
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                };
+
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
+
+        CHECK(results.errors == expectedProcessErrors);
+    }
+
+    UNIT_TEST("Should return process errors when children closed stderr and exited but there are still some data to read from the system buffer, POLLIN is STILL SET when there is no data (FreeBSD)")
+    {
+        const std::string expedtedProcessErrorsPart1 = "Long";
+        const std::string expedtedProcessErrorsPart2 = "Proc";
+        const std::string expedtedProcessErrorsPart3 = "essOutput";
+        const std::string expectedProcessErrors = expedtedProcessErrorsPart1
+                                                  + expedtedProcessErrorsPart2
+                                                  + expedtedProcessErrorsPart3;
+
+        systemFake.WaitPidAction = [](int pid, int *wstatus, int options) {
+                                    return 1;
+                                };
+        systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                    ++run;
+                                    fds[0].revents = POLLHUP;
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    fds[3].revents = POLLHUP | POLLIN;
+                                    return 0;
+                                };
+        systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t count) mutable -> ssize_t {
+                                    ++run;
+                                    auto dest = static_cast<char*>(buf);
+                                    if (run == 1) {
+                                        std::copy(expedtedProcessErrorsPart1.begin(), expedtedProcessErrorsPart1.end(), dest);
+                                        return expedtedProcessErrorsPart1.length();
+                                    }
+                                    else if (run == 2) {
+                                        std::copy(expedtedProcessErrorsPart2.begin(), expedtedProcessErrorsPart2.end(), dest);
+                                        return expedtedProcessErrorsPart2.length();
+                                    }
+                                    else if (run == 3) {
+                                        std::copy(expedtedProcessErrorsPart3.begin(), expedtedProcessErrorsPart3.end(), dest);
+                                        return expedtedProcessErrorsPart3.length();
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                };
+
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
+
+        CHECK(results.errors == expectedProcessErrors);
+    }
+
+    UNIT_TEST("Should return process errors when children closed stderr and exited but there are still some data to read from the system buffer, only POLLIN is SET when child exit (Cygwin)")
+    {
+        const std::string expedtedProcessErrorsPart1 = "Long";
+        const std::string expedtedProcessErrorsPart2 = "Proc";
+        const std::string expedtedProcessErrorsPart3 = "essOutput";
+        const std::string expectedErrorsOutput = expedtedProcessErrorsPart1
+                                                  + expedtedProcessErrorsPart2
+                                                  + expedtedProcessErrorsPart3;
+
+        systemFake.WaitPidAction = [](int pid, int *wstatus, int options) {
+                                    return 1;
+                                };
+        systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                    ++run;
+                                    fds[0].revents = POLLHUP;
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    fds[3].revents = POLLIN;
+                                    return 0;
+                                };
+        systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t count) mutable -> ssize_t {
+                                    ++run;
+                                    auto dest = static_cast<char*>(buf);
+                                    if (run == 1) {
+                                        std::copy(expedtedProcessErrorsPart1.begin(), expedtedProcessErrorsPart1.end(), dest);
+                                        return expedtedProcessErrorsPart1.length();
+                                    }
+                                    else if (run == 2) {
+                                        std::copy(expedtedProcessErrorsPart2.begin(), expedtedProcessErrorsPart2.end(), dest);
+                                        return expedtedProcessErrorsPart2.length();
+                                    }
+                                    else if (run == 3) {
+                                        std::copy(expedtedProcessErrorsPart3.begin(), expedtedProcessErrorsPart3.end(), dest);
+                                        return expedtedProcessErrorsPart3.length();
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                };
+
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
+
+        CHECK(results.errors == expectedErrorsOutput);
+    }
+
+    UNIT_TEST("Should return process errors when child doesn't return any data at begining, then quickly returns data and exits")
+    {
+        const std::string expedtedProcessErrorsPart1 = "Long";
+        const std::string expedtedProcessErrorsPart2 = "Proc";
+        const std::string expedtedProcessErrorsPart3 = "essOutput";
+        const std::string expectedProcessErrors = expedtedProcessErrorsPart1
+                                                  + expedtedProcessErrorsPart2
+                                                  + expedtedProcessErrorsPart3;
+
+        systemFake.WaitPidAction = [](int pid, int *wstatus, int options) {
+                                    return 1;
+                                };
+        systemFake.PollAction = [run = 0](struct pollfd *fds, nfds_t nfds, int timeout) mutable {
+                                    ++run;
+                                    fds[0].revents = POLLHUP;
+                                    fds[1].revents = POLLHUP;
+                                    fds[2].revents = POLLHUP;
+                                    fds[3].revents = POLLIN;
+                                    return 0;
+                                };
+        systemFake.ReadAction = [&, run = 0](int fd, void *buf, size_t count) mutable -> ssize_t {
+                                    ++run;
+                                    auto dest = static_cast<char*>(buf);
+                                    if (run == 1) {
+                                        return 0;
+                                    }
+                                    else if (run == 2) {
+                                        std::copy(expedtedProcessErrorsPart1.begin(), expedtedProcessErrorsPart1.end(), dest);
+                                        return expedtedProcessErrorsPart1.length();
+                                    }
+                                    else if (run == 3) {
+                                        std::copy(expedtedProcessErrorsPart2.begin(), expedtedProcessErrorsPart2.end(), dest);
+                                        return expedtedProcessErrorsPart2.length();
+                                    }
+                                    else if (run == 4) {
+                                        std::copy(expedtedProcessErrorsPart3.begin(), expedtedProcessErrorsPart3.end(), dest);
+                                        return expedtedProcessErrorsPart3.length();
+                                    }
+                                    else {
+                                        return 0;
+                                    }
+                                };
+
+        ProcessResults results = RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
+
+        CHECK(results.errors == expectedProcessErrors);
+    }
+}
+
+
 TEST_GROUP("Write To Child Process")
 {
     system::unix::ResetGlobalFake();
@@ -864,6 +1289,10 @@ TEST_GROUP("Pipes Management")
     constexpr int toParentInternalErrorsWriteEnd = 33;
     constexpr system::unix::Pipe toParentInternalErrorsPipe = {toParentInternalErrorsReadEnd, toParentInternalErrorsWriteEnd};
 
+    constexpr int toParentErrorsReadEnd = 42;
+    constexpr int toParentErrorsWriteEnd = 43;
+    constexpr system::unix::Pipe toParentErrorsPipe = {toParentErrorsReadEnd, toParentErrorsWriteEnd};
+
     systemFake.MakePipeAction = [run = 0](const system::unix::PipeOptions option) mutable -> system::unix::Pipe {
                                     ++run;
                                     if (run == 1) {
@@ -874,6 +1303,9 @@ TEST_GROUP("Pipes Management")
                                     }
                                     else if (run == 3) {
                                         return toParentInternalErrorsPipe;
+                                    }
+                                    else if (run == 4) {
+                                        return toParentErrorsPipe;
                                     }
                                     else {
                                         throw std::logic_error("Unexpected call to system::unix::Pipe().");
@@ -929,6 +1361,8 @@ TEST_GROUP("Pipes Management")
             bool isClosedToChildWriteEnd = false;
             bool isClosedToParentInternalErrorsReadEnd = false;
             bool isClosedToParentInternalErrorsWriteEnd = false;
+            bool isClosedToParentErrorsReadEnd = false;
+            bool isClosedToParentErrorsWriteEnd = false;
 
             systemFake.CloseAction = [&](int fd) {
                                          if (isClosedToParentReadEnd == false && toParentReadEnd == fd) {
@@ -949,6 +1383,12 @@ TEST_GROUP("Pipes Management")
                                          else if (isClosedToParentInternalErrorsWriteEnd == false && toParentInternalErrorsWriteEnd == fd) {
                                              isClosedToParentInternalErrorsWriteEnd = true;
                                          }
+                                         else if (isClosedToParentErrorsReadEnd == false && toParentErrorsReadEnd == fd) {
+                                             isClosedToParentErrorsReadEnd = true;
+                                         }
+                                         else if (isClosedToParentErrorsWriteEnd == false && toParentErrorsWriteEnd == fd) {
+                                             isClosedToParentErrorsWriteEnd = true;
+                                         }
                                          else {
                                              throw std::logic_error("Unexpected fd to close or already closed: " + std::to_string(fd));
                                          }
@@ -962,6 +1402,8 @@ TEST_GROUP("Pipes Management")
             CHECK(isClosedToChildWriteEnd == true);
             CHECK(isClosedToParentInternalErrorsReadEnd == true);
             CHECK(isClosedToParentInternalErrorsWriteEnd == true);
+            CHECK(isClosedToParentErrorsReadEnd == true);
+            CHECK(isClosedToParentErrorsWriteEnd == true);
         }
 
         UNIT_TEST("Should close toChildWriteEnd after all the data was written to the pipe and the remote side is working")
@@ -1132,11 +1574,12 @@ TEST_GROUP("Pipes Management")
             CHECK(isClosedToParentReadEnd == true);
         }
 
-        UNIT_TEST("Should close pipes ends before exception throw")
+        UNIT_TEST("Should close pipes ends before exception throw due to sut run failure")
         {
             constexpr int readFromParentInternalErrorsReadEndRun = 1;
             bool isClosedToParentReadEnd = false;
             bool isClosedToParentInternalErrorsReadEnd = false;
+            bool isClosedToParentErrorsReadEnd = false;
 
             systemFake.WriteAction = [](int, const void *, size_t length, system::unix::WriteOptions) -> ssize_t {
                                          return length;
@@ -1159,6 +1602,9 @@ TEST_GROUP("Pipes Management")
                                          }
                                          else if (isClosedToParentInternalErrorsReadEnd == false && toParentInternalErrorsReadEnd == fd) {
                                              isClosedToParentInternalErrorsReadEnd = true;
+                                         }
+                                         else if (isClosedToParentErrorsReadEnd == false && toParentErrorsReadEnd == fd) {
+                                             isClosedToParentErrorsReadEnd = true;
                                          }
                                          else if (toParentReadEnd == fd
                                                   || toParentInternalErrorsReadEnd == fd) {
@@ -1183,6 +1629,7 @@ TEST_GROUP("Pipes Management")
 
             CHECK(isClosedToParentReadEnd == true);
             CHECK(isClosedToParentInternalErrorsReadEnd == true);
+            CHECK(isClosedToParentErrorsReadEnd == true);
         }
     }
 
@@ -1196,12 +1643,14 @@ TEST_GROUP("Pipes Management")
         systemFake.DuplicateFdAction = [](int oldFd, int newFd) {};
         systemFake.ExecAction = [](const std::string &, const std::vector<std::string> &) {};
 
-        UNIT_TEST("Should close STDIN, STDOUT before duplicating fd")
+        UNIT_TEST("Should close STDIN, STDOUT, STDERR before duplicating fd")
         {
             bool isDuplicateFdExecutedForStdIn = false;
             bool isDuplicateFdExecutedForStdOut = false;
+            bool isDuplicateFdExecutedForStdErr = false;
             bool isClosedStdIn = false;
             bool isClosedStdOut = false;
+            bool isClosedStdErr = false;
 
             systemFake.CloseAction = [&](int fd) {
                                          if (isDuplicateFdExecutedForStdIn == false
@@ -1214,8 +1663,14 @@ TEST_GROUP("Pipes Management")
                                              && fd == static_cast<int>(system::unix::FdId::STDOUT)) {
                                              isClosedStdOut = true;
                                          }
+                                         else if (isDuplicateFdExecutedForStdErr == false
+                                             && isClosedStdErr == false
+                                             && fd == static_cast<int>(system::unix::FdId::STDERR)) {
+                                             isClosedStdErr = true;
+                                         }
                                          else if (fd == static_cast<int>(system::unix::FdId::STDOUT)
-                                                  || fd == static_cast<int>(system::unix::FdId::STDIN)){
+                                                  || fd == static_cast<int>(system::unix::FdId::STDIN)
+                                                  || fd == static_cast<int>(system::unix::FdId::STDERR)){
                                              throw std::logic_error("Wrong execution order or already closed fd: " + std::to_string(fd));
                                          }
                                      };
@@ -1226,20 +1681,25 @@ TEST_GROUP("Pipes Management")
                                                else if (newFd == static_cast<int>(system::unix::FdId::STDOUT)) {
                                                    isDuplicateFdExecutedForStdOut = true;
                                                }
+                                               else if (newFd == static_cast<int>(system::unix::FdId::STDERR)) {
+                                                   isDuplicateFdExecutedForStdErr = true;
+                                               }
                                            };
 
             (void) RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
 
             CHECK(isClosedStdIn == true);
             CHECK(isClosedStdOut == true);
+            CHECK(isClosedStdErr == true);
         }
 
-        UNIT_TEST("Should close toParentReadEnd, toChildWriteEnd, toParentInternalErrorsReadEnd before Exec")
+        UNIT_TEST("Should close toParentReadEnd, toChildWriteEnd, toParentInternalErrorsReadEnd, toParentErrorsReadEnd before Exec")
         {
             bool isExecExecuted = false;
             bool isClosedToParentReadEnd = false;
             bool isClosedToChildWriteEnd = false;
             bool isClosedToParentInternalErrorsReadEnd = false;
+            bool isClosedToParentErrorsReadEnd = false;
 
             systemFake.CloseAction = [&](int fd) {
                                          if (isExecExecuted == false) {
@@ -1252,9 +1712,13 @@ TEST_GROUP("Pipes Management")
                                              else if (isClosedToParentInternalErrorsReadEnd == false && toParentInternalErrorsReadEnd == fd) {
                                                  isClosedToParentInternalErrorsReadEnd = true;
                                              }
+                                             else if (isClosedToParentErrorsReadEnd == false && toParentErrorsReadEnd == fd) {
+                                                 isClosedToParentErrorsReadEnd = true;
+                                             }
                                              else if (toParentReadEnd == fd
                                                       || toChildWriteEnd == fd
-                                                      || toParentInternalErrorsReadEnd == fd) {
+                                                      || toParentInternalErrorsReadEnd == fd
+                                                      || toParentErrorsReadEnd == fd) {
                                                  throw std::logic_error("Already closed: " + std::to_string(fd));
                                              }
                                          }
@@ -1271,6 +1735,7 @@ TEST_GROUP("Pipes Management")
             CHECK(isClosedToParentReadEnd == true);
             CHECK(isClosedToChildWriteEnd == true);
             CHECK(isClosedToParentInternalErrorsReadEnd == true);
+            CHECK(isClosedToParentErrorsReadEnd == true);
         }
 
         UNIT_TEST("Should duplicate toChildReadEnd to STDIN")
@@ -1304,7 +1769,6 @@ TEST_GROUP("Pipes Management")
 
             CHECK(isDuplicatedToParentWriteEnd == true);
         }
-
 
         UNIT_TEST("Should write error message to parent's internal pipe and terminate when error occour during SUT process creation")
         {
@@ -1388,12 +1852,36 @@ TEST_GROUP("Pipes Management")
                 CHECK(isTerminateCalled == true);
             }
 
-            SUBTEST("Error occour on STDIN pipe close")
+            SUBTEST("Error occour on toParentInternalErrorsReadEnd pipe close")
             {
                 systemFake.CloseAction = [&](int fd) {
                                              if (fd == toParentReadEnd
                                                  || fd == toChildWriteEnd
                                                  || fd == toParentInternalErrorsReadEnd) {
+                                                 // do nothing
+                                             }
+                                             else if (fd == toParentErrorsReadEnd) {
+                                                 throw std::runtime_error(expectedErrorMessage);
+                                             }
+                                             else {
+                                                 throw std::logic_error("Unexpected Close call with fd:" + std::to_string(fd));
+                                             }
+                                         };
+
+                CHECK_THROWS_AS(RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput),
+                                std::runtime_error);
+
+                CHECK(resultMessage == expectedErrorMessage);
+                CHECK(isTerminateCalled == true);
+            }
+
+            SUBTEST("Error occour on STDIN pipe close")
+            {
+                systemFake.CloseAction = [&](int fd) {
+                                             if (fd == toParentReadEnd
+                                                 || fd == toChildWriteEnd
+                                                 || fd == toParentInternalErrorsReadEnd
+                                                 || fd == toParentErrorsReadEnd) {
                                                  // do nothing
                                              }
                                              else if (fd == static_cast<int>(system::unix::FdId::STDIN)) {
@@ -1417,6 +1905,7 @@ TEST_GROUP("Pipes Management")
                                              if (fd == toParentReadEnd
                                                  || fd == toChildWriteEnd
                                                  || fd == toParentInternalErrorsReadEnd
+                                                 || fd == toParentErrorsReadEnd
                                                  || fd == static_cast<int>(system::unix::FdId::STDIN)) {
                                                  // do nothing
                                              }
@@ -1446,6 +1935,7 @@ TEST_GROUP("Pipes Management")
                                              if (fd == toParentReadEnd
                                                  || fd == toChildWriteEnd
                                                  || fd == toParentInternalErrorsReadEnd
+                                                 || fd == toParentErrorsReadEnd
                                                  || fd == static_cast<int>(system::unix::FdId::STDIN)) {
                                                  // do nothing
                                              }
@@ -1470,6 +1960,7 @@ TEST_GROUP("Pipes Management")
                                              if (fd == toParentReadEnd
                                                  || fd == toChildWriteEnd
                                                  || fd == toParentInternalErrorsReadEnd
+                                                 || fd == toParentErrorsReadEnd
                                                  || fd == static_cast<int>(system::unix::FdId::STDIN)
                                                  || fd == static_cast<int>(system::unix::FdId::STDOUT)) {
                                                  // do nothing
@@ -1497,6 +1988,22 @@ TEST_GROUP("Pipes Management")
                 CHECK(isTerminateCalled == true);
             }
         }
+
+        UNIT_TEST("Should duplicate toParentErrorsWriteEnd to STDERR")
+        {
+            bool isDuplicatedToParentErrorsWriteEnd = false;
+
+            systemFake.DuplicateFdAction = [&](int oldFd, int newFd) {
+                                               if (oldFd == toParentErrorsWriteEnd
+                                                   && newFd == static_cast<int>(system::unix::FdId::STDERR)) {
+                                                   isDuplicatedToParentErrorsWriteEnd = true;
+                                               }
+                                           };
+
+            (void) RunProcess(exampleBinaryPath, emptyRunProcessArguments, nonImportantEmptyInput);
+
+            CHECK(isDuplicatedToParentErrorsWriteEnd == true);
+        }
     }
 }
 
@@ -1517,7 +2024,7 @@ TEST_GROUP("SUT Process Execution")
     {
         systemFake.ForkAction = []() { return anyChildProcessId; };
 
-        UNIT_TEST("Should throw exception with error message from child process")
+        UNIT_TEST("Should throw exception with internal error message from child process")
         {
             constexpr int readFromParentInternalErrorsReadEndRun = 1;
             std::string errorMessage = "message text";

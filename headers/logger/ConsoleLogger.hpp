@@ -25,7 +25,8 @@ public:
     void BeginTestExecution(const omtt::TestPaths::size_type executedTests,
                             const omtt::TestPaths::size_type numberOfTests,
                             const omtt::Path &testPath) override;
-    void EndTestExecution(const omtt::TestExecutionSummary &summary) override;
+    void EndTestExecution(const omtt::ProcessResults &processResults,
+                          const omtt::TestExecutionSummary &summary) override;
 
     void OverallStatistics(const omtt::TestPaths::size_type executedTests,
                            const omtt::TestPaths::size_type numberOfTestsPassed,

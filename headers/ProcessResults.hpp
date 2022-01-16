@@ -17,6 +17,7 @@ struct ProcessResults
 {
     int exitCode;
     std::string output;
+    std::string errors;
 };
 
 }  // omtt

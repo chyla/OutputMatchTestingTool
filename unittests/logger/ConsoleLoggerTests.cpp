@@ -19,18 +19,33 @@ namespace omtt
 namespace
 {
 
+const omtt::ProcessResults notImportantProcessResult {
+    0,
+    "",
+    ""
+};
+
 bool
 contain(const std::string &text, const std::string &value)
 {
     return text.find(value) != std::string::npos;
 }
 
+bool
+contain_at_end(const std::string &text, const std::string &value)
+{
+    return text.compare(text.length() - value.length(),
+                        value.length(),
+                        value) == 0;
+}
+
 std::string
-ExecuteSut(const TestExecutionSummary &summary)
+ExecuteSut(const omtt::ProcessResults &processResults,
+           const TestExecutionSummary &summary)
 {
     std::stringstream stream;
     logger::ConsoleLogger sut(stream);
-    sut.EndTestExecution(summary);
+    sut.EndTestExecution(processResults, summary);
     return stream.str();
 }
 
@@ -62,7 +77,7 @@ TEST_GROUP("Exit Code Cause logging")
         constexpr int exitCode = 6;
         const TestExecutionSummary testSummary = exit_code::CreateTestSummary(expectedExitCode, exitCode);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         CHECK(contain(console_log, "Exit code doesn't match.\nExpected: 2\nGot: 6"));
     }
@@ -106,7 +121,7 @@ TEST_GROUP("Full Output Cause logging")
         constexpr std::string::size_type differencePosition = 0;
         const TestExecutionSummary testSummary = full_output::CreateTestSummary(differencePosition);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         CHECK(contain(console_log, "Output doesn't match.\nFirst difference at byte: 0"));
     }
@@ -116,7 +131,7 @@ TEST_GROUP("Full Output Cause logging")
         constexpr std::string::size_type differencePosition = 4;
         const TestExecutionSummary testSummary = full_output::CreateTestSummary(differencePosition);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         CHECK(contain(console_log, "Output doesn't match.\nFirst difference at byte: 4"));
     }
@@ -128,7 +143,7 @@ TEST_GROUP("Full Output Cause logging")
         const std::string output = "";
         const TestExecutionSummary testSummary = full_output::CreateTestSummary(differencePosition, expectedOutput, output);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         CHECK(contain(console_log, "\
 Expected (context):\n\
@@ -148,7 +163,7 @@ Got (context):\n\
         const std::string output = "a";
         const TestExecutionSummary testSummary = full_output::CreateTestSummary(differencePosition, expectedOutput, output);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         CHECK(contain(console_log, "\
 Expected (context):\n\
@@ -168,7 +183,7 @@ a    \n\
         const std::string output = " a";
         const TestExecutionSummary testSummary = full_output::CreateTestSummary(differencePosition, expectedOutput, output);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         full_output::CHECK_CONTAIN_CONTEXT_WITH_CUSTOM_CHAR(console_log, "SPC", "0x20");
     }
@@ -180,7 +195,7 @@ a    \n\
         const std::string output = "\ta";
         const TestExecutionSummary testSummary = full_output::CreateTestSummary(differencePosition, expectedOutput, output);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         full_output::CHECK_CONTAIN_CONTEXT_WITH_CUSTOM_CHAR(console_log, "TAB", "0x09");
     }
@@ -192,7 +207,7 @@ a    \n\
         const std::string output = "\ra";
         const TestExecutionSummary testSummary = full_output::CreateTestSummary(differencePosition, expectedOutput, output);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         full_output::CHECK_CONTAIN_CONTEXT_WITH_CUSTOM_CHAR(console_log, "CR ", "0x0d");
     }
@@ -204,7 +219,7 @@ a    \n\
         const std::string output = "\na";
         const TestExecutionSummary testSummary = full_output::CreateTestSummary(differencePosition, expectedOutput, output);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         full_output::CHECK_CONTAIN_CONTEXT_WITH_CUSTOM_CHAR(console_log, "LF ", "0x0a");
     }
@@ -216,7 +231,7 @@ a    \n\
         const std::string output = "\va";
         const TestExecutionSummary testSummary = full_output::CreateTestSummary(differencePosition, expectedOutput, output);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         full_output::CHECK_CONTAIN_CONTEXT_WITH_CUSTOM_CHAR(console_log, "VT ", "0x0b");
     }
@@ -228,7 +243,7 @@ a    \n\
         const std::string output = "\fa";
         const TestExecutionSummary testSummary = full_output::CreateTestSummary(differencePosition, expectedOutput, output);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         full_output::CHECK_CONTAIN_CONTEXT_WITH_CUSTOM_CHAR(console_log, "FF ", "0x0c");
     }
@@ -243,7 +258,7 @@ a    \n\
         const std::string output = nonPrintableOutput;
         const TestExecutionSummary testSummary = full_output::CreateTestSummary(differencePosition, expectedOutput, output);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         full_output::CHECK_CONTAIN_CONTEXT_WITH_CUSTOM_CHAR(console_log, "NP ", "0x1e");
     }
@@ -255,7 +270,7 @@ a    \n\
         const std::string output = "Some Output";
         const TestExecutionSummary testSummary = full_output::CreateTestSummary(differencePosition, expectedOutput, output);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         CHECK(contain(console_log, "\
 Expected (context):\n\
@@ -275,7 +290,7 @@ S    o    m    e    SPC  O    u    \n\
         const std::string output = "sOme";
         const TestExecutionSummary testSummary = full_output::CreateTestSummary(differencePosition, expectedOutput, output);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         CHECK(contain(console_log, "\
 Expected (context):\n\
@@ -295,7 +310,7 @@ s    O    m    e    \n\
         const std::string output = "some t";
         const TestExecutionSummary testSummary = full_output::CreateTestSummary(differencePosition, expectedOutput, output);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         CHECK(contain(console_log, "\
 Expected (context):\n\
@@ -315,7 +330,7 @@ s    o    m    e    SPC  t    \n\
         const std::string output = "some verry";
         const TestExecutionSummary testSummary = full_output::CreateTestSummary(differencePosition, expectedOutput, output);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         CHECK(contain(console_log, "\
 Expected (context):\n\
@@ -335,7 +350,7 @@ SPC  v    e    r    r    y    \n\
         const std::string output = "some verry";
         const TestExecutionSummary testSummary = full_output::CreateTestSummary(differencePosition, expectedOutput, output);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         CHECK(contain(console_log, "\
 Expected (context):\n\
@@ -355,7 +370,7 @@ SPC  v    e    r    r    y    \n\
         const std::string output = "some verry long text";
         const TestExecutionSummary testSummary = full_output::CreateTestSummary(differencePosition, expectedOutput, output);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         CHECK(contain(console_log, "\
 Expected (context):\n\
@@ -404,7 +419,7 @@ TEST_GROUP("Partial Output Cause logging")
         const std::string expectedPartialOutput = "some verry";
         const TestExecutionSummary testSummary = partial_output::CreateTestSummary(expectedPartialOutput);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         CHECK(contain(console_log, "Text not found in output."));
     }
@@ -414,7 +429,7 @@ TEST_GROUP("Partial Output Cause logging")
         const std::string expectedPartialOutput = "some long text";
         const TestExecutionSummary testSummary = partial_output::CreateTestSummary(expectedPartialOutput);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         CHECK(contain(console_log, "\
 Expected (context):\n\
@@ -427,7 +442,7 @@ s    o    m    e    SPC  l    o    \n\
         const std::string expectedPartialOutput = "Some ";
         const TestExecutionSummary testSummary = partial_output::CreateTestSummary(expectedPartialOutput);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         CHECK(contain(console_log, "\
 Expected (context):\n\
@@ -440,7 +455,7 @@ S    o    m    e    SPC  \n\
         const std::string expectedPartialOutput = "S";
         const TestExecutionSummary testSummary = partial_output::CreateTestSummary(expectedPartialOutput);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         CHECK(contain(console_log, "\
 Expected (context):\n\
@@ -453,7 +468,7 @@ S    \n\
         const std::string expectedPartialOutput = " a";
         const TestExecutionSummary testSummary = partial_output::CreateTestSummary(expectedPartialOutput);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         partial_output::CHECK_CONTAIN_CONTEXT_WITH_CUSTOM_CHAR(console_log, "SPC", "0x20");
     }
@@ -463,7 +478,7 @@ S    \n\
         const std::string expectedPartialOutput = "\ta";
         const TestExecutionSummary testSummary = partial_output::CreateTestSummary(expectedPartialOutput);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         partial_output::CHECK_CONTAIN_CONTEXT_WITH_CUSTOM_CHAR(console_log, "TAB", "0x09");
     }
@@ -473,7 +488,7 @@ S    \n\
         const std::string expectedPartialOutput = "\ra";
         const TestExecutionSummary testSummary = partial_output::CreateTestSummary(expectedPartialOutput);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         partial_output::CHECK_CONTAIN_CONTEXT_WITH_CUSTOM_CHAR(console_log, "CR ", "0x0d");
     }
@@ -483,7 +498,7 @@ S    \n\
         const std::string expectedPartialOutput = "\na";
         const TestExecutionSummary testSummary = partial_output::CreateTestSummary(expectedPartialOutput);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         partial_output::CHECK_CONTAIN_CONTEXT_WITH_CUSTOM_CHAR(console_log, "LF ", "0x0a");
     }
@@ -493,7 +508,7 @@ S    \n\
         const std::string expectedPartialOutput = "\va";
         const TestExecutionSummary testSummary = partial_output::CreateTestSummary(expectedPartialOutput);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         partial_output::CHECK_CONTAIN_CONTEXT_WITH_CUSTOM_CHAR(console_log, "VT ", "0x0b");
     }
@@ -503,7 +518,7 @@ S    \n\
         const std::string expectedPartialOutput = "\fa";
         const TestExecutionSummary testSummary = partial_output::CreateTestSummary(expectedPartialOutput);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         partial_output::CHECK_CONTAIN_CONTEXT_WITH_CUSTOM_CHAR(console_log, "FF ", "0x0c");
     }
@@ -515,11 +530,92 @@ S    \n\
         const std::string expectedPartialOutput = nonPrintableString;
         const TestExecutionSummary testSummary = partial_output::CreateTestSummary(expectedPartialOutput);
 
-        const auto console_log = ExecuteSut(testSummary);
+        const auto console_log = ExecuteSut(notImportantProcessResult, testSummary);
 
         partial_output::CHECK_CONTAIN_CONTEXT_WITH_CUSTOM_CHAR(console_log, "NP ", "0x1e");
     }
 
+}
+
+namespace stderr_logging
+{
+
+ProcessResults
+CreateProcessResultsWithStderr(const std::string &stderr)
+{
+    return  {
+        0,
+        "",
+        stderr
+    };
+}
+
+TestExecutionSummary
+CreateSuccessfulTestSummary()
+{
+    return {
+        Verdict::PASS,
+        {}
+    };
+}
+
+}
+
+TEST_GROUP("Errors Output (stderr) logging")
+{
+    UNIT_TEST("Should not contain error messages header when stderr is empty")
+    {
+        const omtt::ProcessResults processResult = stderr_logging::CreateProcessResultsWithStderr("");
+        const TestExecutionSummary emptyTestSummary = stderr_logging::CreateSuccessfulTestSummary();
+
+        const auto console_log = ExecuteSut(processResult, emptyTestSummary);
+
+        CHECK(not contain(console_log, "=> SUT error messages printed during test execution:"));
+    }
+
+    UNIT_TEST("Should contain error messages header when stderr is not empty")
+    {
+        const std::string errorMessage = "error message";
+        const omtt::ProcessResults processResult = stderr_logging::CreateProcessResultsWithStderr(errorMessage);
+        const TestExecutionSummary emptyTestSummary = stderr_logging::CreateSuccessfulTestSummary();
+
+        const auto console_log = ExecuteSut(processResult, emptyTestSummary);
+
+        CHECK(contain(console_log, "=> SUT error messages printed during test execution:"));
+    }
+
+    UNIT_TEST("Should contain error message")
+    {
+        const std::string errorMessage = "error message";
+        const omtt::ProcessResults processResult = stderr_logging::CreateProcessResultsWithStderr(errorMessage);
+        const TestExecutionSummary emptyTestSummary = stderr_logging::CreateSuccessfulTestSummary();
+
+        const auto console_log = ExecuteSut(processResult, emptyTestSummary);
+
+        CHECK(contain(console_log, "error message"));
+    }
+
+    UNIT_TEST("Should contain one new line char at end when error message does not contain it")
+    {
+        const std::string errorMessage = "error message";
+        const omtt::ProcessResults processResult = stderr_logging::CreateProcessResultsWithStderr(errorMessage);
+        const TestExecutionSummary emptyTestSummary = stderr_logging::CreateSuccessfulTestSummary();
+
+        const auto console_log = ExecuteSut(processResult, emptyTestSummary);
+
+        CHECK(contain_at_end(console_log, "error message\n"));
+    }
+
+    UNIT_TEST("Should contain one new line char at end when error message contains new line char")
+    {
+        const std::string errorMessage = "error message\n";
+        const omtt::ProcessResults processResult = stderr_logging::CreateProcessResultsWithStderr(errorMessage);
+        const TestExecutionSummary emptyTestSummary = stderr_logging::CreateSuccessfulTestSummary();
+
+        const auto console_log = ExecuteSut(processResult, emptyTestSummary);
+
+        CHECK(contain_at_end(console_log, "error message\n"));
+    }
 }
 
 }

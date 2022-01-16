@@ -79,9 +79,10 @@ private:
 }
 
 void
-ConsoleLogger::EndTestExecution(const omtt::TestExecutionSummary &summary)
+ConsoleLogger::EndTestExecution(const omtt::ProcessResults &processResults,
+                                const omtt::TestExecutionSummary &summary)
 {
-    stream << "Verdict: " <<  to_cstring(summary.verdict);
+    stream << "Verdict: " << to_cstring(summary.verdict);
 
     CauseVisitor visitor(stream);
     for (const auto &cause : summary.causes) {
@@ -92,6 +93,16 @@ ConsoleLogger::EndTestExecution(const omtt::TestExecutionSummary &summary)
     }
 
     stream << '\n';
+
+    if (processResults.errors.length() > 0) {
+        stream << "--------------------\n"
+                  "=> SUT error messages printed during test execution:\n"
+               << processResults.errors;
+
+        if (*processResults.errors.rbegin() != '\n') {
+            stream << '\n';
+        }
+    }
 }
 
 void
