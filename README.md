@@ -8,6 +8,29 @@ The tool allows you to check the program correctness. It will run
 the SUT (System Under Test) program and match the standard output
 and exit code to assumptions given in test file.
 
+## Installing
+
+### Zero Install
+
+It is recommended to use [Zero Install - A decentralised cross-platform software
+installation system](https://0install.net/). Zero Install will download the OMTT
+in a secure way and will care about updates.
+
+After installing Zero Install, type in the shell:
+
+```bash
+0install add omtt https://apps.chyla.org/omtt.xml
+```
+
+May be needed to modify your `PATH` variable, Zero Install will notify you.
+
+### Manual
+
+Binaries packages can be downloaded from the
+[GitHub projects releases page](https://github.com/chyla/OutputMatchTestingTool/releases).
+
+Download the binaries and place them in your PATH.
+
 ## Getting Started
 
 To run the tool you will need to compile it from the sources (see
@@ -216,7 +239,7 @@ Verdict: PASS
 
 See more tests examples in the `examples` directory.
 
-## Installing from the sources
+## Building the sources
 
 ### Prerequisites
 
