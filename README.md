@@ -144,6 +144,26 @@ Hello world!
 EXPECT EXIT CODE 0
 ```
 
+### Messages from SUT standard error
+
+Messages printed by SUT on standard error are shown after the test inside
+the 'SUT error messages printed during test execution' section. The messages
+do not affect the test result.
+
+Here is the example result:
+
+```text
+Testing: systemtests/apps/scaterr
+====================
+Running test (1/1): systemtests/omtt/scaterr-error_text_on_input.omtt
+Verdict: PASS
+--------------------
+=> SUT error messages printed during test execution:
+example error message
+====================
+1 tests total, 1 passed, 0 failed
+```
+
 ### Running multiple tests
 
 Multiple tests can be executed by passing its paths in command line:
