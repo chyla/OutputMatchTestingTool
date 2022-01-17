@@ -26,10 +26,15 @@ May be needed to modify your `PATH` variable, Zero Install will notify you.
 
 ### Manual
 
-Binary packages can be downloaded from the
-[GitHub projects releases page](https://github.com/chyla/OutputMatchTestingTool/releases).
+Binary packages can be downloaded from the [GitHub project releases
+page](https://github.com/chyla/OutputMatchTestingTool/releases).
 
 Download the binaries and place them in your PATH.
+
+### Building the sources
+
+To build application from the sources see the [BUILDING.md](BUILDING.md) file
+for details.
 
 ## Getting Started
 
