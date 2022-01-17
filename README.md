@@ -24,7 +24,7 @@ After installing Zero Install, type in the shell:
 
 May be needed to modify your `PATH` variable, Zero Install will notify you.
 
-### Manual
+### Binary packages
 
 Binary packages can be downloaded from the [GitHub project releases
 page](https://github.com/chyla/OutputMatchTestingTool/releases).
