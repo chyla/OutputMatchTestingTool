@@ -5,8 +5,8 @@ Testing tool for checking programs console output.
 ## Overview
 
 The tool allows you to check the program correctness. It will run
-the SUT (System Under Test) program and match the standard output
-and exit code to assumptions given in test file.
+the SUT (System Under Test) program with specified input and match the standard
+output and exit code to assumptions given in test file.
 
 ## Installing
 
@@ -16,7 +16,7 @@ It is recommended to use [Zero Install - A decentralised cross-platform software
 installation system](https://0install.net/). Zero Install will download the OMTT
 in a secure way and will care about updates.
 
-After installing Zero Install, type in the shell:
+After installing Zero Install, type in the console:
 
 ```bash
 0install add omtt https://apps.chyla.org/omtt.xml
@@ -57,9 +57,9 @@ Here is the first test file example for the `cat` program:
 RUN
 WITH INPUT
 Hello world!
-EXPECT EXIT CODE 0
 EXPECT OUTPUT
 Hello world!
+EXPECT EXIT CODE 0
 ```
 
 I hope the test file is self-documenting and everything is obvious. Save
@@ -89,9 +89,9 @@ for the `cat` program:
 RUN
 WITH INPUT
 Some text.
-EXPECT EXIT CODE 1
 EXPECT OUTPUT
 Some other text.
+EXPECT EXIT CODE 1
 ```
 
 Here are the results:
@@ -124,7 +124,8 @@ S    o    m    e    SPC  t    e    x    t    .
 
 ### Partial output match
 
-It's possible to search for only part of output, it won't give you detailed description about the mismatch like in full output match. Here's example:
+It's possible to search for only part of output, it won't give you detailed
+description about the mismatch like in full output match. Here's example:
 
 ```text
 RUN
