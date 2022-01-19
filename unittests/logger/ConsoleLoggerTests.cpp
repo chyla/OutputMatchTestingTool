@@ -541,12 +541,12 @@ namespace stderr_logging
 {
 
 ProcessResults
-CreateProcessResultsWithStderr(const std::string &stderr)
+CreateProcessResultsWithStderr(const std::string &errmsg)
 {
     return  {
         0,
         "",
-        stderr
+        errmsg
     };
 }
 
