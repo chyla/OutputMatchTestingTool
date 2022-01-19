@@ -1,5 +1,5 @@
 SUBDIRS = src unittests systemtests
-dist_doc_DATA = README.md LICENSE VERSIONING.md
+dist_doc_DATA = README.md LICENSE VERSIONING.md BUILDING.md
 EXTRA_DIST = headers examples
 
 unittests:
