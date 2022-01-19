@@ -74,3 +74,6 @@ Makefile
 /systemtests/apps/scaterr
 # tests output
 /systemtests/output/
+
+# Distribution archive
+/omtt-*.tar.gz
