@@ -16,6 +16,7 @@
 #include "headers/ErrorCodes.hpp"
 #include "headers/logger/ConsoleLogger.hpp"
 #include "headers/Path.hpp"
+#include "headers/LineEndings.hpp"
 
 #include <iostream>
 #include <algorithm>
@@ -224,10 +225,16 @@ ParseTestFile(const std::string &testFileBuffer)
 omtt::ProcessResults
 ExecuteSut(std::optional<omtt::Path> interpreter, const omtt::Path &sut, const omtt::TestData &testData)
 {
+    omtt::ProcessResults results;
+
     if (interpreter.has_value()) {
-        return omtt::RunProcess(*interpreter, {sut}, testData.input);
+        results = omtt::RunProcess(*interpreter, {sut}, testData.input);
     }
     else {
-        return omtt::RunProcess(sut, {}, testData.input);
+        results = omtt::RunProcess(sut, {}, testData.input);
     }
+
+    omtt::changeLineEndingsToLf(results.output);
+
+    return results;
 }

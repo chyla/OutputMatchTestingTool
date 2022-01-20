@@ -241,6 +241,10 @@ Verdict: PASS
 4 tests total, 4 passed, 0 failed
 ```
 
+### Line endings
+
+Any `CR` and `CR` `LF` pair in test file or SUT output will be replaced to `LF`.
+
 ### Examples
 
 See more tests examples in the `examples` directory.

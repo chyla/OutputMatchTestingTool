@@ -6,6 +6,7 @@
  */
 
 #include "headers/ReadFile.hpp"
+#include "headers/LineEndings.hpp"
 #include "headers/exception/FileReadException.hpp"
 
 #include <fstream>
@@ -53,6 +54,8 @@ readFile(const std::string &path)
     }
 
     file.close();
+
+    changeLineEndingsToLf(outputBuffer);
 
     return outputBuffer;
 }

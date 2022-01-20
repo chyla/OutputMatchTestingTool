@@ -4,9 +4,9 @@ special_characters_message = "Expected (context):\n\
 \n\
 \n\
 Got (context):\n\
-SPC  TAB  LF   VT   FF   CR   NP   \n\
+SPC  TAB  LF   VT   FF   LF   NP   \n\
 ^                                  \n\
-0x20 0x09 0x0a 0x0b 0x0c 0x0d 0x01"
+0x20 0x09 0x0a 0x0b 0x0c 0x0a 0x01"
 
 
 class CheckMoreThanOneExpectStatement:

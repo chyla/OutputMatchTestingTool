@@ -12,7 +12,8 @@ check_PROGRAMS = lexer_tests \
                  empty_output_expectation_tests \
                  full_output_expectation_tests \
                  partial_output_expectation_tests \
-                 exit_code_expectation_tests
+                 exit_code_expectation_tests \
+                 line_endings_tests
 
 lexer_tests_SOURCES = main.cpp lexer/LexerTests.cpp
 lexer_tests_LDADD = ../src/lexer/Lexer.o \
@@ -44,5 +45,7 @@ partial_output_expectation_tests_SOURCES = main.cpp \
 partial_output_expectation_tests_LDADD =  ../src/expectation/PartialOutputExpectation.o
 
 exit_code_expectation_tests_SOURCES = main.cpp expectation/ExitCodeExpectationTests.cpp
+
+line_endings_tests_SOURCES = main.cpp LineEndingsTests.cpp
 
 TESTS = $(check_PROGRAMS)

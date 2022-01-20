@@ -1,0 +1,5 @@
+RUN
+WITH INPUT
+Example
+text.
+EXPECT OUTPUTExampletext.EXPECT EXIT CODE 0

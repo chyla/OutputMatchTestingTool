@@ -72,6 +72,9 @@ Makefile
 /systemtests/apps/sleep3
 /systemtests/apps/close_input_and_print_some_output
 /systemtests/apps/scaterr
+/systemtests/apps/stdout_cr
+/systemtests/apps/stdout_crlf
+/systemtests/apps/stdout_lf
 # tests output
 /systemtests/output/
 
