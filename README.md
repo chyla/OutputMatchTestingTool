@@ -24,6 +24,8 @@ After installing Zero Install, type in the console:
 
 May be needed to modify your `PATH` variable, Zero Install will notify you.
 
+You may need to re-open the console.
+
 ### Binary packages
 
 Binary packages can be downloaded from the [GitHub project releases
