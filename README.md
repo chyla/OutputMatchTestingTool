@@ -160,7 +160,7 @@ W    O    R    L    D
 ### Comments
 
 Comments begins with `/*` and ends with `*/`, are allowed only on top
-of the test (see the `cat-will_print_input_and_exit_with_zero.omtt` example):
+of the test (see the `cat-will_print_input_and_exit_with_success.omtt` example):
 
 ```text
 /*
@@ -200,7 +200,7 @@ example error message
 Multiple tests can be executed by passing its paths in command line:
 
 ```text
-omtt --sut /bin/cat examples/cat-will_match_part_of_output.omtt examples/cat-will_print_input_and_exit_with_zero.omtt
+omtt --sut /bin/cat examples/cat-will_match_part_of_output.omtt examples/cat-will_print_input_and_exit_with_success.omtt
 ```
 
 Tests will be executed in order they appeared in command line:
@@ -211,7 +211,7 @@ Testing: /bin/cat
 Running test (1/2): examples/cat-will_match_part_of_output.omtt
 Verdict: PASS
 ====================
-Running test (2/2): examples/cat-will_print_input_and_exit_with_zero.omtt
+Running test (2/2): examples/cat-will_print_input_and_exit_with_success.omtt
 Verdict: PASS
 ====================
 2 tests total, 2 passed, 0 failed
@@ -237,7 +237,7 @@ Verdict: PASS
 Running test (3/4): examples/cat-will-output-user-given-input.omtt
 Verdict: PASS
 ====================
-Running test (4/4): examples/cat-will_print_input_and_exit_with_zero.omtt
+Running test (4/4): examples/cat-will_print_input_and_exit_with_success.omtt
 Verdict: PASS
 ====================
 4 tests total, 4 passed, 0 failed
