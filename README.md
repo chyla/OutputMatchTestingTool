@@ -65,7 +65,7 @@ EXPECT EXIT WITH SUCCESS
 ```
 
 I hope the test file is self-documenting and everything is obvious. Save
-the test to `cat-will_print_input_and_exit_with_zero.omtt` file, then run
+the test to `cat-will_print_input_and_exit_with_success.omtt` file, then run
 the tool like that to execute the test with the `cat` binary:
 
 ```text
@@ -78,7 +78,7 @@ and the test verdict:
 ```text
 Testing: /bin/cat
 ====================
-Running test (1/1): cat-will_print_input_and_exit_with_zero.omtt
+Running test (1/1): cat-will_print_input_and_exit_with_success.omtt
 Verdict: PASS
 ====================
 1 tests total, 1 passed, 0 failed
