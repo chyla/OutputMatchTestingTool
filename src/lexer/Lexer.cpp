@@ -148,7 +148,8 @@ Lexer::_HandleReadingKeywordsState(Lexer::ReadingKeywordsStateOptions options)
         || word == "OUTPUT"
         || word == "EXIT"
         || word == "CODE"
-        || word == "IN") {
+        || word == "IN"
+        || word == "SUCCESS") {
         return Token{TokenKind::KEYWORD, word};
     }
     else if (word == "EMPTY") {

@@ -59,7 +59,7 @@ Raise an error when the 'CODE' keyword is missing
     ${result} =    Run SUT With Helper    true    true-error_scenario-missing_code_keyword.omtt
 
     Verdict Is Not Present    ${result}
-    Missing Keyword Message Is Present    ${result}    CODE
+    Missing Keyword Message Is Present    ${result}    CODE' or 'WITH
     Exit Status Points To Fatal Error    ${result}
 
 Raise an error when the exit code value is missing

@@ -11,6 +11,7 @@
 #include "headers/expectation/validation/ExitCodeCause.hpp"
 #include "headers/expectation/validation/FullOutputCause.hpp"
 #include "headers/expectation/validation/PartialOutputCause.hpp"
+#include "headers/expectation/validation/SuccessfulExitCause.hpp"
 
 #include <string>
 #include <optional>
@@ -22,10 +23,13 @@ namespace omtt::expectation::validation
 
 struct ValidationResult
 {
-    typedef std::variant<validation::EmptyOutputCause,
-                         validation::ExitCodeCause,
-                         validation::FullOutputCause,
-                         validation::PartialOutputCause> Cause;
+    typedef std::variant<
+        validation::EmptyOutputCause,
+        validation::ExitCodeCause,
+        validation::FullOutputCause,
+        validation::PartialOutputCause,
+        validation::SuccessfulExitCause
+        > Cause;
 
     const bool isSatisfied;
     const std::optional<Cause> cause;

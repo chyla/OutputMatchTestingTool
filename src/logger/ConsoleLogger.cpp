@@ -72,6 +72,12 @@ struct CauseVisitor {
                                     detail::PointerVisibility::NO_POINTER);
     }
 
+    void operator()(expectation::validation::SuccessfulExitCause cause) {
+        stream << "Exit status doesn't match.\n"
+                  "Expected: exit with success\n"
+                  "Got: exit with failure (exit code: " + std::to_string(cause.fExitCode) + ")";
+    }
+
 private:
     std::ostream &stream;
 };

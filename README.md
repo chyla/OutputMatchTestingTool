@@ -61,7 +61,7 @@ WITH INPUT
 Hello world!
 EXPECT OUTPUT
 Hello world!
-EXPECT EXIT CODE 0
+EXPECT EXIT WITH SUCCESS
 ```
 
 I hope the test file is self-documenting and everything is obvious. Save
@@ -69,7 +69,7 @@ the test to `cat-will_print_input_and_exit_with_zero.omtt` file, then run
 the tool like that to execute the test with the `cat` binary:
 
 ```text
-omtt --sut /bin/cat cat-will_print_input_and_exit_with_zero.omtt
+omtt --sut /bin/cat cat-will_print_input_and_exit_with_success.omtt
 ```
 
 The tool will print the summary containing the most basic information

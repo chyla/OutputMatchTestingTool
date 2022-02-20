@@ -66,6 +66,24 @@ Invalid Exit Code Message Is Present
 
     Should Contain    ${result.stdout}    ${message}
 
+Exit Status Doesnt Match Message Is Present
+    [Arguments]    ${result}
+    ${message} =    Catenate    Exit status doesn't match.
+
+    Should Contain    ${result.stdout}    ${message}
+
+Exit Status Doesnt Match Message Is Not Present
+    [Arguments]    ${result}
+    ${message} =    Catenate    Exit status doesn't match.
+
+    Should Not Contain    ${result.stdout}    ${message}
+
+Exit Code Is Present
+    [Arguments]    ${result}    ${realExitCode}
+    ${message} =    Catenate    (exit code: ${realExitCode})
+
+    Should Contain    ${result.stdout}    ${message}
+
 Unrecognised Argument Error Message Is Present
     [Arguments]    ${result}
     Should Contain    ${result.stderr}    commad line arguments error: unrecognised option

@@ -195,6 +195,13 @@ TEST_CASE("Should return comment after 'WITH' keyword")
     helper::check_has_no_more_tokens(sut);
 }
 
+TEST_CASE("Should return keyword token with 'SUCCESS' value")
+{
+    const std::string buffer = "SUCCESS";
+    const Token expectedToken {TokenKind::KEYWORD, "SUCCESS"};
+    helper::test_one_token_with_buffer(buffer, expectedToken);
+}
+
 TEST_CASE("Should return keyword token with 'INPUT' value")
 {
     const std::string buffer = "INPUT";
