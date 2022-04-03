@@ -28,7 +28,7 @@ public:
     expectation::validation::ValidationResult
     Validate(const ProcessResults &output)
     {
-        return {true, std::nullopt};
+        return {std::nullopt};
     }
 };
 
@@ -39,7 +39,7 @@ public:
     expectation::validation::ValidationResult
     Validate(const ProcessResults &output)
     {
-        return {false, sampleCause};
+        return {sampleCause};
     }
 };
 

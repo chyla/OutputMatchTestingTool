@@ -31,8 +31,12 @@ struct ValidationResult
         validation::SuccessfulExitCause
         > Cause;
 
-    const bool isSatisfied;
     const std::optional<Cause> cause;
+
+    bool
+    isSatisfied() const {
+        return not cause.has_value();
+    }
 };
 
 }

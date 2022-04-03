@@ -23,7 +23,7 @@ TEST_CASE("Should be satisfied when process exit code is zero")
 
     auto validationResults = expectation.Validate(sutResults);
 
-    CHECK(validationResults.isSatisfied == true);
+    CHECK(validationResults.isSatisfied() == true);
 }
 
 TEST_CASE("Should not to be satisfied when process exit code is other than zero")
@@ -35,7 +35,7 @@ TEST_CASE("Should not to be satisfied when process exit code is other than zero"
 
     auto validationResults = expectation.Validate(sutResults);
 
-    CHECK(validationResults.isSatisfied == false);
+    CHECK(validationResults.isSatisfied() == false);
 }
 
 TEST_CASE("Should not contain cause when expectation is satisfied")

@@ -24,7 +24,7 @@ TEST_CASE("Should be satisfied when output is empty")
 
     auto validationResult = expectation.Validate(sutResults);
 
-    CHECK(validationResult.isSatisfied == true);
+    CHECK(validationResult.isSatisfied() == true);
 }
 
 
@@ -38,7 +38,7 @@ TEST_CASE("Should not be satisfied when output is not empty")
 
     auto validationResult = expectation.Validate(sutResults);
 
-    CHECK(validationResult.isSatisfied == false);
+    CHECK(validationResult.isSatisfied() == false);
 }
 
 }

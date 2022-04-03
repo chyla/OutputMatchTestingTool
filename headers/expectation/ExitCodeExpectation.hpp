@@ -27,12 +27,10 @@ public:
     Validate(const ProcessResults &processResults)
     {
         if (fExpectedExitCode == processResults.exitCode) {
-            return {true,
-                    std::nullopt};
+            return {std::nullopt};
         }
         else {
-            return {false,
-                    validation::ExitCodeCause{fExpectedExitCode, processResults.exitCode}};
+            return {validation::ExitCodeCause{fExpectedExitCode, processResults.exitCode}};
         }
     }
 

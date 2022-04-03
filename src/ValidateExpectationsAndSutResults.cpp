@@ -21,7 +21,7 @@ ValidateExpectationsAndSutResults(const TestData &testData,
     for (const auto &expectation : testData.expectations) {
         auto validationResult = expectation->Validate(processResults);
 
-        if (!validationResult.isSatisfied) {
+        if (!validationResult.isSatisfied()) {
             summary.verdict = Verdict::FAIL;
             summary.causes.push_back(*validationResult.cause);
         }

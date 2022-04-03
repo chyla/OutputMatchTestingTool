@@ -32,15 +32,15 @@ validation::ValidationResult
 FullOutputExpectation::Validate(const ProcessResults &processResults)
 {
     if (fExpectedOutput == processResults.output) {
-        return {true, std::nullopt};
+        return {std::nullopt};
     }
     else {
         const auto differencePosition = find_first_difference_position(fExpectedOutput,
                                                                        processResults.output);
 
-        return {false, expectation::validation::FullOutputCause{differencePosition,
-                                                                fExpectedOutput,
-                                                                processResults.output}};
+        return {expectation::validation::FullOutputCause{differencePosition,
+                                                         fExpectedOutput,
+                                                         processResults.output}};
     }
 }
 

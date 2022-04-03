@@ -23,12 +23,10 @@ public:
     Validate(const ProcessResults &processResults)
     {
         if (processResults.output.empty()) {
-            return {true,
-                    std::nullopt};
+            return {std::nullopt};
         }
         else {
-            return {false,
-                    validation::EmptyOutputCause{processResults.output}};
+            return {validation::EmptyOutputCause{processResults.output}};
         }
     }
 };

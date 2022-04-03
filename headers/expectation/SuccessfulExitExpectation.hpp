@@ -21,12 +21,10 @@ public:
     Validate(const ProcessResults &processResults)
     {
         if (processResults.exitCode == 0) {
-            return {true,
-                    std::nullopt};
+            return {std::nullopt};
         }
         else {
-            return {false,
-                    validation::SuccessfulExitCause{processResults.exitCode}};
+            return {validation::SuccessfulExitCause{processResults.exitCode}};
         }
     }
 };

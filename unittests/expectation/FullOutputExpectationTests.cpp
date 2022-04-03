@@ -24,7 +24,7 @@ TEST_CASE("Should be satisfied when expected output and SUT output is the same")
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == true);
+    CHECK(validationReults.isSatisfied() == true);
 }
 
 TEST_CASE("Should not be satisfied when expected output and SUT output is not the same")
@@ -36,7 +36,7 @@ TEST_CASE("Should not be satisfied when expected output and SUT output is not th
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == false);
+    CHECK(validationReults.isSatisfied() == false);
 }
 
 TEST_CASE("Should not be satisfied when expected output and SUT output differs in letters case")
@@ -48,7 +48,7 @@ TEST_CASE("Should not be satisfied when expected output and SUT output differs i
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == false);
+    CHECK(validationReults.isSatisfied() == false);
 }
 
 TEST_CASE("Cause should not be set when expectation match")
@@ -60,7 +60,7 @@ TEST_CASE("Cause should not be set when expectation match")
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == true);
+    CHECK(validationReults.isSatisfied() == true);
     CHECK(!validationReults.cause.has_value());
 }
 
@@ -73,7 +73,7 @@ TEST_CASE("Cause should be set when expectation didn't match")
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == false);
+    CHECK(validationReults.isSatisfied() == false);
     CHECK(validationReults.cause.has_value());
 }
 
@@ -86,7 +86,7 @@ TEST_CASE("Cause should not be set on empty texts")
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == true);
+    CHECK(validationReults.isSatisfied() == true);
     CHECK(!validationReults.cause.has_value());
 }
 

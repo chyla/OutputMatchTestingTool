@@ -24,7 +24,7 @@ TEST_CASE("Should be satisfied when expected exit code is equal to process exit 
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == true);
+    CHECK(validationReults.isSatisfied() == true);
 }
 
 TEST_CASE("Should not to be satisfied when expected exit code is different to process exit code")
@@ -37,7 +37,7 @@ TEST_CASE("Should not to be satisfied when expected exit code is different to pr
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == false);
+    CHECK(validationReults.isSatisfied() == false);
 }
 
 
@@ -51,7 +51,7 @@ TEST_CASE("Should not contain cause when expectation is satisfied")
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == true);
+    CHECK(validationReults.isSatisfied() == true);
     CHECK(validationReults.cause.has_value() == false);
 }
 
@@ -65,7 +65,7 @@ TEST_CASE("Should contain cause with expected exit code when expectation is not 
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == false);
+    CHECK(validationReults.isSatisfied() == false);
     CHECK(validationReults.cause.has_value() == true);
     const auto cause = std::get<expectation::validation::ExitCodeCause>(*validationReults.cause);
     CHECK(cause.fExpectedExitCode == expectedExitCode);
@@ -81,7 +81,7 @@ TEST_CASE("Should contain cause with process exit code when expectation is not s
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == false);
+    CHECK(validationReults.isSatisfied() == false);
     CHECK(validationReults.cause.has_value() == true);
     const auto cause = std::get<expectation::validation::ExitCodeCause>(*validationReults.cause);
     CHECK(cause.fExitCode == processExitCode);

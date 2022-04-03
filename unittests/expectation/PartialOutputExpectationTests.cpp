@@ -23,7 +23,7 @@ TEST_CASE("Should be satisfied when SUT output contains given text")
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == true);
+    CHECK(validationReults.isSatisfied() == true);
 }
 
 TEST_CASE("Should be satisfied on empty texts")
@@ -35,7 +35,7 @@ TEST_CASE("Should be satisfied on empty texts")
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == true);
+    CHECK(validationReults.isSatisfied() == true);
 }
 
 TEST_CASE("Should be satisfied when expected partial output is empty text")
@@ -47,7 +47,7 @@ TEST_CASE("Should be satisfied when expected partial output is empty text")
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == true);
+    CHECK(validationReults.isSatisfied() == true);
 }
 
 TEST_CASE("Should not be satisfied when SUT output doesn't contain given text")
@@ -59,7 +59,7 @@ TEST_CASE("Should not be satisfied when SUT output doesn't contain given text")
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == false);
+    CHECK(validationReults.isSatisfied() == false);
 }
 
 TEST_CASE("Should not be satisfied when SUT output and given text differs in letters case")
@@ -71,7 +71,7 @@ TEST_CASE("Should not be satisfied when SUT output and given text differs in let
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == false);
+    CHECK(validationReults.isSatisfied() == false);
 }
 
 TEST_CASE("Cause should not be set when expectation match")
@@ -83,7 +83,7 @@ TEST_CASE("Cause should not be set when expectation match")
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == true);
+    CHECK(validationReults.isSatisfied() == true);
     CHECK(!validationReults.cause.has_value());
 }
 
@@ -96,7 +96,7 @@ TEST_CASE("Cause should be set when expectation didn't match")
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == false);
+    CHECK(validationReults.isSatisfied() == false);
     CHECK(validationReults.cause.has_value());
 }
 
@@ -109,7 +109,7 @@ TEST_CASE("Cause should contain expected text")
 
     auto validationReults = expectation.Validate(sutResults);
 
-    CHECK(validationReults.isSatisfied == false);
+    CHECK(validationReults.isSatisfied() == false);
     CHECK(validationReults.cause.has_value());
     const auto cause = std::get<expectation::validation::PartialOutputCause>(*validationReults.cause);
     CHECK(cause.fExpectedPartialOutput == expectedPartialOutput);

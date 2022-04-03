@@ -22,10 +22,10 @@ PartialOutputExpectation::Validate(const ProcessResults &processResults)
     const auto pos = processResults.output.find(fExpectedPartialOutput);
 
     if (pos != std::string::npos) {
-        return {true, std::nullopt};
+        return {std::nullopt};
     }
     else {
-        return {false, validation::PartialOutputCause{fExpectedPartialOutput}};
+        return {validation::PartialOutputCause{fExpectedPartialOutput}};
     }
 }
 
