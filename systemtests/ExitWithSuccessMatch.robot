@@ -43,3 +43,9 @@ Exit Code Is Present when SUT returns exit code other than zero
     ${realExitCode} =    Set Variable    1
     Exit Code Is Present    ${result}    ${realExitCode}
     Exit Status Points To One Test Failed    ${result}
+
+Exit Status Description Is Present when SUT returns exit code other than zero
+    ${result} =    Run SUT With Helper    false    exit_with_success.omtt
+
+    Should Contain    ${result.stdout}    Expected: exit with success
+    Should Contain    ${result.stdout}    Got: exit with failure

@@ -16,6 +16,7 @@
 #include "headers/expectation/PartialOutputExpectation.hpp"
 #include "headers/expectation/ExitCodeExpectation.hpp"
 #include "headers/expectation/SuccessfulExitExpectation.hpp"
+#include "headers/expectation/FailureExitExpectation.hpp"
 
 #include "headers/parser/exception/MissingKeywordException.hpp"
 #include "headers/parser/exception/WrongTokenException.hpp"
@@ -80,8 +81,8 @@ public:
                 case State::CODE_NUMBER:
                     _HandleCodeNumberState();
                     break;
-                case State::EXIT_WITH_SUCCESS:
-                    _HandleExitWithSuccessState();
+                case State::EXIT_WITH_FAILURE_OR_SUCCESS:
+                    _HandleExitWithFailureOrSuccessState();
                     break;
                 case State::TEXT_OUTPUT:
                     _HandleTextOutputState();
@@ -108,7 +109,7 @@ private:
         EMPTY_OUTPUT,
         CODE_OR_WITH,
         CODE_NUMBER,
-        EXIT_WITH_SUCCESS,
+        EXIT_WITH_FAILURE_OR_SUCCESS,
         TEXT_OUTPUT,
         TEXT_IN_OUTPUT,
         DONE
@@ -235,7 +236,7 @@ private:
         }
         else if (token->kind == lexer::TokenKind::KEYWORD
                  && token->value == "WITH") {
-            fCurrentState = State::EXIT_WITH_SUCCESS;
+            fCurrentState = State::EXIT_WITH_FAILURE_OR_SUCCESS;
         }
         else {
             _ThrowWhenNotKeywordOrHasDifferrentName({"CODE", "WITH"}, *token);
@@ -264,12 +265,29 @@ private:
     }
 
     void
-    _HandleExitWithSuccessState()
+    _HandleExitWithFailureOrSuccessState()
     {
-        _ExpectKeywordAndSwitchToState("SUCCESS", State::EXPECT_OR_FINISH);
+        auto token = fLexer.FindNextToken();
 
-        auto expectation = std::make_unique<expectation::SuccessfulExitExpectation>();
-        fTestData.expectations.emplace_back(std::move(expectation));
+        _ThrowMissingKeywordWhenTokenNotPresent({"FAILURE", "SUCCESS"}, token);
+
+        if (token->kind == lexer::TokenKind::KEYWORD
+                 && token->value == "FAILURE") {
+            auto expectation = std::make_unique<expectation::FailureExitExpectation>();
+            fTestData.expectations.emplace_back(std::move(expectation));
+
+            fCurrentState = State::EXPECT_OR_FINISH;
+        }
+        else if (token->kind == lexer::TokenKind::KEYWORD
+                 && token->value == "SUCCESS") {
+            auto expectation = std::make_unique<expectation::SuccessfulExitExpectation>();
+            fTestData.expectations.emplace_back(std::move(expectation));
+
+            fCurrentState = State::EXPECT_OR_FINISH;
+        }
+        else {
+            _ThrowWhenNotKeywordOrHasDifferrentName({"FAILURE", "SUCCESS"}, *token);
+        }
     }
 
     void

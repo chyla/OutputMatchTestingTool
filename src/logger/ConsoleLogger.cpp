@@ -78,6 +78,13 @@ struct CauseVisitor {
                   "Got: exit with failure (exit code: " + std::to_string(cause.fExitCode) + ")";
     }
 
+
+    void operator()(expectation::validation::FailureExitCause cause) {
+        stream << "Exit status doesn't match.\n"
+                  "Expected: exit with failure (exit code other than zero)\n"
+                  "Got: exit with success (exit code: " + std::to_string(cause.fExitCode) + ")";
+    }
+
 private:
     std::ostream &stream;
 };

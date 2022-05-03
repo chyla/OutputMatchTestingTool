@@ -12,6 +12,7 @@
 #include "headers/expectation/validation/FullOutputCause.hpp"
 #include "headers/expectation/validation/PartialOutputCause.hpp"
 #include "headers/expectation/validation/SuccessfulExitCause.hpp"
+#include "headers/expectation/validation/FailureExitCause.hpp"
 
 #include <string>
 #include <optional>
@@ -28,7 +29,8 @@ struct ValidationResult
         validation::ExitCodeCause,
         validation::FullOutputCause,
         validation::PartialOutputCause,
-        validation::SuccessfulExitCause
+        validation::SuccessfulExitCause,
+        validation::FailureExitCause
         > Cause;
 
     const std::optional<Cause> cause;

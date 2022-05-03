@@ -202,6 +202,13 @@ TEST_CASE("Should return keyword token with 'SUCCESS' value")
     helper::test_one_token_with_buffer(buffer, expectedToken);
 }
 
+TEST_CASE("Should return keyword token with 'FAILURE' value")
+{
+    const std::string buffer = "FAILURE";
+    const Token expectedToken {TokenKind::KEYWORD, "FAILURE"};
+    helper::test_one_token_with_buffer(buffer, expectedToken);
+}
+
 TEST_CASE("Should return keyword token with 'INPUT' value")
 {
     const std::string buffer = "INPUT";

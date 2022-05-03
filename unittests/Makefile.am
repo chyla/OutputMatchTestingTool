@@ -14,6 +14,7 @@ check_PROGRAMS = lexer_tests \
                  partial_output_expectation_tests \
                  exit_code_expectation_tests \
                  successful_exit_expectation_tests \
+                 failure_exit_expectation_tests \
                  line_endings_tests
 
 lexer_tests_SOURCES = main.cpp lexer/LexerTests.cpp
@@ -48,6 +49,8 @@ partial_output_expectation_tests_LDADD =  ../src/expectation/PartialOutputExpect
 exit_code_expectation_tests_SOURCES = main.cpp expectation/ExitCodeExpectationTests.cpp
 
 successful_exit_expectation_tests_SOURCES = main.cpp expectation/SuccessfulExitExpectationTests.cpp
+
+failure_exit_expectation_tests_SOURCES = main.cpp expectation/FailureExitExpectationTests.cpp
 
 line_endings_tests_SOURCES = main.cpp LineEndingsTests.cpp
 
