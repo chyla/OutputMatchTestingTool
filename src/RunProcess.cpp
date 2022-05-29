@@ -198,7 +198,7 @@ RunProcess(const std::string &path,
                 wroteToChild += system::unix::Write(toChildPipe.writeEnd,
                                                     input.data() + wroteToChild,
                                                     input.length() - wroteToChild,
-                                                    system::unix::WriteOptions::IGNORE_EPIPE);
+                                                    system::unix::WriteOptions::IGNORE_EPIPE_EAGAIN);
             }
 
             if (isToChildPipeWriteEndClosed == false && IsAllDataWritten(wroteToChild, input)) {

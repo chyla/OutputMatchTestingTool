@@ -45,7 +45,7 @@ enum class PipeOptions
 enum class WriteOptions
 {
     NONE,
-    IGNORE_EPIPE
+    IGNORE_EPIPE_EAGAIN
 };
 
 const Pipe

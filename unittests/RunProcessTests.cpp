@@ -1268,7 +1268,7 @@ TEST_GROUP("Write To Child Process")
         CHECK(counts.size() == 2);
         CHECK(counts.at(0) == input.length());
         CHECK(counts.at(1) == input.length() - inputPart1.length());
-        CHECK(receivedWriteOption == system::unix::WriteOptions::IGNORE_EPIPE);
+        CHECK(receivedWriteOption == system::unix::WriteOptions::IGNORE_EPIPE_EAGAIN);
     }
 }
 
