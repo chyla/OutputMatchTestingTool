@@ -53,7 +53,8 @@ Write(int fd, const void *buf, size_t count, WriteOptions options)
 {
     const ssize_t bytes = write(fd, buf, count);
     if (bytes < 0) {
-        if (options == system::unix::WriteOptions::IGNORE_EPIPE && errno == EPIPE) {
+        if (options == system::unix::WriteOptions::IGNORE_EPIPE_EAGAIN
+                && (errno == EPIPE || errno == EAGAIN)) {
             return 0;
         }
         else {
