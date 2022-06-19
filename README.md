@@ -22,9 +22,23 @@ After installing Zero Install, type in the console:
 0install add omtt https://apps.chyla.org/omtt.xml
 ```
 
-May be needed to modify your `PATH` variable, Zero Install will notify you.
+To run OMTT, type in the console:
 
-You may need to re-open the console.
+```bash
+0install run omtt
+```
+
+#### Linux
+
+With Bash you can create an alias to run the app directly:
+
+```bash
+alias omtt='0install run omtt'
+```
+
+#### Windows
+
+You may need to re-open the console to run the app directly.
 
 ### Binary packages
 
