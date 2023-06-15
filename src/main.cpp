@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022, Adam Chyła <adam@chyla.org>.
+ * Copyright (c) 2019-2023, Adam Chyła <adam@chyla.org>.
  * All rights reserved.
  *
  * Distributed under the terms of the BSD 3-Clause License.
@@ -29,7 +29,7 @@ namespace po = boost::program_options;
 
 const char * const license_text = R"(BSD 3-Clause License
 
-Copyright (c) 2019-2022, Adam Chyła <adam@chyla.org>
+Copyright (c) 2019-2023, Adam Chyła <adam@chyla.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -126,7 +126,7 @@ main(int argc, char **argv)
 
         if (vm.count("version")) {
             std::cout << argv[0] << " " << VERSION << '\n'
-                      << "Copyright (c) 2019-2022, Adam Chyła <adam@chyla.org>.\n"
+                      << "Copyright (c) 2019-2023, Adam Chyła <adam@chyla.org>.\n"
                       << "All rights reserved.\n"
                       << "\n"
                       << "Distributed under the terms of the BSD 3-Clause License.\n";
