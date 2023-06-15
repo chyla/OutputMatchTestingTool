@@ -26,7 +26,8 @@ RunProcessSignalHandler(const int signum, siginfo_t *info, void *ucontext);
 namespace
 {
 
-const int INTERNAL_TMP_BUFFER_SIZE = 1024;
+constexpr int INTERNAL_TMP_BUFFER_SIZE = 1024;
+using DataBuffer = std::array<char, INTERNAL_TMP_BUFFER_SIZE>;
 
 bool
 IsParentProcess(const int pid)
@@ -42,7 +43,7 @@ RedirectPipe(const int oldFd, const int newFd)
 }
 
 int
-ReadToBuffer(const int fd, std::array<char, INTERNAL_TMP_BUFFER_SIZE> &buf)
+ReadToBuffer(const int fd, DataBuffer &buf)
 {
     const int bytes = system::unix::Read(fd, buf.data(), buf.size() - 1);
     buf.at(bytes) = 0;
@@ -166,7 +167,7 @@ RunProcess(const std::string &path,
 
         std::string_view::size_type wroteToChild = 0;
         std::string internalErrors;
-        std::array<char, INTERNAL_TMP_BUFFER_SIZE> buf;
+        DataBuffer buf;
         int processExitStatus;
         bool isProcessRunning = true;
         bool isToChildPipeWriteEndClosed = false;
