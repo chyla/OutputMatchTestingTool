@@ -290,8 +290,8 @@ Read the [VERSIONING.md](VERSIONING.md) file for details.
 
 ## License
 
-This project is licensed under the BSD 3-Clause License - see
-the [LICENSE](LICENSE) file for details.
+This project is licensed under the terms of the Mozilla Public License,
+v. 2.0. - see the [LICENSE](LICENSE) file for details.
 
 ## Authors
 

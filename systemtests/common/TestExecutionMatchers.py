@@ -1,7 +1,8 @@
 # Copyright (c) 2019-2023, Adam Chyła <adam@chyla.org>.
-# All rights reserved.
 #
-# Distributed under the terms of the BSD 3-Clause License.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 
 def tests_were_executed_in_order(result, order):
