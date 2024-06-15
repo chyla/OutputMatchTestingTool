@@ -1,0 +1,11 @@
+FROM docker.io/library/rockylinux:8
+
+RUN dnf update -y
+RUN dnf install -y \
+    gcc gcc-c++ autoconf automake make boost-devel \
+    python3
+RUN python3 -m venv /venv
+ENV PATH=/venv/bin:$PATH
+RUN pip install robotframework==4.1.2
+
+CMD /bin/bash
