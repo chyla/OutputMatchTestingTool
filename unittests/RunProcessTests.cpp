@@ -15,6 +15,7 @@
 
 #include "unittests/test_framework.hpp"
 
+#include <algorithm>
 #include <iterator>
 #include <string>
 
