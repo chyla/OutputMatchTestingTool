@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023, Adam Chyła <adam@chyla.org>.
+ * Copyright (c) 2019-2024, Adam Chyła <adam@chyla.org>.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -98,7 +98,7 @@ main(int argc, char **argv)
 
         if (vm.count("version")) {
             std::cout << argv[0] << " " << VERSION << '\n'
-                      << "Copyright (c) 2019-2023, Adam Chyła <adam@chyla.org>.\n"
+                      << "Copyright (c) 2019-2024, Adam Chyła <adam@chyla.org>.\n"
                       << "\n"
                       << "Distributed under the terms of the Mozilla Public License, v. 2.0.\n";
             return omtt::INFORMATION_PRINTED;
