@@ -54,7 +54,7 @@ Fatal Error During SUT Execution Message Is Present
 
 Argument More Than Once Error Message Is Present
     [Arguments]    ${result}
-    Should Contain    ${result.stderr}    commad line arguments error:
+    Should Contain    ${result.stderr}    command line arguments error:
     Should Contain    ${result.stderr}    cannot be specified more than once
 
 Invalid Exit Code Is Not Present
@@ -87,7 +87,7 @@ Exit Code Is Present
 
 Unrecognised Argument Error Message Is Present
     [Arguments]    ${result}
-    Should Contain    ${result.stderr}    commad line arguments error: unrecognised option
+    Should Contain    ${result.stderr}    command line arguments error: unrecognised option
 
 Fatal Error Message Is Not Present
     [Arguments]    ${result}

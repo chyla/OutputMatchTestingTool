@@ -110,17 +110,17 @@ main(int argc, char **argv)
         }
     }
     catch (std::exception &ex) {
-        std::cerr << "commad line arguments error: " << ex.what() << '\n';
+        std::cerr << "command line arguments error: " << ex.what() << '\n';
         return omtt::INVALID_COMMAND_LINE_OPTIONS;
     }
 
     if (vm.count("test-file") == 0) {
-        std::cerr << "commad line arguments error: missing test file path.\n";
+        std::cerr << "command line arguments error: missing test file path.\n";
         return omtt::INVALID_COMMAND_LINE_OPTIONS;
     }
 
     if (vm.count("sut") == 0) {
-        std::cerr << "commad line arguments error: missing sut.\n";
+        std::cerr << "command line arguments error: missing sut.\n";
         return omtt::INVALID_COMMAND_LINE_OPTIONS;
     }
 
