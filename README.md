@@ -1,10 +1,10 @@
 # Output Match Testing Tool
 
-Testing tool for checking programs console output.
+Testing tool for checking program console output.
 
 ## Overview
 
-The tool allows you to check the program correctness. It will run
+The tool allows you to check the correctness of the program. It will run
 the SUT (System Under Test) program with specified input and match the standard
 output and exit code to assumptions given in test file.
 
@@ -14,7 +14,7 @@ output and exit code to assumptions given in test file.
 
 It is recommended to use [Zero Install - A decentralised cross-platform software
 installation system](https://0install.net/). Zero Install will download the OMTT
-in a secure way and will care about updates.
+in a secure way and will take care of updates.
 
 After installing Zero Install, type in the console:
 
@@ -54,15 +54,15 @@ for details.
 
 ## Getting Started
 
-To run the tool you will need to compile it from the sources (see
+To run the tool, you will need to compile it from the sources (see
 the *Installing from the sources* section) or get the already
-compiled binary. Then you will need to write the test and run
+compiled binary. Then, you will need to write the test and run
 the tool with specified path to the SUT. The tool will run the SUT,
 check the expectations and print the results.
 
 The next steps of this introduction will use the Unix `cat` program.
 Here is what the manual says about it: *concatenate files and print
-on the standard output*. When the input file is not given the standard
+on the standard output*. When the input file is not provided, the standard
 input is printed on the standard output, we will use this.
 
 ### Full output match
